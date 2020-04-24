@@ -10,7 +10,14 @@
 
 <body>
 <script type="text/javascript" src="vendor/hc-web-client/hc-web-client-0.5.1.browser.min.js"></script>
-<button onclick="getMyHandle()" type="button">Get my Handle</button>
+<button onclick="getMyHandle(show_output)" type="button">Get my Handle</button>
+<button onclick="setMyHandle()" type="button">Set my Handle</button>
+<input type = "text"
+       id = "myHandleInput"
+       value = "my handle here" />
+</p>
+<script type="text/javascript" src="hc-bridge.js"></script>
 <script type="text/javascript" src="main.js"></script>
+<div>Response: <span id="output"></span></div>
 </body>
 </html>
