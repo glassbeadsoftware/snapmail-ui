@@ -5,17 +5,14 @@
   "scripts": {
     "start": "webpack-dev-server --open --config webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack-dev-server --env.mode development",
+    "prod": "webpack --env.mode production",
     "build": "webpack --config webpack.prod.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ddd-mtl/snapmail.git"
   },
-  "keywords": [
-    "workflow",
-    "task",
-    "management"
-  ],
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -26,21 +23,23 @@
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
+    "@webcomponents/webcomponentsjs": "^2.4.3",
     "babel-loader": "^8.0.6",
+    "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.2.0",
+    "html-webpack-plugin": "^4.2.0",
     "style-loader": "^1.0.0",
-    "webpack": "4.41.3",
-    "webpack-cli": "^3.3.6",
-    "webpack-dev-server": "^3.8.0",
+    "webpack": "^4.41.3",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3",
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
     "@babel/runtime": "^7.7.4",
-    "@material-ui/core": "^4.6.1",
-    "hc-web-client": "0.5.6",
-    "lodash": "^4.17.15",
+    "@vaadin/vaadin": "^15.0.5",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
-    "prop-types": "^15.7.2",
-  }
+    "prop-types": "^15.7.2"
+  },
+  "main": "webpack.common.js"
 }
