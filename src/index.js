@@ -1,5 +1,6 @@
 import '@vaadin/vaadin-button';
 import '@vaadin/vaadin-grid';
+import '@vaadin/vaadin-item';
 import '@vaadin/vaadin-text-field';
 
 window.addEventListener('load', () => {
@@ -10,7 +11,7 @@ function initUI() {
   const firstNameField = document.querySelector('#firstName');
   const addButton = document.querySelector('#addButton');
 
-  addButton.addEventListener('click', e => {
-    firstNameField.value = 'initialized';
-  });
+  // addButton.addEventListener('click', e => {
+  //   firstNameField.value = 'initialized';
+  // });
 }

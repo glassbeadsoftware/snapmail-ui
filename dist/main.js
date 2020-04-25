@@ -7,7 +7,8 @@ function show_output(callResult) {
 }
 
 function setMyHandle() {
-  let input = document.getElementById('myHandleInput');
+  let input = document.getElementById('myNewHandleInput');
   console.log('input = ' + input.value);
-  setHandle(input.value, console.log)
+  setHandle(input.value, console.log);
+  input.value = '';
 }

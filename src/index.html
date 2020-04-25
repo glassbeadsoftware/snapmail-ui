@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>SnapMail</title>
+    <meta name="description" content="GUI for SnapMail app FTW" />
+    <script type="text/javascript" src="vendor/hc-web-client/hc-web-client-0.5.1.browser.min.js"></script>
+    <script type="text/javascript" src="hc-bridge.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+    <script src="webcomponents/webcomponents-loader.js"></script>
+    <script>
+      if (!window.customElements) { document.write('<!--'); }
+    </script>
+    <script src="webcomponents/custom-elements-es5-adapter.js"></script>
+    <!-- ! DO NOT REMOVE THIS COMMENT, WE NEED ITS CLOSING MARKER -->
+</head>
+
+<body>
+<vaadin-text-field clear-button-visible label="New Handle" id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
+<vaadin-button id="getMyHandleButton" onclick="getMyHandle(show_output)"> Get my Handle </vaadin-button>
+<vaadin-button id="setMyHandleButton" onclick="setMyHandle()"> Set my Handle </vaadin-button>
+<div>Response: <span id="output"></span></div>
+<vaadin-item>Foobar</vaadin-item>
+</body>
+</html>
