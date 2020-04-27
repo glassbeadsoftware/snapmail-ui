@@ -30,6 +30,10 @@ function setHandle(username, callback) {
   call_dna('set_handle', {name: username}).then(result => callback(result));
 }
 
+function getAllHandles(callback) {
+  call_dna('get_all_handles', {}).then(result => callback(result));
+}
+
 // -- Mail -- //
 
 function sendMail(mail, callback) {
@@ -42,6 +46,10 @@ function getMail(otherAgentId, callback) {
 
 function getAllArrivedMail(callback) {
   call_dna('get_all_arrived_mail', {}).then(result => callback(result));
+}
+
+function getAllMails(callback) {
+  call_dna('get_all_mails', {}).then(result => callback(result));
 }
 
 function checkIncomingMail(callback) {
