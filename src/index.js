@@ -1,5 +1,6 @@
 import '@vaadin/vaadin-button';
 import '@vaadin/vaadin-grid';
+//import '@vaadin/vaadin-grid-dynamic-columns-mixin.js';
 import '@vaadin/vaadin-item';
 import '@vaadin/vaadin-text-field';
 import '@vaadin/vaadin-ordered-layout';
@@ -7,6 +8,8 @@ import '@vaadin/vaadin-menu-bar';
 import '@vaadin/vaadin-list-box';
 import '@vaadin/vaadin-split-layout';
 import '@vaadin/vaadin-combo-box';
+import '@vaadin/vaadin-checkbox';
+//import '@polymer/polymer';
 
 window.addEventListener('load', () => {
   initUi();
@@ -29,7 +32,7 @@ function initApp() {
   getMyHandle(show_handle)
 
   // -- FileBox -- //
-  getAllMails(handle_all_mails)
+  getAllMails(handle_mails)
 
   // -- ContactList -- //
   getAllHandles(handle_handles)
@@ -38,11 +41,13 @@ function initApp() {
 function initMenuBar() {
   // Menu -- vaadin-menu-bar
   const menu = document.querySelector('#MenuBar');
-  menu.addEventListener('item-selected', function(e)
-  {
+  menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value))
     if (e.detail.value.text === 'Get All Handles') {
       getAllHandles(handle_handles)
+    }
+    if (e.detail.value.text === 'Get Mails') {
+      getAllMails(handle_mails)
     }
   });
   menu.items = [{
@@ -53,7 +58,7 @@ function initMenuBar() {
     },]
   }, {
     text: 'New', children: [{ text: 'Edit Profile' }, { text: 'Privacy Settings' }]
-  }, { text: 'Get All Handles' }];
+  }, { text: 'Get Mails' }, { text: 'Get All Handles' }];
 }
 
 function initFileBox() {
@@ -85,24 +90,30 @@ function initFileBox() {
     "username": "toto", "subject": "hello mail", "date": "42",
   }]
 
-  document.querySelector('#mailGrid').items = fileboxItems;
+  const mailGrid = document.querySelector('#mailGrid');
+  mailGrid.items = [];
+  mailGrid.addEventListener('active-item-changed', function(event) {
+    const item = event.detail.value;
+    contactGrid.selectedItems = item ? [item] : [];
+    var span = document.getElementById('mailDisplay');
+    let mail = mail_map.get(item.date)
+    span.textContent = '' + JSON.stringify(mail);
+  });
 }
 
 function initInMail() {
+  const inMailArea = document.querySelector('#inMailArea');
+  inMailArea.value = "chocochoc";
 }
 
 function initOutMail() {
   // ContactList -- vaadin-grid
   const contactGrid = document.querySelector('#contactGrid');
-  const handleList = [
-    {username: 'Bob', agentId: 'HcB'},
-    {username: 'Jacques', agentId: 'HcJ'},
-  ];
+  contactGrid.items = [];
   contactGrid.addEventListener('active-item-changed', function(event) {
     const item = event.detail.value;
     contactGrid.selectedItems = item ? [item] : [];
   });
-  contactGrid.items = handleList;
 }
 
 
@@ -119,7 +130,25 @@ function initActionBar() {
       {text: 'Send'}
     ];
   actionMenu.addEventListener('item-selected', function(e) {
-      document.querySelector('i').textContent = JSON.stringify(e.detail.value);
+    console.log(JSON.stringify(e.detail.value))
+    const outMailArea = document.querySelector('#outMailArea');
+    const contactList = document.querySelector('#contactGrid');
+    if (e.detail.value.text === 'Clear') {
+      outMailArea.value = '';
+    }
+    if (e.detail.value.text === 'Send') {
+      const selection = contactGrid.selectedItems;
+      const random_payload = 'Hello from' + selection[0].agentId;
+      if (selection.length > 0) {
+        const mail = {
+          subject: outMailArea.value, payload: random_payload, to: [selection[0].agentId], cc: [], bcc:[]
+        }
+        console.log('sending mail: ' + JSON.stringify(mail))
+        sendMail(mail, log_result)
+      } else {
+        console.log('Send Mail Failed: No receipient selected')
+      }
+    }
     });
 
   // addButton.addEventListener('click', e => {
