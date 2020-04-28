@@ -1,3 +1,5 @@
+// Functions for manipulating mailItems
+
 function is_OutMail(mailItem) {
   let state = mailItem.state;
 

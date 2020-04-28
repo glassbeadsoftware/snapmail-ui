@@ -1,15 +1,12 @@
 import '@vaadin/vaadin-button';
 import '@vaadin/vaadin-grid';
-//import '@vaadin/vaadin-grid-dynamic-columns-mixin.js';
 import '@vaadin/vaadin-item';
 import '@vaadin/vaadin-text-field';
 import '@vaadin/vaadin-ordered-layout';
 import '@vaadin/vaadin-menu-bar';
-import '@vaadin/vaadin-list-box';
+// import '@vaadin/vaadin-list-box';
 import '@vaadin/vaadin-split-layout';
 import '@vaadin/vaadin-combo-box';
-import '@vaadin/vaadin-checkbox';
-//import '@polymer/polymer';
 
 window.addEventListener('load', () => {
   initUi();
@@ -26,9 +23,6 @@ function initUi() {
 }
 
 function initApp() {
-  // const firstNameField = document.querySelector('#firstName');
-  // const addButton = document.querySelector('#addButton');
-
   // -- App Bar -- //
   getMyHandle(show_handle)
 
@@ -39,18 +33,10 @@ function initApp() {
   getAllHandles(handle_handles)
 }
 
+
 function initMenuBar() {
   // Menu -- vaadin-menu-bar
   const menu = document.querySelector('#MenuBar');
-  menu.addEventListener('item-selected', function(e) {
-    console.log(JSON.stringify(e.detail.value))
-    if (e.detail.value.text === 'Get All Handles') {
-      getAllHandles(handle_handles)
-    }
-    if (e.detail.value.text === 'Get Mails') {
-      getAllMails(handle_mails)
-    }
-  });
   menu.items = [{
     text: 'Reply', disabled: true, children: [{
       text: 'Users', children: [{ text: 'List' }, { text: 'Add' }]
@@ -60,6 +46,15 @@ function initMenuBar() {
   }, {
     text: 'New', disabled: true, children: [{ text: 'Edit Profile' }, { text: 'Privacy Settings' }]
   }, { text: 'Get Mails' }, { text: 'Get All Handles' }];
+  menu.addEventListener('item-selected', function(e) {
+    console.log(JSON.stringify(e.detail.value))
+    if (e.detail.value.text === 'Get All Handles') {
+      getAllHandles(handle_handles)
+    }
+    if (e.detail.value.text === 'Get Mails') {
+      getAllMails(handle_mails)
+    }
+  });
 }
 
 function initFileBox() {
@@ -102,6 +97,7 @@ function initFileBox() {
 }
 
 function initInMail() {
+  // inMailArea -- vaadin-text-item
   const inMailArea = document.querySelector('#inMailArea');
   inMailArea.value = '';
 }
@@ -115,12 +111,6 @@ function initOutMail() {
     contactGrid.selectedItems = item ? [item] : [];
     set_SendButtonState(contactGrid.selectedItems.length == 0)
   });
-}
-
-function set_SendButtonState(isDisabled) {
-  let actionMenu = document.querySelector('#ActionBar');
-  actionMenu.items[2].disabled = isDisabled;
-  actionMenu.render();
 }
 
 function initActionBar() {
@@ -158,4 +148,10 @@ function initActionBar() {
       }
     }
     });
+}
+
+function set_SendButtonState(isDisabled) {
+  let actionMenu = document.querySelector('#ActionBar');
+  actionMenu.items[2].disabled = isDisabled;
+  actionMenu.render();
 }

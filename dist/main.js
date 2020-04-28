@@ -1,11 +1,15 @@
 
+// Map of (agentId -> username)
 username_map = new Map();
+// Map of (date -> mailItem)
 mail_map = new Map();
 
+// Generic callback: log response
 function log_result(callResult) {
   console.log('callResult = ' + JSON.stringify(callResult));
 }
 
+// Callback for getMyHandle()
 function show_handle(callResult) {
   var span = document.getElementById('handleDisplay');
   span.textContent = ' ' + callResult.Ok;
@@ -19,6 +23,7 @@ function setMyHandle() {
   input.value = '';
 }
 
+// Callback for getAllMails()
 function handle_mails(callResult) {
   let mailGrid = document.querySelector('#mailGrid');
   let mailList = callResult.Ok;
@@ -40,7 +45,7 @@ function handle_mails(callResult) {
 }
 
 
-
+// Calback for getAllHandles()
 function handle_handles(callResult) {
   const contactGrid = document.querySelector('#contactGrid');
   let handleList = callResult.Ok;

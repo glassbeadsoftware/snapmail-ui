@@ -1,3 +1,6 @@
+// Bridge to the DNA
+// Wrapper function for each zome function
+
 var holochain_connection = holochainclient.connect();
 
 const call_dna = (functionName, params = {}) => {
@@ -8,7 +11,6 @@ const call_dna = (functionName, params = {}) => {
       let response = await callZome('test-instance', 'snapmail', functionName)(params)
       console.log('dna call: ' + functionName + '(' + JSON.stringify(params) + ')')
       console.log(response)
-      //succ(response)
       succ(JSON.parse(response))
     }).catch(error=>{
       err(error)
