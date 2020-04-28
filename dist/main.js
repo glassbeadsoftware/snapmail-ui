@@ -19,19 +19,22 @@ function setMyHandle() {
   input.value = '';
 }
 
-
 function handle_mails(callResult) {
-  const mailGrid = document.querySelector('#mailGrid');
+  let mailGrid = document.querySelector('#mailGrid');
   let mailList = callResult.Ok;
   let items = []
   mail_map.clear()
+  const folderBox = document.querySelector('#fileboxFolder');
+  let selectedBox = folderBox.value;
   for (mailItem of mailList) {
     mail_map.set(mailItem.date, mailItem)
-    let username = username_map.get(mailItem.author)
-    let item = {
-      "username": username, "subject": mailItem.mail.subject, "date": mailItem.date,
-    };
-    items.push(item);
+    if (is_OutMail(mailItem) && selectedBox === 'Inbox') {
+      continue;
+    }
+    if (!is_OutMail(mailItem) && selectedBox === 'Outbox') {
+      continue;
+    }
+    items.push(into_gridItem(mailItem));
   }
   mailGrid.items = items;
 }
