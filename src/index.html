@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 
 <html lang="en">
+
+<dom-module id="my-grid-styles" theme-for="vaadin-grid">
+    <template>
+        <style>
+            /* Background needs a stronger selector to not be overridden */
+            [part~="cell"].female {
+                background: rgb(255, 240, 240);
+            }
+
+            [part~="cell"].male {
+                background: rgb(245, 245, 255);
+            }
+
+            .newmail {
+                font-weight: bold;
+            }
+
+            .checked {
+                font-weight: normal;
+            }
+        </style>
+    </template>
+</dom-module>
+
 <head>
     <meta charset="utf-8" />
     <title>SnapMail</title>
@@ -18,9 +42,13 @@
 </head>
 
 <body>
-<vaadin-vertical-layout theme="spacing">
-    <vaadin-horizontal-layout theme="spacing-xs">
-    <vaadin-item>My Handle: <span id="handleDisplay" style="min-width: 100px;"></span></vaadin-item>
+<vaadin-vertical-layout theme="spacing" style="">
+    <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
+        <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 100px 10px 10px;">SnapMail</span>
+<!--        <vaadin-text-field clear-button-visible placeholder="Search">-->
+<!--            <iron-icon icon="lumo:search" slot="prefix"></iron-icon>-->
+<!--        </vaadin-text-field>-->
+        <vaadin-item><span id="handleDisplay" style="min-width: 100px;"></span></vaadin-item>
     <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
         <vaadin-button id="setMyHandleButton" onclick="setMyHandle()">Set</vaadin-button>
         </vaadin-horizontal-layout>
@@ -29,22 +57,22 @@
     <vaadin-menu-bar open-on-hover id="MenuBar"></vaadin-menu-bar>
     </vaadin-horizontal-layout>
     <vaadin-grid id="mailGrid" theme="compact" column-reordering-allowed style="height: 200px; width: 100%;">
-<!--        <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>-->
-        <vaadin-grid-column path="id" header="id" width="0em" hidden></vaadin-grid-column>
+        <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>
+        <vaadin-grid-filter-column path="id" header="id" width="0em" hidden></vaadin-grid-filter-column>
         <vaadin-grid-column path="username" header="Who" width="9em"></vaadin-grid-column>
         <vaadin-grid-column path="subject" header="Subject" width="15em"></vaadin-grid-column>
         <vaadin-grid-column path="date" header="Date" width="9em"></vaadin-grid-column>
     </vaadin-grid>
-    <vaadin-text-item style="height: 150px;width: 100%;border: 1px solid black;" id="inMailArea" label="InMail" placeholder="<no selection>">
-        <span id="mailDisplay"></span>
-    </vaadin-text-item>
-    <vaadin-split-layout id="outMailBlock" style="height: 150px; width: 100%;border: 1px solid black;">
+    <vaadin-text-area style="height: 150px;width: 100%;" id="inMailArea" placeholder="<no selection>" readonly>
+<!--        <span id="mailDisplay"></span>-->
+    </vaadin-text-area>
+    <vaadin-split-layout id="outMailBlock" style="height: 220px; width: 100%;">
         <vaadin-vertical-layout style="min-width: 40px; width: 75%;">
         <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>
-            <vaadin-text-field style="width: 100%; height: 100%;" id="outMailContentArea" placeholder="Write here..."></vaadin-text-field>
+            <vaadin-text-area style="width: 100%; height: 100%;" id="outMailContentArea" placeholder="Write here..."></vaadin-text-area>
             </vaadin-vertical-layout>
-        <vaadin-grid theme="compact no-row-borders" id="contactGrid" style="min-width: 20px; width: 25%;">
-            <vaadin-grid-column path="username" header="Contact"></vaadin-grid-column>
+        <vaadin-grid theme="no-row-borders" id="contactGrid" style="min-width: 20px; width: 25%;">
+            <vaadin-grid-column path="username" header="Contacts"></vaadin-grid-column>
             <vaadin-grid-column path="agentId" hidden></vaadin-grid-column>
         </vaadin-grid>
     </vaadin-split-layout>

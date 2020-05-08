@@ -1,7 +1,7 @@
 
 // Map of (agentId -> username)
 username_map = new Map();
-// Map of (date -> mailItem)
+// Map of (address -> mailItem)
 mail_map = new Map();
 
 // Generic callback: log response
@@ -32,7 +32,7 @@ function handle_mails(callResult) {
   const folderBox = document.querySelector('#fileboxFolder');
   let selectedBox = folderBox.value;
   for (mailItem of mailList) {
-    mail_map.set(mailItem.date, mailItem)
+    mail_map.set(mailItem.address, mailItem)
     if (is_OutMail(mailItem) && selectedBox === 'Inbox') {
       continue;
     }

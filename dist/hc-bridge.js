@@ -66,10 +66,10 @@ function acknowledgeMail(address, callback) {
   call_dna('acknowledge_mail', {inmail_address: address}).then(result => callback(result));
 }
 
-function acknowledgeMail(address, callback) {
+function hasMailBeenReceived(address, callback) {
   call_dna('has_mail_been_received', {outmail_address: address}).then(result => callback(result));
 }
 
-function acknowledgeMail(address, callback) {
+function hasAckBeenReceived(address, callback) {
   call_dna('has_ack_been_received', {inmail_address: address}).then(result => callback(result));
 }
