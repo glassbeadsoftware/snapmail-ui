@@ -38,7 +38,7 @@ function hasMailBeenOpened(mailItem) {
  * Return mailItem class
  */
 function determineMailClass(mailItem) {
-  console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
+  //console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
   let state = mailItem.state;
 
   if (state.hasOwnProperty('Out')) {

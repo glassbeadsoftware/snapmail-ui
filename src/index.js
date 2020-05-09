@@ -158,9 +158,10 @@ function initFileBox() {
       //getAllMails(handleMails, update_fileBox)
       return;
     }
-    console.log('mail item: ' + JSON.stringify(item))
+    console.log('mail grid item: ' + JSON.stringify(item))
     var span = document.getElementById('inMailArea');
     let mail = mail_map.get(item.id);
+    console.log('mail item: ' + JSON.stringify(mail))
     span.value = into_mailText(mail);
     acknowledgeMail(item.id, regenerate_mailGrid);
   });
@@ -182,9 +183,33 @@ function initOutMail() {
   contactGrid.items = [];
   contactGrid.addEventListener('active-item-changed', function(event) {
     const item = event.detail.value;
-    contactGrid.selectedItems = item ? [item] : [];
+    if (item && !contactGrid.selectedItems.includes(item)) {
+      contactGrid.selectedItems.push(item);
+    }
     set_SendButtonState(contactGrid.selectedItems.length == 0)
   });
+  contactGrid.addEventListener('click', function(e) {
+    const item = contactGrid.getEventContext(e).item;
+    //contactGrid.selectedItems = item ? [item] : [];
+    if (item) {
+      // contactGrid.selectedItems = [item];
+      toggleRecepientType(item);
+      console.log('selectedItems size = ' + contactGrid.selectedItems.length)
+      contactGrid.render();
+    }
+  });
+}
+
+function toggleRecepientType(item) {
+  let nextType = '';
+  switch(item.recepientType) {
+    case '': nextType = 'to'; break;
+    case 'to': nextType = 'cc'; break;
+    case 'cc': nextType = 'bcc'; break;
+    case 'bcc': nextType = ''; break;
+    default: console.err('unknown recepientType');
+  }
+  item.recepientType = nextType;
 }
 
 function initActionBar() {
@@ -196,28 +221,48 @@ function initActionBar() {
       { text: 'Send', disabled: true }
     ];
   actionMenu.addEventListener('item-selected', function(e) {
-    console.log(JSON.stringify(e.detail.value))
+    console.log('actionMenu: ' + JSON.stringify(e.detail.value.text))
     const outMailSubjectArea = document.querySelector('#outMailSubjectArea');
     const outMailContentArea = document.querySelector('#outMailContentArea');
     if (e.detail.value.text === 'Clear') {
       outMailSubjectArea.value = '';
       outMailContentArea.value = '';
+      resetRecepients();
     }
     if (e.detail.value.text === 'Send') {
+      const contactGrid = document.querySelector('#contactGrid');
       const selection = contactGrid.selectedItems;
+      console.log('selection: ' + JSON.stringify(selection));
       if (selection.length > 0) {
-        const mail = {
-          subject: outMailSubjectArea.value, payload: outMailContentArea.value, to: [selection[0].agentId], cc: [], bcc:[]
+        let toList = [];
+        let ccList = [];
+        let bccList = [];
+        // // Get recepients from contactGrid
+        for (let contactItem of selection) {
+          console.log('recepientType: ' + contactItem.recepientType);
+          switch (contactItem.recepientType) {
+            case '': break;
+            case 'to': toList.push(contactItem.agentId); break;
+            case 'cc': ccList.push(contactItem.agentId); break;
+            case 'bcc': bccList.push(contactItem.agentId); break;
+            default: console.err('unknown recepientType');
+          }
         }
-        console.log('sending mail: ' + JSON.stringify(mail))
-        sendMail(mail, logResult)
-        set_SendButtonState(true)
+        // Create Mail
+        const mail = {
+          subject: outMailSubjectArea.value, payload: outMailContentArea.value, to: toList, cc: ccList, bcc: bccList
+        };
+        console.log('sending mail: ' + JSON.stringify(mail));
+        // Send Mail
+        sendMail(mail, logResult);
+        // Update UI
+        set_SendButtonState(true);
         outMailSubjectArea.value = '';
         outMailContentArea.value = '';
-        const contactGrid = document.querySelector('#contactGrid');
         contactGrid.selectedItems = [];
-        contactGrid.render()
-        getAllMails(handleMails, update_fileBox)
+        contactGrid.activeItem = null;
+        resetRecepients();
+        getAllMails(handleMails, update_fileBox);
       } else {
         console.log('Send Mail Failed: No receipient selected')
       }

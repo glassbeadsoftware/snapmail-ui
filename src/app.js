@@ -83,8 +83,20 @@ function handleHandleList(callResult) {
   for (handleItem of handleList) {
     // FIXME: exclude self from list
     username_map.set(handleItem[1], handleItem[0])
-    let item = { "username": handleItem[0], "agentId": handleItem[1] };
+  }
+  resetRecepients();
+}
+
+function resetRecepients() {
+  const contactGrid = document.querySelector('#contactGrid');
+  let items = [];
+  for (entry of username_map.entries()) {
+    username_map.set(handleItem[1], handleItem[0])
+    let item = { "username": entry[1], "agentId": entry[0], "recepientType": '' };
     items.push(item);
   }
   contactGrid.items = items;
+  contactGrid.selectedItems = [];
+  contactGrid.activeItem = null;
+  contactGrid.render();
 }
