@@ -83,7 +83,6 @@ function initMenuBar() {
 function update_mailGrid(folder) {
   const grid = document.querySelector('#mailGrid');
   let folderItems = [];
-  console.log('mail_map size: ' + mail_map.values)
   console.log('update_mailGrid: ' + folder);
   switch(folder) {
     case 'All':
@@ -154,14 +153,21 @@ function initFileBox() {
   // On item select: Display in inMailArea
   mailGrid.addEventListener('active-item-changed', function(event) {
     const item = event.detail.value;
-    contactGrid.selectedItems = item ? [item] : [];
+    mailGrid.selectedItems = item ? [item] : [];
+    if (item === null) {
+      //getAllMails(handleMails, update_fileBox)
+      return;
+    }
     console.log('mail item: ' + JSON.stringify(item))
     var span = document.getElementById('inMailArea');
-    let mail = mail_map.get(item.id)
+    let mail = mail_map.get(item.id);
     span.value = into_mailText(mail);
-    acknowledgeMail(item.id, logResult)
-    //console.log('mail: ' + JSON.stringify(mail))
+    acknowledgeMail(item.id, regenerate_mailGrid);
   });
+}
+
+function regenerate_mailGrid(callResult) {
+  getAllMails(handleMails, update_fileBox)
 }
 
 function initInMail() {
@@ -220,8 +226,22 @@ function initActionBar() {
 }
 
 function update_fileBox() {
+  const mailGrid = document.querySelector('#mailGrid');
+  const activeItem = mailGrid.activeItem;
+  console.log('update_fileBox ; activeItem = ' + JSON.stringify(activeItem))
   const folderBoxAll = document.querySelector('#fileboxFolder');
   update_mailGrid(folderBoxAll.value)
+
+  if (activeItem) {
+    let newActiveItem = null;
+    for(mailItem of mailGrid.items) {
+      if(mailItem.id === activeItem.id) {
+        newActiveItem = mailItem;
+        break;
+      }
+    }
+    mailGrid.selectItem(newActiveItem);
+  }
 }
 
 function set_SendButtonState(isDisabled) {

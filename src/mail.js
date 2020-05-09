@@ -80,6 +80,9 @@ function customDateString(dateItem) {
 function into_gridItem(mailItem) {
   let username = username_map.get(mailItem.author)
   let dateStr = customDateString(mailItem.date)
+  if (mailItem.state.hasOwnProperty('Out')) {
+    username = 'To: ' + username_map.get(mailItem.mail.to[0])
+  }
   let item = {
     "id": mailItem.address, "username": username, "subject": mailItem.mail.subject, "date": dateStr,
   };
@@ -106,7 +109,7 @@ function into_mailText(mailItem) {
     bcc_line += ' ' + username_map.get(item);
     can_bcc = true;
   }
-  intext += '\nTO: ' + to_line;
+  intext += '\nTo: ' + to_line;
   if (can_cc) {
     intext += '\nCC: ' + cc_line;
   }
