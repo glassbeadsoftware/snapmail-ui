@@ -43,9 +43,9 @@
     <title>SnapMail</title>
     <meta name="description" content="UI for SnapMail happ" />
     <script type="text/javascript" src="vendor/hc-web-client/hc-web-client-0.5.1.browser.min.js"></script>
-    <script type="text/javascript" src="hc-bridge.js"></script>
+    <script type="text/javascript" src="hc_bridge.js"></script>
     <script type="text/javascript" src="mail.js"></script>
-    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="app.js"></script>
     <script src="webcomponents/webcomponents-loader.js"></script>
     <script>
       if (!window.customElements) { document.write('<!--'); }
@@ -57,13 +57,14 @@
 <body>
 <vaadin-vertical-layout theme="spacing" style="">
     <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
-        <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 100px 10px 10px;">SnapMail v0.0.1</span>
+        <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">SnapMail v0.0.1 - </span>
 <!--        <vaadin-text-field clear-button-visible placeholder="Search">-->
 <!--            <iron-icon icon="lumo:search" slot="prefix"></iron-icon>-->
 <!--        </vaadin-text-field>-->
-        <vaadin-item><span id="handleDisplay" style="min-width: 100px;"></span></vaadin-item>
+        <vaadin-button id="handleDisplay" onclick="allowChangeHandle()" style="min-width: 100px;"><iron-icon icon="lumo:edit" slot="prefix"></iron-icon></vaadin-button>
     <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
         <vaadin-button id="setMyHandleButton" onclick="setMyHandle()">Update</vaadin-button>
+        <vaadin-button id="cancelHandleButton" onclick="cancelMyHandle()">Cancel</vaadin-button>
         </vaadin-horizontal-layout>
     <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
     <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>

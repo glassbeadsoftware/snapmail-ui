@@ -18,6 +18,10 @@ import '@vaadin/vaadin-grid/vaadin-grid-sorter';
 import '@vaadin/vaadin-icons';
 import '@vaadin/vaadin-icons/vaadin-icons';
 
+// import * as dna from './hc_bridge'
+// import * as mail from './mail'
+// import * as app from './app'
+
 window.addEventListener('load', () => {
   initUi();
 });
@@ -25,11 +29,12 @@ window.addEventListener('load', () => {
 //var myVar = setInterval(onLoop, 1000);
 
 function onLoop() {
-  getAllHandles(handle_handles)
-  getAllMails(handle_mails, update_fileBox)
+  getAllHandles(handleHandleList)
+  getAllMails(handleMails, update_fileBox)
 }
 
 function initUi() {
+  setChangeHandleHidden(true)
   initMenuBar()
   initApp()
   initFileBox()
@@ -40,13 +45,13 @@ function initUi() {
 
 function initApp() {
   // -- App Bar -- //
-  getMyHandle(show_handle)
+  getMyHandle(showHandle)
 
   // -- FileBox -- //
-  getAllMails(handle_mails, update_fileBox)
+  getAllMails(handleMails, update_fileBox)
 
   // -- ContactList -- //
-  getAllHandles(handle_handles)
+  getAllHandles(handleHandleList)
 }
 
 
@@ -65,10 +70,10 @@ function initMenuBar() {
   menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value))
     if (e.detail.value.text === 'Get All Handles') {
-      getAllHandles(handle_handles)
+      getAllHandles(handleHandleList)
     }
     if (e.detail.value.text === 'Get Mails') {
-      getAllMails(handle_mails, update_fileBox)
+      getAllMails(handleMails, update_fileBox)
     }
   });
 }
@@ -152,7 +157,7 @@ function initFileBox() {
     var span = document.getElementById('inMailArea');
     let mail = mail_map.get(item.id)
     span.value = into_mailText(mail);
-    acknowledgeMail(item.id, log_result)
+    acknowledgeMail(item.id, logResult)
     //console.log('mail: ' + JSON.stringify(mail))
   });
 }
@@ -197,14 +202,14 @@ function initActionBar() {
           subject: outMailSubjectArea.value, payload: outMailContentArea.value, to: [selection[0].agentId], cc: [], bcc:[]
         }
         console.log('sending mail: ' + JSON.stringify(mail))
-        sendMail(mail, log_result)
+        sendMail(mail, logResult)
         set_SendButtonState(true)
         outMailSubjectArea.value = '';
         outMailContentArea.value = '';
         const contactGrid = document.querySelector('#contactGrid');
         contactGrid.selectedItems = [];
         contactGrid.render()
-        getAllMails(handle_mails, update_fileBox)
+        getAllMails(handleMails, update_fileBox)
       } else {
         console.log('Send Mail Failed: No receipient selected')
       }

@@ -4,27 +4,56 @@ username_map = new Map();
 // Map of (address -> mailItem)
 mail_map = new Map();
 
+myHandle = '<unknown';
+
 // Generic callback: log response
-function log_result(callResult) {
+function logResult(callResult) {
   console.log('callResult = ' + JSON.stringify(callResult));
 }
 
 // Callback for getMyHandle()
-function show_handle(callResult) {
+function showHandle(callResult) {
   var span = document.getElementById('handleDisplay');
   span.textContent = ' ' + callResult.Ok;
+  myHandle = callResult.Ok;
 }
 
 function setMyHandle() {
   let input = document.getElementById('myNewHandleInput');
   console.log('new handle = ' + input.value);
   setHandle(input.value, console.log);
-  show_handle({ Ok: input.value});
+  showHandle({ Ok: input.value});
   input.value = '';
+  setChangeHandleHidden(true)
 }
 
+function allowChangeHandle() {
+  setChangeHandleHidden(false)
+}
+
+function cancelMyHandle() {
+  setChangeHandleHidden(true)
+}
+
+function setChangeHandleHidden(hidden) {
+  let handleButton = document.getElementById('handleDisplay');
+  handleButton.hidden = !hidden;
+  let handleInput = document.getElementById('myNewHandleInput');
+  handleInput.hidden = hidden;
+  let updateButton = document.getElementById('setMyHandleButton');
+  updateButton.hidden = hidden;
+  let cancelButton = document.getElementById('cancelHandleButton');
+  cancelButton.hidden = hidden;
+  if (hidden) {
+    handleInput.value = ''
+  } else {
+    handleInput.value = myHandle
+  }
+}
+
+
 // Callback for getAllMails()
-function handle_mails(callResult) {
+function handleMails(callResult) {
   let mailGrid = document.querySelector('#mailGrid');
   let mailList = callResult.Ok;
   let items = []
@@ -46,7 +75,7 @@ function handle_mails(callResult) {
 
 
 // Calback for getAllHandles()
-function handle_handles(callResult) {
+function handleHandleList(callResult) {
   const contactGrid = document.querySelector('#contactGrid');
   let handleList = callResult.Ok;
   let items = []

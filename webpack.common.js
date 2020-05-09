@@ -3,7 +3,12 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const path = require('path')
 
 module.exports = {
-  entry: './src/index.js',
+  entry: {
+    app: './src/index.js',
+    // hc_bridge: './src/hc-bridge.js',
+    // main: './src/main.js',
+    // mail: './src/mail.js',
+  },
   plugins: [
     new HtmlWebpackPlugin({
       template: './src/index.html'
@@ -14,6 +19,9 @@ module.exports = {
           from: '**/*.js',
           to: 'webcomponents'
         }
+        , { context: './', from: './src/app.js', to: './' }
+        , { context: './', from: './src/mail.js', to: './' }
+        , { context: './', from: './src/hc_bridge.js', to: './' }
       ])
     ],
   output: {
