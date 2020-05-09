@@ -17,6 +17,8 @@ import '@vaadin/vaadin-grid/vaadin-grid-sort-column';
 import '@vaadin/vaadin-grid/vaadin-grid-sorter';
 import '@vaadin/vaadin-icons';
 import '@vaadin/vaadin-icons/vaadin-icons';
+import '@vaadin/vaadin-lumo-styles';
+import '@vaadin/vaadin-lumo-styles/icons';
 
 // import * as dna from './hc_bridge'
 // import * as mail from './mail'

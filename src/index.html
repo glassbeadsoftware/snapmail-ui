@@ -61,10 +61,14 @@
 <!--        <vaadin-text-field clear-button-visible placeholder="Search">-->
 <!--            <iron-icon icon="lumo:search" slot="prefix"></iron-icon>-->
 <!--        </vaadin-text-field>-->
-        <vaadin-button id="handleDisplay" onclick="allowChangeHandle()" style="min-width: 100px;"><iron-icon icon="lumo:edit" slot="prefix"></iron-icon></vaadin-button>
+        <vaadin-button id="handleDisplay" onclick="allowChangeHandle()" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
     <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
-        <vaadin-button id="setMyHandleButton" onclick="setMyHandle()">Update</vaadin-button>
-        <vaadin-button id="cancelHandleButton" onclick="cancelMyHandle()">Cancel</vaadin-button>
+        <vaadin-button theme="icon" id="setMyHandleButton" onclick="setMyHandle()">
+            <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
+        </vaadin-button>
+        <vaadin-button theme="icon" id="cancelHandleButton" onclick="cancelMyHandle()">
+            <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
+        </vaadin-button>
         </vaadin-horizontal-layout>
     <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
     <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>
@@ -75,9 +79,9 @@
         <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>
         <vaadin-grid-column path="id" header="id" width="0em" hidden></vaadin-grid-column>
 <!--        <vaadin-grid-column header="A" width="60px" flex-grow="0" text-align="end"></vaadin-grid-column>-->
-        <vaadin-grid-sort-column path="username" header="Who" width="9em"></vaadin-grid-sort-column>
-        <vaadin-grid-sort-column path="subject" header="Subject" width="15em"></vaadin-grid-sort-column>
-        <vaadin-grid-sort-column path="date" header="Date" width="9em"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="username" header="Who" width="100px"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="subject" header="Subject" width="500px"></vaadin-grid-sort-column>
+        <vaadin-grid-sort-column path="date" header="Date"></vaadin-grid-sort-column>
     </vaadin-grid>
     <vaadin-text-area style="height: 200px;width: 100%;" id="inMailArea" placeholder="<no selection>" readonly>
 <!--        <span id="mailDisplay"></span>-->

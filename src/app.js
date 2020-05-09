@@ -13,8 +13,8 @@ function logResult(callResult) {
 
 // Callback for getMyHandle()
 function showHandle(callResult) {
-  var span = document.getElementById('handleDisplay');
-  span.textContent = ' ' + callResult.Ok;
+  var handleButton = document.getElementById('handleText');
+  handleButton.textContent = ' ' + callResult.Ok;
   myHandle = callResult.Ok;
 }
 
@@ -44,10 +44,10 @@ function setChangeHandleHidden(hidden) {
   updateButton.hidden = hidden;
   let cancelButton = document.getElementById('cancelHandleButton');
   cancelButton.hidden = hidden;
-  if (hidden) {
-    handleInput.value = ''
-  } else {
+  if (!hidden && myHandle !== '<noname>') {
     handleInput.value = myHandle
+  } else {
+    handleInput.value = ''
   }
 }
 
