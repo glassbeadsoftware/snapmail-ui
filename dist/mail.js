@@ -19,8 +19,8 @@ function is_OutMail(mailItem) {
 /**
  * Return True if mail has been acknoweldged by this agent
  */
-function has_been_opened(mailItem) {
-  console.log('has_been_opened()? ' + JSON.stringify(mailItem.state));
+function hasMailBeenOpened(mailItem) {
+  //console.log('hasMailBeenOpened()? ' + JSON.stringify(mailItem.state));
   let state = mailItem.state;
 
   if (state.hasOwnProperty('Out')) {
@@ -33,6 +33,34 @@ function has_been_opened(mailItem) {
   return false;
 }
 
+
+/**
+ * Return mailItem class
+ */
+function determineMailClass(mailItem) {
+  console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
+  let state = mailItem.state;
+
+  if (state.hasOwnProperty('Out')) {
+    switch (state.Out) {
+      case 'Pending': return 'pending';
+      case 'PartiallyArrived_NoAcknowledgement': return 'partially';
+      case 'PartiallyArrived_PartiallyAcknowledged': return 'partially';
+      case 'Arrived_NoAcknowledgement': return 'arrived';
+      case 'Arrived_PartiallyAcknowledged': return 'arrived';
+      case 'Received': return 'received';
+    }
+  }
+  if (state.hasOwnProperty('In')) {
+    if (state.In === 'Acknowledged' || state.In === 'AckReceived') {
+      return 'received';
+    } else {
+      return 'newmail';
+    }
+  }
+  console.error('Invalid mailItem object')
+  return '';
+}
 
 
 function customDateString(dateItem) {

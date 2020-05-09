@@ -26,7 +26,7 @@ window.addEventListener('load', () => {
 
 function onLoop() {
   getAllHandles(handle_handles)
-  getAllMails(handle_mails)
+  getAllMails(handle_mails, update_fileBox)
 }
 
 function initUi() {
@@ -43,7 +43,7 @@ function initApp() {
   getMyHandle(show_handle)
 
   // -- FileBox -- //
-  getAllMails(handle_mails)
+  getAllMails(handle_mails, update_fileBox)
 
   // -- ContactList -- //
   getAllHandles(handle_handles)
@@ -68,50 +68,78 @@ function initMenuBar() {
       getAllHandles(handle_handles)
     }
     if (e.detail.value.text === 'Get Mails') {
-      getAllMails(handle_mails)
+      getAllMails(handle_mails, update_fileBox)
     }
   });
 }
 
+function update_mailGrid(folder) {
+  const grid = document.querySelector('#mailGrid');
+  let folderItems = [];
+  console.log('mail_map size: ' + mail_map.values)
+  console.log('update_mailGrid: ' + folder);
+  switch(folder) {
+    case 'All':
+      for (mailItem of mail_map.values()) {
+        //folderItems = Array.from(mail_map.values());
+        folderItems.push(into_gridItem(mailItem));
+      }
+      break;
+    case 'Inbox':
+    case 'Sent':
+      for (mailItem of mail_map.values()) {
+        //console.log('mailItem: ' + JSON.stringify(mailItem))
+        let is_out = is_OutMail(mailItem);
+        if (is_out && folder == 'Sent') {
+          folderItems.push(into_gridItem(mailItem));
+          continue;
+        }
+        if (!is_out && folder == 'Inbox') {
+          folderItems.push(into_gridItem(mailItem));
+        }
+      }
+      break;
+    case 'Trash':
+      break;
+    default:
+      console.error('Unknown folder')
+  }
+  const span = document.querySelector('#messageCount');
+  console.assert(span);
+  span.textContent = folderItems.length;
+  console.log('folderItems count: ' + folderItems.length);
+  // console.log('folderItems: ' + JSON.stringify(folderItems))
+  grid.items = folderItems;
+  grid.render();
+}
+
 function initFileBox() {
   // Combobox -- vaadin-combo-box
-  const systemFolders = ['Inbox', 'Outbox', 'Trash'];
+  const systemFolders = ['All', 'Inbox', 'Sent', 'Trash'];
   const folderBoxAll = document.querySelector('#fileboxFolder');
   folderBoxAll.items = systemFolders;
-  folderBoxAll.value = systemFolders[0];
+  folderBoxAll.value = systemFolders[1];
   const folderBox = document.querySelector('#fileboxFolder');
+  // On value change
   folderBox.addEventListener('change', function(event) {
-    const grid = document.querySelector('#mailGrid');
-    let folderItems = []
-    for (mailItem of mail_map.values()) {
-      //console.log('mailItem: ' + JSON.stringify(mailItem))
-      let is_out = is_OutMail(mailItem);
-      if (is_out && event.target.value == 'Outbox') {
-        folderItems.push(into_gridItem(mailItem));
-        continue;
-      }
-      if (!is_out && event.target.value == 'Inbox') {
-        folderItems.push(into_gridItem(mailItem));
-      }
-    }
-    // console.log('folderItems: ' + JSON.stringify(folderItems))
-    grid.items = folderItems;
+    update_mailGrid(event.target.value)
   });
 
   // Filebox -- vaadin-grid
   const mailGrid = document.querySelector('#mailGrid');
   mailGrid.items = [];
-
+  mailGrid.multiSort = true;
   // Display bold if mail not acknowledged
   mailGrid.cellClassNameGenerator = function(column, rowData) {
     let classes = '';
     let mailItem = mail_map.get(rowData.item.id);
     console.assert(mailItem);
-    let is_old = has_been_opened(mailItem);
-    console.log('answer: ' + is_old);
-    if (!is_old) {
-      classes += ' newmail';
-    }
+    classes += determineMailClass(mailItem);
+    // let is_old = hasMailBeenOpened(mailItem);
+    // //console.log('answer: ' + is_old);
+    // if (!is_old) {
+    //   classes += ' newmail';
+    // }
     return classes;
   };
 
@@ -176,12 +204,17 @@ function initActionBar() {
         const contactGrid = document.querySelector('#contactGrid');
         contactGrid.selectedItems = [];
         contactGrid.render()
-        getAllMails(handle_mails)
+        getAllMails(handle_mails, update_fileBox)
       } else {
         console.log('Send Mail Failed: No receipient selected')
       }
     }
     });
+}
+
+function update_fileBox() {
+  const folderBoxAll = document.querySelector('#fileboxFolder');
+  update_mailGrid(folderBoxAll.value)
 }
 
 function set_SendButtonState(isDisabled) {

@@ -50,8 +50,8 @@ function getAllArrivedMail(callback) {
   call_dna('get_all_arrived_mail', {}).then(result => callback(result));
 }
 
-function getAllMails(callback) {
-  call_dna('get_all_mails', {}).then(result => callback(result));
+function getAllMails(callback, afterCallback) {
+  call_dna('get_all_mails', {}).then(result => {callback(result); afterCallback();});
 }
 
 function checkIncomingMail(callback) {
