@@ -4,7 +4,9 @@ username_map = new Map();
 // Map of (address -> mailItem)
 mail_map = new Map();
 
-myHandle = '<unknown';
+myHandle = '<unknown>';
+g_currentFolder = '';
+g_currentMailItem = {};
 
 // Generic callback: log response
 function logResult(callResult) {
@@ -51,7 +53,6 @@ function setChangeHandleHidden(hidden) {
   }
 }
 
-
 // Callback for getAllMails()
 function handleMails(callResult) {
   let mailGrid = document.querySelector('#mailGrid');
@@ -62,6 +63,10 @@ function handleMails(callResult) {
   let selectedBox = folderBox.value;
   for (mailItem of mailList) {
     mail_map.set(mailItem.address, mailItem)
+    // Determine if should add to grid
+    if (isMailDeleted(mailItem) && selectedBox !== 'Trash') {
+      continue;
+    }
     if (is_OutMail(mailItem) && selectedBox === 'Inbox') {
       continue;
     }

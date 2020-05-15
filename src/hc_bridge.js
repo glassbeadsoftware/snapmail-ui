@@ -3,6 +3,27 @@
 
 var holochain_connection = holochainclient.connect();
 
+/**
+ * Try
+ * info/instances
+ * "admin/ui/list"
+ * 'agent/keystore/list'
+ * 'agent/keystore/get_public_key' src_id
+ */
+const call_conductor = (functionName, params = {}) => {
+  return new Promise((succ, err)=>{
+    //connect(process.env.NODE_ENV==="development"?{ url: "ws://localhost:8888"}:undefined)
+    holochain_connection.then(async ({call, close}) => {
+      console.log('conductor call: ' + functionName + '(' + JSON.stringify(params) + ')')
+      let response = await call(functionName)(params)
+      console.log(response)
+      succ(JSON.parse(response))
+    }).catch(error=>{
+      err(error)
+    })
+  })
+}
+
 const call_dna = (functionName, params = {}) => {
   return new Promise((succ, err)=>{
     //connect(process.env.NODE_ENV==="development"?{ url: "ws://localhost:8888"}:undefined)
@@ -17,6 +38,13 @@ const call_dna = (functionName, params = {}) => {
     })
   })
 }
+
+// -- Conductor -- //
+
+function getMyAgentId(callback) {
+  call_conductor('info/instances', {}).then(result => callback(result));
+}
+
 
 // -- Handle -- //
 
@@ -36,6 +64,15 @@ function getAllHandles(callback) {
   call_dna('get_all_handles', {}).then(result => callback(result));
 }
 
+function findAgent(address, callback) {
+  call_dna('find_agent', {agentId: address}).then(result => callback(result));
+}
+
+function pingAgent(address, callback) {
+  call_dna('ping_agent', {agentId: address}).then(result => callback(result));
+}
+
+
 // -- Mail -- //
 
 function sendMail(mail, callback) {
@@ -44,6 +81,10 @@ function sendMail(mail, callback) {
 
 function getMail(otherAgentId, callback) {
   call_dna('get_mail', {address: otherAgentId}).then(result => callback(result));
+}
+
+function deleteMail(mailAddress, callback) {
+  call_dna('delete_mail', {address: mailAddress}).then(result => callback(result));
 }
 
 function getAllArrivedMail(callback) {

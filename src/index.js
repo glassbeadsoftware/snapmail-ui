@@ -37,12 +37,14 @@ function onLoop() {
 
 function initUi() {
   setChangeHandleHidden(true)
+  initDebugBar()
   initMenuBar()
   initApp()
   initFileBox()
   initInMail()
   initOutMail()
   initActionBar()
+  // getMyAgentId(logResult)
 }
 
 function initApp() {
@@ -55,27 +57,37 @@ function initApp() {
   // -- ContactList -- //
   getAllHandles(handleHandleList)
 }
-
-
-function initMenuBar() {
+function initDebugBar() {
   // Menu -- vaadin-menu-bar
-  const menu = document.querySelector('#MenuBar');
-  menu.items = [{
-    text: 'Reply', disabled: true, children: [{
-      text: 'Users', children: [{ text: 'List' }, { text: 'Add' }]
-    }, {
-      text: 'Billing', children: [{ text: 'Invoices' }, { text: 'Balance Events' }]
-    },]
-  }, {
-    text: 'New', disabled: true, children: [{ text: 'Edit Profile' }, { text: 'Privacy Settings' }]
-  }, { text: 'Delete', disabled: true}, { text: 'Get Mails' }, { text: 'Get All Handles' }];
-  menu.addEventListener('item-selected', function(e) {
+  const debug_menu = document.querySelector('#DebugBar');
+  debug_menu.items = [{ text: 'Get Mails' }, { text: 'Get All Handles' }];
+  debug_menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value))
     if (e.detail.value.text === 'Get All Handles') {
       getAllHandles(handleHandleList)
     }
     if (e.detail.value.text === 'Get Mails') {
       getAllMails(handleMails, update_fileBox)
+    }
+  });
+}
+
+function initMenuBar() {
+  // Menu -- vaadin-menu-bar
+  const menu = document.querySelector('#MenuBar');
+  menu.items =
+    [ { text: 'Move', disabled: true }
+    , { text: 'Reply', disabled: true, children: [{ text: 'One' }, { text: 'All' }, { text: 'Fwd' }] }
+    , { text: 'Trash', disabled: true }
+    , { text: 'Print', disabled: true }
+    , { text: 'Find', disabled: true }
+    ];
+
+  menu.addEventListener('item-selected', function(e) {
+    console.log(JSON.stringify(e.detail.value))
+    if (e.detail.value.text === 'Trash') {
+      deleteMail(g_currentMailItem.id, handleDelete)
+      set_DeleteButtonState(true)
     }
   });
 }
@@ -96,6 +108,9 @@ function update_mailGrid(folder) {
       for (mailItem of mail_map.values()) {
         //console.log('mailItem: ' + JSON.stringify(mailItem))
         let is_out = is_OutMail(mailItem);
+        if (isMailDeleted(mailItem)) {
+          continue;
+        }
         if (is_out && folder == 'Sent') {
           folderItems.push(into_gridItem(mailItem));
           continue;
@@ -105,7 +120,13 @@ function update_mailGrid(folder) {
         }
       }
       break;
-    case 'Trash':
+    case 'Trash': {
+      for (mailItem of mail_map.values()) {
+        if(isMailDeleted(mailItem)) {
+          folderItems.push(into_gridItem(mailItem));
+        }
+      }
+    }
       break;
     default:
       console.error('Unknown folder')
@@ -125,10 +146,12 @@ function initFileBox() {
   const folderBoxAll = document.querySelector('#fileboxFolder');
   folderBoxAll.items = systemFolders;
   folderBoxAll.value = systemFolders[1];
+  g_currentFolder = folderBoxAll.value;
   const folderBox = document.querySelector('#fileboxFolder');
   // On value change
   folderBox.addEventListener('change', function(event) {
     update_mailGrid(event.target.value)
+    g_currentFolder = event.target.value;
   });
 
   // Filebox -- vaadin-grid
@@ -158,12 +181,17 @@ function initFileBox() {
       //getAllMails(handleMails, update_fileBox)
       return;
     }
+    g_currentMailItem = item;
     console.log('mail grid item: ' + JSON.stringify(item))
     var span = document.getElementById('inMailArea');
     let mail = mail_map.get(item.id);
     console.log('mail item: ' + JSON.stringify(mail))
     span.value = into_mailText(mail);
     acknowledgeMail(item.id, regenerate_mailGrid);
+    // Allow delete button
+    if (g_currentFolder !== 'Trash') {
+      set_DeleteButtonState(false)
+    }
   });
 }
 
@@ -293,4 +321,16 @@ function set_SendButtonState(isDisabled) {
   let actionMenu = document.querySelector('#ActionBar');
   actionMenu.items[2].disabled = isDisabled;
   actionMenu.render();
+}
+
+function set_DeleteButtonState(isDisabled) {
+  let menu = document.querySelector('#MenuBar');
+  console.log('menu.items = ' + JSON.stringify(menu.items))
+  menu.items[2].disabled = isDisabled;
+  menu.render();
+}
+
+function handleDelete(_callResult) {
+  // TODO check if call result succeeded
+  getAllMails(handleMails, update_fileBox)
 }

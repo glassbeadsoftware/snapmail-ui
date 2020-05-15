@@ -18,6 +18,11 @@
                 font-weight: bold;
             }
 
+            .deleted {
+                color:grey;
+                text-decoration: line-through;
+            }
+
             .arrived {
                 color:black;
             }
@@ -69,6 +74,7 @@
         <vaadin-button theme="icon" id="cancelHandleButton" onclick="cancelMyHandle()">
             <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
         </vaadin-button>
+        <vaadin-menu-bar open-on-hover id="DebugBar"></vaadin-menu-bar>
         </vaadin-horizontal-layout>
     <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
     <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>
@@ -86,7 +92,7 @@
     <vaadin-text-area style="height: 200px;width: 100%;" id="inMailArea" placeholder="<no selection>" readonly>
 <!--        <span id="mailDisplay"></span>-->
     </vaadin-text-area>
-    <h4 style="margin:10px 0 0 0;">Write Mail</h4>
+    <h4 style="margin:20px 0 5px 0;">Write Mail</h4>
     <vaadin-split-layout id="outMailBlock" style="height: 150px; width: 100%; margin: 0px;">
         <vaadin-vertical-layout style="min-width: 40px; width: 75%;">
         <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>

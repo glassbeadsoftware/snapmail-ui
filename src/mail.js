@@ -1,6 +1,21 @@
 // Functions for manipulating mailItems
 
 /**
+ * Return True if mail has been deleted
+ */
+function isMailDeleted(mailItem) {
+  let state = mailItem.state;
+  if (state.hasOwnProperty('In')) {
+    return state.In === 'Deleted';
+  }
+  if (state.hasOwnProperty('Out')) {
+    return state.Out === 'Deleted';
+  }
+  console.error('Invalid mailItem object')
+  return false;
+}
+
+/**
  * Return True if mail is an OutMail
  */
 function is_OutMail(mailItem) {
@@ -16,22 +31,22 @@ function is_OutMail(mailItem) {
   return false;
 }
 
-/**
- * Return True if mail has been acknoweldged by this agent
- */
-function hasMailBeenOpened(mailItem) {
-  //console.log('hasMailBeenOpened()? ' + JSON.stringify(mailItem.state));
-  let state = mailItem.state;
-
-  if (state.hasOwnProperty('Out')) {
-    return true;
-  }
-  if (state.hasOwnProperty('In')) {
-    return state.In === 'Acknowledged' || state.In === 'AckReceived';
-  }
-  console.error('Invalid mailItem object')
-  return false;
-}
+// /**
+//  * Return True if mail has been acknoweldged by this agent
+//  */
+// function hasMailBeenOpened(mailItem) {
+//   //console.log('hasMailBeenOpened()? ' + JSON.stringify(mailItem.state));
+//   let state = mailItem.state;
+//
+//   if (state.hasOwnProperty('Out')) {
+//     return true;
+//   }
+//   if (state.hasOwnProperty('In')) {
+//     return state.In === 'Acknowledged' || state.In === 'AckReceived' || state.In === 'Deleted';
+//   }
+//   console.error('Invalid mailItem object')
+//   return false;
+// }
 
 
 /**
@@ -49,19 +64,20 @@ function determineMailClass(mailItem) {
       case 'Arrived_NoAcknowledgement': return 'arrived';
       case 'Arrived_PartiallyAcknowledged': return 'arrived';
       case 'Received': return 'received';
+      case 'Deleted': return 'deleted';
     }
   }
   if (state.hasOwnProperty('In')) {
-    if (state.In === 'Acknowledged' || state.In === 'AckReceived') {
-      return 'received';
-    } else {
-      return 'newmail';
+    switch(state.In) {
+      case 'Acknowledged':return 'received';
+      case 'AckReceived': return 'received';
+      case 'Arrived':     return 'newmail';
+      case 'Deleted':     return 'deleted';
     }
   }
-  console.error('Invalid mailItem object')
+  console.error('Invalid mailItem object');
   return '';
 }
-
 
 function customDateString(dateItem) {
   let date = new Date(dateItem);
