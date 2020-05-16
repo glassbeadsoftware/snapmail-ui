@@ -19,21 +19,17 @@ import '@vaadin/vaadin-icons';
 import '@vaadin/vaadin-icons/vaadin-icons';
 import '@vaadin/vaadin-lumo-styles';
 import '@vaadin/vaadin-lumo-styles/icons';
-
-// import * as dna from './hc_bridge'
-// import * as mail from './mail'
-// import * as app from './app'
+import '@vaadin/vaadin-notification';
 
 window.addEventListener('load', () => {
   initUi();
 });
 
 //var myVar = setInterval(onLoop, 1000);
-
-function onLoop() {
-  getAllHandles(handleHandleList)
-  getAllMails(handleMails, update_fileBox)
-}
+// function onLoop() {
+//   getAllHandles(handleHandleList)
+//   getAllMails(handleMails, update_fileBox)
+// }
 
 function initUi() {
   setChangeHandleHidden(true)
@@ -45,17 +41,51 @@ function initUi() {
   initOutMail()
   initActionBar()
   // getMyAgentId(logResult)
+  initNotification()
+}
+
+function initNotification() {
+  //  -- Mail
+  let notification = document.querySelector('#notifyMail');
+  notification.renderer = function(root) {
+    // Check if there is a content generated with the previous renderer call not to recreate it.
+    if (root.firstElementChild) {
+      return;
+    }
+    const container = window.document.createElement('div');
+    const boldText = window.document.createElement('b');
+    boldText.textContent = 'New Mail Received';
+    container.appendChild(boldText);
+
+    root.appendChild(container);
+  };
+  // -- Ack
+  notification = document.querySelector('#notifyAck');
+  notification.renderer = function(root) {
+    // Check if there is a content generated with the previous renderer call not to recreate it.
+    if (root.firstElementChild) {
+      return;
+    }
+    const container = window.document.createElement('div');
+    const boldText = window.document.createElement('b');
+    boldText.textContent = 'Notice: ';
+    const plainText = window.document.createTextNode('Acknowledgement Received');
+    container.appendChild(boldText);
+    container.appendChild(plainText);
+
+    root.appendChild(container);
+  };
 }
 
 function initApp() {
   // -- App Bar -- //
-  getMyHandle(showHandle)
+  getMyHandle(showHandle, handleSignal)
 
   // -- FileBox -- //
-  getAllMails(handleMails, update_fileBox)
+  getAllMails(handleMails, update_fileBox, handleSignal)
 
   // -- ContactList -- //
-  getAllHandles(handleHandleList)
+  getAllHandles(handleHandleList, handleSignal)
 }
 function initDebugBar() {
   // Menu -- vaadin-menu-bar
@@ -64,10 +94,10 @@ function initDebugBar() {
   debug_menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value))
     if (e.detail.value.text === 'Get All Handles') {
-      getAllHandles(handleHandleList)
+      getAllHandles(handleHandleList, handleSignal)
     }
     if (e.detail.value.text === 'Get Mails') {
-      getAllMails(handleMails, update_fileBox)
+      getAllMails(handleMails, update_fileBox, handleSignal)
     }
   });
 }
@@ -86,7 +116,7 @@ function initMenuBar() {
   menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value))
     if (e.detail.value.text === 'Trash') {
-      deleteMail(g_currentMailItem.id, handleDelete)
+      deleteMail(g_currentMailItem.id, handleDelete, handleSignal)
       set_DeleteButtonState(true)
     }
   });
@@ -152,6 +182,7 @@ function initFileBox() {
   folderBox.addEventListener('change', function(event) {
     update_mailGrid(event.target.value)
     g_currentFolder = event.target.value;
+    set_DeleteButtonState(true)
   });
 
   // Filebox -- vaadin-grid
@@ -187,7 +218,7 @@ function initFileBox() {
     let mail = mail_map.get(item.id);
     console.log('mail item: ' + JSON.stringify(mail))
     span.value = into_mailText(mail);
-    acknowledgeMail(item.id, regenerate_mailGrid);
+    acknowledgeMail(item.id, regenerate_mailGrid, handleSignal);
     // Allow delete button
     if (g_currentFolder !== 'Trash') {
       set_DeleteButtonState(false)
@@ -196,7 +227,7 @@ function initFileBox() {
 }
 
 function regenerate_mailGrid(callResult) {
-  getAllMails(handleMails, update_fileBox)
+  getAllMails(handleMails, update_fileBox, handleSignal)
 }
 
 function initInMail() {
@@ -282,7 +313,7 @@ function initActionBar() {
         };
         console.log('sending mail: ' + JSON.stringify(mail));
         // Send Mail
-        sendMail(mail, logResult);
+        sendMail(mail, logResult, handleSignal);
         // Update UI
         set_SendButtonState(true);
         outMailSubjectArea.value = '';
@@ -290,7 +321,7 @@ function initActionBar() {
         contactGrid.selectedItems = [];
         contactGrid.activeItem = null;
         resetRecepients();
-        getAllMails(handleMails, update_fileBox);
+        getAllMails(handleMails, update_fileBox, handleSignal);
       } else {
         console.log('Send Mail Failed: No receipient selected')
       }
@@ -298,6 +329,10 @@ function initActionBar() {
     });
 }
 
+
+/**
+ *
+ */
 function update_fileBox() {
   const mailGrid = document.querySelector('#mailGrid');
   const activeItem = mailGrid.activeItem;
@@ -332,5 +367,5 @@ function set_DeleteButtonState(isDisabled) {
 
 function handleDelete(_callResult) {
   // TODO check if call result succeeded
-  getAllMails(handleMails, update_fileBox)
+  getAllMails(handleMails, update_fileBox, handleSignal)
 }

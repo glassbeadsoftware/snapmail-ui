@@ -23,7 +23,7 @@ function showHandle(callResult) {
 function setMyHandle() {
   let input = document.getElementById('myNewHandleInput');
   console.log('new handle = ' + input.value);
-  setHandle(input.value, console.log);
+  setHandle(input.value, console.log, handleSignal);
   showHandle({ Ok: input.value});
   input.value = '';
   setChangeHandleHidden(true)
@@ -104,4 +104,32 @@ function resetRecepients() {
   contactGrid.selectedItems = [];
   contactGrid.activeItem = null;
   contactGrid.render();
+}
+
+// -- Signal -- //
+
+function handleSignal(signalwrapper) {
+  if (signalwrapper.signal.signal_type !== "User") {
+    return;
+  }
+  switch (signalwrapper.signal.name) {
+    case "received_mail": {
+      let itemJson = signalwrapper.signal.arguments;
+      let item = JSON.parse(itemJson).ReceivedMail;
+      console.log("Received MailItem: " + JSON.stringify(item));
+      const notification = document.querySelector('#notifyMail');
+      notification.open();
+      getAllMails(handleMails, update_fileBox, handleSignal)
+      break;
+    }
+    case "received_ack": {
+      let itemJson = signalwrapper.signal.arguments;
+      let item = JSON.parse(itemJson).ReceivedAck;
+      console.log("Received Ack: " + JSON.stringify(item))
+      const notification = document.querySelector('#notifyAck');
+      notification.open();
+      getAllMails(handleMails, update_fileBox, handleSignal)
+      break;
+    }
+  }
 }
