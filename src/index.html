@@ -62,7 +62,7 @@
 <body>
 <vaadin-notification duration="4000" theme="contrast" position="bottom-center" id="notifyMail"></vaadin-notification>
 <vaadin-notification duration="4000" position="bottom-center" id="notifyAck"></vaadin-notification>
-<vaadin-vertical-layout theme="spacing" style="">
+<vaadin-vertical-layout theme="spacing-s" style="">
     <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
         <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">SnapMail v0.0.1 - </span>
 <!--        <vaadin-text-field clear-button-visible placeholder="Search">-->
@@ -76,14 +76,13 @@
         <vaadin-button theme="icon" id="cancelHandleButton" onclick="cancelMyHandle()">
             <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
         </vaadin-button>
-        <vaadin-menu-bar open-on-hover id="DebugBar"></vaadin-menu-bar>
         </vaadin-horizontal-layout>
     <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
     <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>
     <vaadin-menu-bar open-on-hover id="MenuBar"></vaadin-menu-bar>
         <span style="padding:10px 0;">Messages: <span id="messageCount">0</span></span>
     </vaadin-horizontal-layout>
-    <vaadin-grid id="mailGrid" theme="compact" style="height: 300px; width: 100%;">
+    <vaadin-grid id="mailGrid" theme="compact" style="height: 250px; width: 100%;">
 <!--        <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>-->
         <vaadin-grid-column path="id" header="id" width="0em" hidden></vaadin-grid-column>
 <!--        <vaadin-grid-column header="A" width="60px" flex-grow="0" text-align="end"></vaadin-grid-column>-->
@@ -95,16 +94,22 @@
 <!--        <span id="mailDisplay"></span>-->
     </vaadin-text-area>
     <h4 style="margin:20px 0 5px 0;">Write Mail</h4>
-    <vaadin-split-layout id="outMailBlock" style="height: 150px; width: 100%; margin: 0px;">
+    <vaadin-split-layout id="outMailBlock" style="height: 250px; width: 100%; margin: 0px;">
         <vaadin-vertical-layout style="min-width: 40px; width: 75%;">
-        <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>
+            <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>
             <vaadin-text-area style="width: 100%; height: 100%;" id="outMailContentArea" placeholder="Write here..."></vaadin-text-area>
-            </vaadin-vertical-layout>
-        <vaadin-grid theme="no-row-borders" id="contactGrid" style="min-width: 20px; width: 25%;">
-            <vaadin-grid-column path="username" header="Contacts"></vaadin-grid-column>
-            <vaadin-grid-column path="recepientType" header="  "></vaadin-grid-column>
-            <vaadin-grid-column path="agentId" hidden></vaadin-grid-column>
-        </vaadin-grid>
+        </vaadin-vertical-layout>
+        <vaadin-vertical-layout theme="padding spacing-xs" style="min-width: 20px; width: 25%;">
+            <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
+<!--                <h4 style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">Contacts</h4>-->
+                <vaadin-menu-bar open-on-hover id="DebugBar"></vaadin-menu-bar>
+            </vaadin-horizontal-layout>
+            <vaadin-grid theme="no-row-borders" id="contactGrid" >
+                <vaadin-grid-column path="username" header="Contacts"></vaadin-grid-column>
+                <vaadin-grid-column path="recepientType" header=" "></vaadin-grid-column>
+                <vaadin-grid-column path="agentId" hidden></vaadin-grid-column>
+            </vaadin-grid>
+        </vaadin-vertical-layout>
     </vaadin-split-layout>
     <vaadin-menu-bar theme="primary" id="ActionBar"></vaadin-menu-bar>
 </vaadin-vertical-layout>

@@ -90,14 +90,11 @@ function initApp() {
 function initDebugBar() {
   // Menu -- vaadin-menu-bar
   const debug_menu = document.querySelector('#DebugBar');
-  debug_menu.items = [{ text: 'Get Mails' }, { text: 'Get All Handles' }];
+  debug_menu.items = [{ text: 'Refresh' }];
   debug_menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value))
-    if (e.detail.value.text === 'Get All Handles') {
+    if (e.detail.value.text === 'Refresh') {
       getAllHandles(handleHandleList, handleSignal)
-    }
-    if (e.detail.value.text === 'Get Mails') {
-      getAllMails(handleMails, update_fileBox, handleSignal)
     }
   });
 }
@@ -106,11 +103,13 @@ function initMenuBar() {
   // Menu -- vaadin-menu-bar
   const menu = document.querySelector('#MenuBar');
   menu.items =
-    [ { text: 'Move', disabled: true }
+    [ { text: 'Refresh' }
+    , { text: 'Move', disabled: true }
     , { text: 'Reply', disabled: true, children: [{ text: 'One' }, { text: 'All' }, { text: 'Fwd' }] }
     , { text: 'Trash', disabled: true }
     , { text: 'Print', disabled: true }
     , { text: 'Find', disabled: true }
+
     ];
 
   menu.addEventListener('item-selected', function(e) {
@@ -118,6 +117,9 @@ function initMenuBar() {
     if (e.detail.value.text === 'Trash') {
       deleteMail(g_currentMailItem.id, handleDelete, handleSignal)
       set_DeleteButtonState(true)
+    }
+    if (e.detail.value.text === 'Refresh') {
+      getAllMails(handleMails, update_fileBox, handleSignal)
     }
   });
 }
@@ -254,6 +256,7 @@ function initOutMail() {
       // contactGrid.selectedItems = [item];
       toggleRecepientType(item);
       console.log('selectedItems size = ' + contactGrid.selectedItems.length)
+      contactGrid.removeHeaderRow
       contactGrid.render();
     }
   });
