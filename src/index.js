@@ -103,13 +103,12 @@ function initMenuBar() {
   // Menu -- vaadin-menu-bar
   const menu = document.querySelector('#MenuBar');
   menu.items =
-    [ { text: 'Refresh' }
-    , { text: 'Move', disabled: true }
+    [ { text: 'Move', disabled: true }
     , { text: 'Reply', disabled: true, children: [{ text: 'One' }, { text: 'All' }, { text: 'Fwd' }] }
     , { text: 'Trash', disabled: true }
     , { text: 'Print', disabled: true }
     , { text: 'Find', disabled: true }
-
+    , { text: 'Refresh' }
     ];
 
   menu.addEventListener('item-selected', function(e) {
