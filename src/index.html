@@ -111,6 +111,12 @@
             </vaadin-grid>
         </vaadin-vertical-layout>
     </vaadin-split-layout>
+    <div>
+    <vaadin-button type="file" id="uploadFile" onclick="onUploadClick()"><span id="uploadHandleText"></span><iron-icon icon="lumo:upload" slot="prefix"></iron-icon>Upload</vaadin-button>
+    <input type="file" hidden id="file-input" name="myfile">
+    </div>
+    <vaadin-list-box id="fileList"></vaadin-list-box>
+<!--    <vaadin-upload nodrop max-file-size="1000000"></vaadin-upload>-->
     <vaadin-menu-bar theme="primary" id="ActionBar"></vaadin-menu-bar>
 </vaadin-vertical-layout>
 </body>

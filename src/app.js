@@ -4,9 +4,48 @@ username_map = new Map();
 // Map of (address -> mailItem)
 mail_map = new Map();
 
+file_map = new Map();
+
 myHandle = '<unknown>';
 g_currentFolder = '';
 g_currentMailItem = {};
+
+function onUploadClick() {
+  const fileInput = document.getElementById('file-input');
+  fileInput.click();
+}
+
+function readSingleFile(e) {
+  console.log('readSingleFile: ' + JSON.stringify(e));
+  const file = e.target.files[0];
+  if (!file) {
+    return;
+  }
+  console.log('file: ' + JSON.stringify(file));
+  // Not supported in Safari for iOS.
+  const name = file.name ? file.name : 'NOT SUPPORTED';
+  // Not supported in Firefox for Android or Opera for Android.
+  const type = file.type ? file.type : 'NOT SUPPORTED';
+  // Unknown cross-browser support.
+  const size = file.size ? file.size : 'NOT SUPPORTED';
+  console.log({file, name, type, size});
+
+  let fileList = document.getElementById('fileList');
+  let items = fileList.items ? fileList.items : [];
+  console.log({items});
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    const fileContent = {
+      name, type, size, content
+    }
+    mail_map.set(name, fileContent)
+    items.push(fileContent)
+    //console.log(contents);
+  };
+  reader.readAsBinaryString(file);
+}
 
 // Generic callback: log response
 function logResult(callResult) {

@@ -120,3 +120,40 @@ function hasMailBeenReceived(address, callback, signalCallback) {
 function hasAckBeenReceived(address, callback, signalCallback) {
   call_dna('has_ack_been_received', {inmail_address: address}, signalCallback).then(result => callback(result));
 }
+
+// -- File -- //
+
+function writeManifest(dataHash, filename, filetype, filesize, chunks, signalCallback) {
+  const params = {
+    data_hash: dataHash,
+    filename, filetype, filesize,
+    chunks
+  }
+  call_dna('write_manifest', params, signalCallback).then(result => callback(result));
+}
+
+
+function writeChunk(dataHash, chunkIndex, chunk, callback, signalCallback) {
+  const params = {
+    data_hash: dataHash,
+    chunk_index: chunkIndex,
+    chunk
+  }
+  call_dna('write_chunk', params, signalCallback).then(result => callback(result));
+}
+
+function getChunk(chunkAddress, callback, signalCallback) {
+  call_dna('get_chunk', {chunk_address: chunkAddress}, signalCallback).then(result => callback(result));
+}
+
+function getManifest(manifestAddress, callback, signalCallback) {
+  call_dna('get_manifest', {manifest_address: manifestAddress}, signalCallback).then(result => callback(result));
+}
+
+function findManifest(dataHash, callback, signalCallback) {
+  call_dna('find_manifest', {data_hash: dataHash}, signalCallback).then(result => callback(result));
+}
+
+function getAllManifests(callback, signalCallback) {
+  call_dna('get_all_manifests', {}, signalCallback).then(result => callback(result));
+}

@@ -5,8 +5,9 @@
   "scripts": {
     "start": "webpack-dev-server --open --config webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "webpack-dev-server --env.mode development",
+    "devserver": "webpack-dev-server --env.mode development",
     "prod": "webpack --env.mode production",
+    "dev": "webpack --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js"
   },
   "repository": {

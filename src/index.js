@@ -1,6 +1,8 @@
 import '@vaadin/vaadin-button';
 import '@vaadin/vaadin-grid';
 import '@vaadin/vaadin-item';
+//import '@vaadin/vaadin-upload';
+import '@vaadin/vaadin-upload/vaadin-upload.js';
 import '@vaadin/vaadin-text-field';
 import '@vaadin/vaadin-ordered-layout';
 import '@vaadin/vaadin-menu-bar';
@@ -31,7 +33,12 @@ window.addEventListener('load', () => {
 //   getAllMails(handleMails, update_fileBox)
 // }
 
+
 function initUi() {
+
+  document.getElementById('file-input')
+    .addEventListener('change', readSingleFile, false);
+
   setChangeHandleHidden(true)
   initDebugBar()
   initMenuBar()
@@ -40,8 +47,45 @@ function initUi() {
   initInMail()
   initOutMail()
   initActionBar()
+  //initUpload()
   // getMyAgentId(logResult)
   initNotification()
+}
+
+//
+function initUpload() {
+  customElements.whenDefined('vaadin-upload').then(function() {
+    const upload = document.querySelector('vaadin-upload');
+
+    upload.addEventListener('file-reject', function(event) {
+      window.alert(event.detail.file.name + ' error: ' + event.detail.error);
+    });
+
+    upload.addEventListener('files-changed', function(event) {
+      console.log('files-changed event: ', JSON.stringify(event.detail));
+    });
+
+    upload.addEventListener('upload-before', function(event) {
+      console.log('upload-before event: ', JSON.stringify(event.detail.file));
+
+      // Prevent the upload request:
+      // event.preventDefault();
+
+      // var file = event.detail.file;
+      //
+      // // Custom upload request url for file
+      // file.uploadTarget = upload.target + '/' + file.name;
+      //
+      // // Custom name in the Content-Disposition header
+      // file.formDataName = 'attachment';
+    });
+
+    upload.addEventListener('upload-request', function(event) {
+      console.log('upload-request event: ', JSON.stringify(event.detail));
+      //event.preventDefault();
+      console.log('upload-request files: ', JSON.stringify(upload.files));
+    });
+  });
 }
 
 function initNotification() {
@@ -278,6 +322,7 @@ function initActionBar() {
   const actionMenu = document.querySelector('#ActionBar');
   actionMenu.items = [
       { text: 'Clear' },
+    { text: '+File', disabled: true },
       { text: 'Snap', disabled: true },
       { text: 'Send', disabled: true }
     ];
@@ -289,6 +334,9 @@ function initActionBar() {
       outMailSubjectArea.value = '';
       outMailContentArea.value = '';
       resetRecepients();
+    }
+    if (e.detail.value.text === '+File') {
+
     }
     if (e.detail.value.text === 'Send') {
       const contactGrid = document.querySelector('#contactGrid');
@@ -356,7 +404,8 @@ function update_fileBox() {
 
 function set_SendButtonState(isDisabled) {
   let actionMenu = document.querySelector('#ActionBar');
-  actionMenu.items[2].disabled = isDisabled;
+  actionMenu.items[1].disabled = isDisabled;
+  actionMenu.items[3].disabled = isDisabled;
   actionMenu.render();
 }
 
