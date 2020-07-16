@@ -4,11 +4,14 @@ username_map = new Map();
 // Map of (address -> mailItem)
 mail_map = new Map();
 
-file_map = new Map();
+//file_map = new Map();
 
 myHandle = '<unknown>';
+
 g_currentFolder = '';
 g_currentMailItem = {};
+g_manifest = null;
+g_getChunks = [];
 
 function onUploadClick() {
   const fileInput = document.getElementById('file-input');
@@ -117,6 +120,22 @@ function handleMails(callResult) {
   mailGrid.items = items;
 }
 
+var g_chunkList = [];
+var g_fileList = [];
+
+// Calback for writeChunk
+function chunkResult(callResult) {
+  console.log('chunkResult: ' + JSON.stringify(callResult))
+  let chunkAddress = callResult.Ok;
+  g_chunkList.push(chunkAddress);
+}
+
+// Calback for writeManifest
+function manifestResult(callResult) {
+  console.log('manifestResult: ' + JSON.stringify(callResult))
+  let manifestAddress = callResult.Ok;
+  g_fileList.push(manifestAddress);
+}
 
 // Calback for getAllHandles()
 function handleHandleList(callResult) {
@@ -144,6 +163,7 @@ function resetRecepients() {
   contactGrid.activeItem = null;
   contactGrid.render();
 }
+
 
 // -- Signal -- //
 

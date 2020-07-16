@@ -1,6 +1,6 @@
 {
   "name": "snapmail",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "the most wonderful mail app",
   "scripts": {
     "start": "webpack-dev-server --open --config webpack.dev.js",
@@ -43,6 +43,7 @@
     "@vaadin/vaadin-text-field": "^2.5.5",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
+    "sjcl": "^1.0.8",
     "prop-types": "^15.7.2"
   },
   "main": "webpack.common.js"

@@ -36,7 +36,11 @@ const call_dna = (functionName, params = {}, signalCallback) => {
       })
       // do call
       let response = await callZome('test-instance', 'snapmail', functionName)(params)
-      console.log('dna call: ' + functionName + '(' + JSON.stringify(params) + ')')
+      let paramsStr = JSON.stringify(params);
+      if (paramsStr.length > 1024) {
+        paramsStr =  paramsStr.substring(0, 1024) + ' ...';
+      }
+      console.log('dna call: ' + functionName + '(' + paramsStr + ')')
       console.log(response)
       succ(JSON.parse(response))
     }).catch(error=>{
@@ -82,7 +86,7 @@ function pingAgent(address, callback, signalCallback) {
 // -- Mail -- //
 
 function sendMail(mail, callback, signalCallback) {
-  call_dna('send_mail', {subject: mail.subject, payload: mail.payload, to: mail.to, cc: mail.cc, bcc: mail.bcc}, signalCallback).then(result => callback(result));
+  call_dna('send_mail', {subject: mail.subject, payload: mail.payload, to: mail.to, cc: mail.cc, bcc: mail.bcc, manifest_address_list: mail.manifest_address_list}, signalCallback).then(result => callback(result));
 }
 
 function getMail(otherAgentId, callback, signalCallback) {
@@ -123,10 +127,10 @@ function hasAckBeenReceived(address, callback, signalCallback) {
 
 // -- File -- //
 
-function writeManifest(dataHash, filename, filetype, filesize, chunks, signalCallback) {
+function writeManifest(dataHash, filename, filetype, orig_filesize, chunks, callback, signalCallback) {
   const params = {
     data_hash: dataHash,
-    filename, filetype, filesize,
+    filename, filetype, orig_filesize,
     chunks
   }
   call_dna('write_manifest', params, signalCallback).then(result => callback(result));

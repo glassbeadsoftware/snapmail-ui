@@ -136,5 +136,6 @@ function into_mailText(mailItem) {
   intext += '\n\nDEBUG INFO';
   intext += '\nState: ' + JSON.stringify(mailItem.state);
   intext += '\nAddress: ' + mailItem.address;
+  intext += '\nFiles: ' + mailItem.mail.attachments.length;
   return intext;
 }

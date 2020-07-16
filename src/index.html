@@ -48,6 +48,8 @@
     <title>SnapMail</title>
     <meta name="description" content="UI for SnapMail happ" />
     <script type="text/javascript" src="vendor/hc-web-client/hc-web-client-0.5.1.browser.min.js"></script>
+    <script src="https://bitwiseshiftleft.github.com/sjcl/sjcl.js"></script>
+    <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="hc_bridge.js"></script>
     <script type="text/javascript" src="mail.js"></script>
     <script type="text/javascript" src="app.js"></script>
@@ -64,7 +66,7 @@
 <vaadin-notification duration="4000" position="bottom-center" id="notifyAck"></vaadin-notification>
 <vaadin-vertical-layout theme="spacing-s" style="">
     <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
-        <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">SnapMail v0.0.1 - </span>
+        <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">SnapMail v0.0.2 - </span>
 <!--        <vaadin-text-field clear-button-visible placeholder="Search">-->
 <!--            <iron-icon icon="lumo:search" slot="prefix"></iron-icon>-->
 <!--        </vaadin-text-field>-->
@@ -82,6 +84,7 @@
     <vaadin-menu-bar open-on-hover id="MenuBar"></vaadin-menu-bar>
         <span style="padding:10px 0;">Messages: <span id="messageCount">0</span></span>
     </vaadin-horizontal-layout>
+    <!-- FILEBOX AREA -->
     <vaadin-grid id="mailGrid" theme="compact" style="height: 250px; width: 100%;">
 <!--        <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>-->
         <vaadin-grid-column path="id" header="id" width="0em" hidden></vaadin-grid-column>
@@ -90,9 +93,21 @@
         <vaadin-grid-sort-column path="subject" header="Subject" width="500px"></vaadin-grid-sort-column>
         <vaadin-grid-sort-column path="date" header="Date"></vaadin-grid-sort-column>
     </vaadin-grid>
-    <vaadin-text-area style="height: 200px;width: 100%;" id="inMailArea" placeholder="<no selection>" readonly>
+
+    <!-- IN MAIL AREA -->
+    <vaadin-horizontal-layout theme="spacing-xs" style="height:250px;width: 100%;">
+    <vaadin-text-area style="width: 80%;" id="inMailArea" placeholder="<no selection>" readonly>
 <!--        <span id="mailDisplay"></span>-->
     </vaadin-text-area>
+        <vaadin-grid theme="no-row-borders" id="attachmentGrid" style="height: 100%;border-style: dotted;">
+            <vaadin-grid-column auto-width path="filename" header="Attachments"></vaadin-grid-column>
+            <vaadin-grid-column auto-width path="filesize" text-align="end" header="KiB"></vaadin-grid-column>
+            <vaadin-grid-column path="filetype" hidden></vaadin-grid-column>
+            <vaadin-grid-column path="fileId" hidden></vaadin-grid-column>
+        </vaadin-grid>
+    </vaadin-horizontal-layout>
+
+    <!-- WRITE AREA -->
     <h4 style="margin:20px 0 5px 0;">Write Mail</h4>
     <vaadin-split-layout id="outMailBlock" style="height: 250px; width: 100%; margin: 0px;">
         <vaadin-vertical-layout style="min-width: 40px; width: 75%;">
@@ -111,12 +126,11 @@
             </vaadin-grid>
         </vaadin-vertical-layout>
     </vaadin-split-layout>
-    <div>
-    <vaadin-button type="file" id="uploadFile" onclick="onUploadClick()"><span id="uploadHandleText"></span><iron-icon icon="lumo:upload" slot="prefix"></iron-icon>Upload</vaadin-button>
-    <input type="file" hidden id="file-input" name="myfile">
-    </div>
-    <vaadin-list-box id="fileList"></vaadin-list-box>
-<!--    <vaadin-upload nodrop max-file-size="1000000"></vaadin-upload>-->
+<!--    <vaadin-button type="file" id="uploadFile" onclick="onUploadClick()"><span id="uploadHandleText"></span><iron-icon icon="lumo:upload" slot="prefix"></iron-icon>Upload</vaadin-button>-->
+<!--    <input type="file" hidden id="file-input" name="myfile">-->
+<!--    </div>-->
+<!--    <vaadin-list-box id="fileList"></vaadin-list-box>-->
+    <vaadin-upload nodrop max-file-size="1000000"></vaadin-upload>
     <vaadin-menu-bar theme="primary" id="ActionBar"></vaadin-menu-bar>
 </vaadin-vertical-layout>
 </body>
