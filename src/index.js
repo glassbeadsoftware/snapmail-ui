@@ -49,6 +49,8 @@ function initUi() {
   initUpload()
   // getMyAgentId(logResult)
   initNotification()
+  const sendProgressBar = document.querySelector('#sendProgressBar');
+  sendProgressBar.style.display = "none";
 }
 
 //
@@ -80,15 +82,19 @@ function initUpload() {
       var reader = new FileReader();
       reader.onload = function(e) {
         console.log('FileReader onload event: ');
-        const content = e.target.result; // reader.result
+        const content = arrayBufferToBase64(e.target.result); // reader.result
+        if (!base64regex.test(content)) {
+          const invalid_hash = sha256(content);
+          console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
+        }
         console.log({e});
-        console.log('file: ' + file.name + ' ; type: ' + file.type);
+        console.log('file: ' + file.name + ' ; size: ' + Math.ceil(content.length / 1024) + ' KiB ; type: ' + file.type);
 
         upload.set(['files', upload.files.indexOf(file), 'progress'], 100)
         upload.set(['files', upload.files.indexOf(file), 'complete'], true)
         upload.set(['files', upload.files.indexOf(file), 'content'], content)
       };
-      reader.readAsDataURL(event.detail.file);
+      reader.readAsArrayBuffer(event.detail.file);
     });
 
     // upload.addEventListener('upload-request', function(event) {
@@ -296,7 +302,7 @@ function fillAttachmentGrid(mail) {
   for (let attachmentInfo of mail.attachments) {
     console.log({attachmentInfo});
     let item = {
-      "fileId": attachmentInfo.data_hash, "filename": attachmentInfo.filename, "filesize": Math.round(attachmentInfo.orig_filesize / 1024), "filetype": attachmentInfo.filetype,
+      "fileId": attachmentInfo.data_hash, "filename": attachmentInfo.filename, "filesize": Math.ceil(attachmentInfo.orig_filesize / 1024), "filetype": attachmentInfo.filetype, "status": ' ',
     };
     items.push(item)
   }
@@ -339,24 +345,46 @@ function initAttachmentGrid() {
   attachmentGrid.addEventListener('active-item-changed', function(event) {
     const item = event.detail.value;
     console.log({item})
+    attachmentGrid.activeItem = null;
     attachmentGrid.selectedItems = [];
-    if (item && !attachmentGrid.selectedItems.includes(item)) {
+    if (!item) {
+      return;
+    }
+    if (!attachmentGrid.selectedItems.includes(item)) {
+      //attachmentGrid.selectedItems = [];
+      item.status = String.fromCodePoint(0x23F3);
       attachmentGrid.selectedItems.push(item);
+      item.disabled = true;
+      attachmentGrid.render();
     }
 
     // Get File on source chain
      getFile(item.fileId).then(function(manifest) {
        console.log({ manifest })
+       item.status = String.fromCodePoint(0x2714);
+       //attachmentGrid.deselectItem(item);
+       // DEBUG - check if content is valid base64
+       if (!base64regex.test(manifest.content)) {
+         const invalid_hash = sha256(manifest.content);
+         console.error("File '" + manifest.filename + "' is invalid base64. hash is: " + invalid_hash);
+       }
+       let filetype = manifest.filetype;
        const fields = manifest.filetype.split(':');
-       const types = fields[1].split(';');
+       if (fields.length > 1) {
+         const types = fields[1].split(';');
+         filetype = types[0];
+       }
        let byteArray = base64ToArrayBuffer(manifest.content)
-       const blob = new Blob([byteArray], { type: types[0]});
+       const blob = new Blob([byteArray], { type: filetype});
        const url = URL.createObjectURL(blob);
        const a = document.createElement('a');
        a.href = url;
        a.download = item.filename || 'download';
        a.addEventListener('click', {}, false);
        a.click();
+       attachmentGrid.activeItem = null;
+       attachmentGrid.selectedItems = [];
+       attachmentGrid.render();
      });
   });
 
@@ -377,8 +405,13 @@ async function getFile(fileId) {
     await sleep(10)
   }
   g_getChunks = [];
+  let i = 0;
   for (let chunkAddress of g_manifest.chunks) {
+    i++;
     getChunk(chunkAddress, getChunkResult, handleSignal)
+    while (g_getChunks.length !=  i) {
+      await sleep(10)
+    }
   }
   while (g_getChunks.length !=  g_manifest.chunks.length) {
     await sleep(10)
@@ -459,8 +492,17 @@ function initActionBar() {
       outMailContentArea.value = '';
       resetRecepients();
     }
+    const sendProgressBar = document.querySelector('#sendProgressBar');
+    sendProgressBar.style.display = "block";
+    actionMenu.style.display = "none";
+    const upload = document.querySelector('vaadin-upload');
+    upload.style.display = "none";
     if (e.detail.value.text === 'Send') {
-      sendAction()
+      sendAction().then(function() {
+        sendProgressBar.style.display = "none";
+        actionMenu.style.display = "block";
+        upload.style.display = "block";
+      });
     }
     });
 }
@@ -472,20 +514,28 @@ async function sendAction() {
   const files = upload.files;
   g_fileList = [];
   for (let file of files) {
+    if (!base64regex.test(file.content)) {
+      const invalid_hash = sha256(file.content);
+      console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
+    }
     const parts = file.content.split(',');
     console.log("parts.length: " + parts.length)
     console.log({parts})
+    const filetype = parts.length > 1? parts[0] : file.type;
     const splitObj = splitFile(parts[parts.length - 1]);
     g_chunkList = [];
     // Submit each chunk
     for (var i = 0; i < splitObj.numChunks; ++i) {
       //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
       writeChunk(splitObj.dataHash, i, splitObj.chunks[i], chunkResult, handleSignal);
+      while (g_chunkList.length !=  i + 1) {
+        await sleep(10)
+      }
     }
     while (g_chunkList.length < splitObj.numChunks) {
       await sleep(10);
     }
-    writeManifest(splitObj.dataHash, file.name, /*file.type*/ parts[0], file.size, g_chunkList, manifestResult, handleSignal)
+    writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, manifestResult, handleSignal)
   }
   while (g_fileList.length < files.length) {
     await sleep(10);

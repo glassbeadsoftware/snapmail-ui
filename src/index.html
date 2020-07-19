@@ -97,10 +97,11 @@
 
     <!-- IN MAIL AREA -->
     <vaadin-horizontal-layout theme="spacing-xs" style="height:250px;width: 100%;">
-    <vaadin-text-area style="width: 75%;" id="inMailArea" placeholder="<no selection>" readonly>
+    <vaadin-text-area style="width: 70%;" id="inMailArea" placeholder="<no selection>" readonly>
 <!--        <span id="mailDisplay"></span>-->
     </vaadin-text-area>
-        <vaadin-grid theme="no-row-borders" id="attachmentGrid" style="height: 100%;border-style: dotted;">
+        <vaadin-grid theme="no-row-borders" id="attachmentGrid" style="height: 100%; border-style: dotted; max-width: 400px;">
+            <vaadin-grid-column path="status" header=" " width="40px" flex-grow="0"></vaadin-grid-column>
             <vaadin-grid-column auto-width path="filename" header="Attachments"></vaadin-grid-column>
             <vaadin-grid-column auto-width path="filesize" text-align="end" header="KiB"></vaadin-grid-column>
             <vaadin-grid-column path="filetype" hidden></vaadin-grid-column>
@@ -131,8 +132,9 @@
 <!--    <input type="file" hidden id="file-input" name="myfile">-->
 <!--    </div>-->
 <!--    <vaadin-list-box id="fileList"></vaadin-list-box>-->
-    <vaadin-upload nodrop max-file-size="1000000" style="width: 280px;"></vaadin-upload>
+    <vaadin-upload nodrop max-file-size="750000" style="width: 280px;"></vaadin-upload>
     <vaadin-menu-bar theme="primary" id="ActionBar"></vaadin-menu-bar>
+    <vaadin-progress-bar indeterminate value="0" id="sendProgressBar" ></vaadin-progress-bar>
 </vaadin-vertical-layout>
 </body>
 </html>
