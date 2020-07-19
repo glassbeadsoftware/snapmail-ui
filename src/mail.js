@@ -1,5 +1,12 @@
 // Functions for manipulating mailItems
 
+const systemFolders = {
+  ALL: String.fromCodePoint(0x1F4C1) + ' All',
+  INBOX: String.fromCodePoint(0x1F4E5) + ' Inbox',
+  SENT: String.fromCodePoint(0x1F4E4) + ' Sent',
+  TRASH: String.fromCodePoint(0x1F5D1) + ' Trash'
+};
+
 /**
  * Return True if mail has been deleted
  */
@@ -99,8 +106,9 @@ function into_gridItem(mailItem) {
   if (mailItem.state.hasOwnProperty('Out')) {
     username = 'To: ' + username_map.get(mailItem.mail.to[0])
   }
+  let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
   let item = {
-    "id": mailItem.address, "username": username, "subject": mailItem.mail.subject, "date": dateStr,
+    "id": mailItem.address, "username": username, "subject": mailItem.mail.subject, "date": dateStr, "status": status
   };
   return item;
 }

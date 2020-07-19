@@ -48,7 +48,7 @@
     <title>SnapMail</title>
     <meta name="description" content="UI for SnapMail happ" />
     <script type="text/javascript" src="vendor/hc-web-client/hc-web-client-0.5.1.browser.min.js"></script>
-    <script src="https://bitwiseshiftleft.github.com/sjcl/sjcl.js"></script>
+    <script type="text/javascript" src="vendor/sjcl/sjcl.js"></script>
     <script type="text/javascript" src="utils.js"></script>
     <script type="text/javascript" src="hc_bridge.js"></script>
     <script type="text/javascript" src="mail.js"></script>
@@ -89,6 +89,7 @@
 <!--        <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>-->
         <vaadin-grid-column path="id" header="id" width="0em" hidden></vaadin-grid-column>
 <!--        <vaadin-grid-column header="A" width="60px" flex-grow="0" text-align="end"></vaadin-grid-column>-->
+        <vaadin-grid-sort-column path="status" header=" " width="50px" flex-grow="0"></vaadin-grid-sort-column>
         <vaadin-grid-sort-column path="username" header="Who" width="100px"></vaadin-grid-sort-column>
         <vaadin-grid-sort-column path="subject" header="Subject" width="500px"></vaadin-grid-sort-column>
         <vaadin-grid-sort-column path="date" header="Date"></vaadin-grid-sort-column>
@@ -96,7 +97,7 @@
 
     <!-- IN MAIL AREA -->
     <vaadin-horizontal-layout theme="spacing-xs" style="height:250px;width: 100%;">
-    <vaadin-text-area style="width: 80%;" id="inMailArea" placeholder="<no selection>" readonly>
+    <vaadin-text-area style="width: 75%;" id="inMailArea" placeholder="<no selection>" readonly>
 <!--        <span id="mailDisplay"></span>-->
     </vaadin-text-area>
         <vaadin-grid theme="no-row-borders" id="attachmentGrid" style="height: 100%;border-style: dotted;">
@@ -108,7 +109,7 @@
     </vaadin-horizontal-layout>
 
     <!-- WRITE AREA -->
-    <h4 style="margin:20px 0 5px 0;">Write Mail</h4>
+    <h4 style="margin:20px 0 5px 0;">✏️ Write Mail</h4>
     <vaadin-split-layout id="outMailBlock" style="height: 250px; width: 100%; margin: 0px;">
         <vaadin-vertical-layout style="min-width: 40px; width: 75%;">
             <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>
@@ -130,7 +131,7 @@
 <!--    <input type="file" hidden id="file-input" name="myfile">-->
 <!--    </div>-->
 <!--    <vaadin-list-box id="fileList"></vaadin-list-box>-->
-    <vaadin-upload nodrop max-file-size="1000000"></vaadin-upload>
+    <vaadin-upload nodrop max-file-size="1000000" style="width: 280px;"></vaadin-upload>
     <vaadin-menu-bar theme="primary" id="ActionBar"></vaadin-menu-bar>
 </vaadin-vertical-layout>
 </body>

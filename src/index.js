@@ -33,7 +33,6 @@ window.addEventListener('load', () => {
 //   getAllMails(handleMails, update_fileBox)
 // }
 
-
 function initUi() {
 
   // const splitObj = splitFile('ABCDF');
@@ -191,30 +190,30 @@ function update_mailGrid(folder) {
   let folderItems = [];
   console.log('update_mailGrid: ' + folder);
   switch(folder) {
-    case 'All':
+    case systemFolders.ALL:
       for (mailItem of mail_map.values()) {
         //folderItems = Array.from(mail_map.values());
         folderItems.push(into_gridItem(mailItem));
       }
       break;
-    case 'Inbox':
-    case 'Sent':
+    case systemFolders.INBOX:
+    case systemFolders.SENT:
       for (mailItem of mail_map.values()) {
         //console.log('mailItem: ' + JSON.stringify(mailItem))
         let is_out = is_OutMail(mailItem);
         if (isMailDeleted(mailItem)) {
           continue;
         }
-        if (is_out && folder == 'Sent') {
+        if (is_out && folder == systemFolders.SENT) {
           folderItems.push(into_gridItem(mailItem));
           continue;
         }
-        if (!is_out && folder == 'Inbox') {
+        if (!is_out && folder == systemFolders.INBOX) {
           folderItems.push(into_gridItem(mailItem));
         }
       }
       break;
-    case 'Trash': {
+    case systemFolders.TRASH: {
       for (mailItem of mail_map.values()) {
         if(isMailDeleted(mailItem)) {
           folderItems.push(into_gridItem(mailItem));
@@ -236,10 +235,10 @@ function update_mailGrid(folder) {
 
 function initFileBox() {
   // Combobox -- vaadin-combo-box
-  const systemFolders = ['All', 'Inbox', 'Sent', 'Trash'];
+  const systemFoldersVec = [systemFolders.ALL, systemFolders.INBOX, systemFolders.SENT, systemFolders.TRASH];
   const folderBoxAll = document.querySelector('#fileboxFolder');
-  folderBoxAll.items = systemFolders;
-  folderBoxAll.value = systemFolders[1];
+  folderBoxAll.items = systemFoldersVec;
+  folderBoxAll.value = systemFoldersVec[1];
   g_currentFolder = folderBoxAll.value;
   const folderBox = document.querySelector('#fileboxFolder');
   // On value change
@@ -285,7 +284,7 @@ function initFileBox() {
     fillAttachmentGrid(mailItem.mail);
     acknowledgeMail(item.id, regenerate_mailGrid, handleSignal);
     // Allow delete button
-    if (g_currentFolder !== 'Trash') {
+    if (g_currentFolder !== systemFolders.TRASH) {
       set_DeleteButtonState(false)
     }
   });

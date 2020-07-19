@@ -106,13 +106,13 @@ function handleMails(callResult) {
   for (mailItem of mailList) {
     mail_map.set(mailItem.address, mailItem)
     // Determine if should add to grid
-    if (isMailDeleted(mailItem) && selectedBox !== 'Trash') {
+    if (isMailDeleted(mailItem) && selectedBox !== systemFolders.TRASH) {
       continue;
     }
-    if (is_OutMail(mailItem) && selectedBox === 'Inbox') {
+    if (is_OutMail(mailItem) && selectedBox === systemFolders.INBOX) {
       continue;
     }
-    if (!is_OutMail(mailItem) && selectedBox === 'Outbox') {
+    if (!is_OutMail(mailItem) && selectedBox === systemFolders.SENT) {
       continue;
     }
     items.push(into_gridItem(mailItem));
