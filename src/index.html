@@ -39,6 +39,11 @@
             .received {
                 color: green;
             }
+            .statusColumn {
+                font-size: x-small;
+                text-align: left;
+                padding-left: 3px;
+            }
         </style>
     </template>
 </dom-module>
@@ -122,8 +127,9 @@
                 <vaadin-menu-bar open-on-hover id="DebugBar"></vaadin-menu-bar>
             </vaadin-horizontal-layout>
             <vaadin-grid theme="no-row-borders" id="contactGrid" >
-                <vaadin-grid-column path="username" header="Contacts"></vaadin-grid-column>
-                <vaadin-grid-column path="recepientType" header=" "></vaadin-grid-column>
+                <vaadin-grid-column path="status" header=" " width="30px" flex-grow="0"></vaadin-grid-column>
+                <vaadin-grid-column auto-width path="username" header="Contacts"></vaadin-grid-column>
+                <vaadin-grid-column auto-width path="recepientType" header=" "></vaadin-grid-column>
                 <vaadin-grid-column path="agentId" hidden></vaadin-grid-column>
             </vaadin-grid>
         </vaadin-vertical-layout>

@@ -147,21 +147,44 @@ function handleHandleList(callResult) {
     // FIXME: exclude self from list
     username_map.set(handleItem[1], handleItem[0])
   }
-  resetRecepients();
+  resetRecepients().then(function() {
+    const debugMenu = document.querySelector('#DebugBar');
+    debugMenu.items[0].disabled = false;
+    debugMenu.render();
+  });
 }
 
-function resetRecepients() {
+const redDot = String.fromCodePoint(0x1F534);
+const greenDot = String.fromCodePoint(0x1F7E2);
+
+var hasPingResult = false;
+var isAgentOnline = false;
+
+async function resetRecepients() {
   const contactGrid = document.querySelector('#contactGrid');
   let items = [];
   for (entry of username_map.entries()) {
-    username_map.set(handleItem[1], handleItem[0])
-    let item = { "username": entry[1], "agentId": entry[0], "recepientType": '' };
+    username_map.set(handleItem[1], handleItem[0]);
+    hasPingResult = false;
+    isAgentOnline = false;
+    pingAgent(entry[0], pingResult, handleSignal);
+    while (!hasPingResult) {
+      await sleep(10)
+    }
+    let item = { "username": entry[1], "agentId": entry[0], "recepientType": '',
+      status: isAgentOnline? greenDot : redDot
+    };
     items.push(item);
   }
   contactGrid.items = items;
   contactGrid.selectedItems = [];
   contactGrid.activeItem = null;
   contactGrid.render();
+}
+
+function pingResult(callResult) {
+  isAgentOnline = callResult.Ok;
+  hasPingResult = true;
 }
 
 

@@ -162,6 +162,8 @@ function initDebugBar() {
   debug_menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value))
     if (e.detail.value.text === 'Refresh') {
+      debug_menu.items[0].disabled = true;
+      debug_menu.render();
       getAllHandles(handleHandleList, handleSignal)
     }
   });
@@ -440,26 +442,41 @@ function findManifestResult(callResult) {
 
 function initOutMail() {
   // ContactList -- vaadin-grid
-  const contactGrid = document.querySelector('#contactGrid');
-  contactGrid.items = [];
-  contactGrid.addEventListener('active-item-changed', function(event) {
-    const item = event.detail.value;
-    if (item && !contactGrid.selectedItems.includes(item)) {
-      contactGrid.selectedItems.push(item);
-    }
-    set_SendButtonState(contactGrid.selectedItems.length == 0)
-  });
-  contactGrid.addEventListener('click', function(e) {
-    const item = contactGrid.getEventContext(e).item;
-    //contactGrid.selectedItems = item ? [item] : [];
-    if (item) {
-      // contactGrid.selectedItems = [item];
-      toggleRecepientType(item);
-      console.log('selectedItems size = ' + contactGrid.selectedItems.length)
-      contactGrid.removeHeaderRow
-      contactGrid.render();
-    }
-  });
+  //customElements.whenDefined('#contactGrid').then(function() {
+    const contactGrid = document.querySelector('#contactGrid');
+    contactGrid.items = [];
+
+    contactGrid.cellClassNameGenerator = function(column, rowData) {
+      //console.log({rowData})
+      let classes = rowData.item.status;
+      if (column.path === 'status') {
+        classes += ' statusColumn';
+      }
+      return classes;
+    };
+
+    // ON SELECT
+    contactGrid.addEventListener('active-item-changed', function(event) {
+      const item = event.detail.value;
+      if (item && !contactGrid.selectedItems.includes(item)) {
+        contactGrid.selectedItems.push(item);
+      }
+      set_SendButtonState(contactGrid.selectedItems.length == 0)
+    });
+
+    // ON CLICK
+    contactGrid.addEventListener('click', function(e) {
+      const item = contactGrid.getEventContext(e).item;
+      //contactGrid.selectedItems = item ? [item] : [];
+      if (item) {
+        // contactGrid.selectedItems = [item];
+        toggleRecepientType(item);
+        console.log('selectedItems size = ' + contactGrid.selectedItems.length)
+        contactGrid.removeHeaderRow
+        contactGrid.render();
+      }
+    });
+  //});
 }
 
 function toggleRecepientType(item) {
