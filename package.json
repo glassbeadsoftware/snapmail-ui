@@ -8,6 +8,8 @@
     "devserver": "webpack-dev-server --env.mode development",
     "prod": "webpack --env.mode production",
     "dev": "webpack --config webpack.dev.js",
+    "esbuild": "esbuild --sourcemap --bundle src/main.js --outdir=dist",
+    "release": "esbuild --minify --bundle src/main.js --outdir=dist",
     "build": "webpack --config webpack.prod.js"
   },
   "repository": {
