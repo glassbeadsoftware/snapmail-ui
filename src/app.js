@@ -191,6 +191,9 @@ function pingResult(callResult) {
 // -- Signal -- //
 
 function handleSignal(signalwrapper) {
+  if (signalwrapper.type !== undefined && signalwrapper.type !== "InstanceSignal") {
+    return;
+  }
   if (signalwrapper.signal.signal_type !== "User") {
     return;
   }
