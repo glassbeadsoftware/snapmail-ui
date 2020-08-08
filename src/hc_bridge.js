@@ -40,7 +40,7 @@ const call_dna = (functionName, params = {}, signalCallback) => {
       if (paramsStr.length > 1024) {
         paramsStr =  paramsStr.substring(0, 1024) + ' ...';
       }
-      console.log('dna call: ' + functionName + '(' + paramsStr + ')')
+      console.log('dna call: ' + functionName + '(' + paramsStr + ') ; response:')
       console.log(response)
       succ(JSON.parse(response))
     }).catch(error=>{
@@ -161,3 +161,9 @@ function findManifest(dataHash, callback, signalCallback) {
 function getAllManifests(callback, signalCallback) {
   call_dna('get_all_manifests', {}, signalCallback).then(result => callback(result));
 }
+
+function getMissingAttachments(from, inMailAddress, callback, signalCallback) {
+  call_dna('get_missing_attachments', {from, inmail_address: inMailAddress}, signalCallback).then(result => callback(result));
+}
+
+

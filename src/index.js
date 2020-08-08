@@ -124,7 +124,6 @@ function initNotification() {
     const boldText = window.document.createElement('b');
     boldText.textContent = 'New Mail Received';
     container.appendChild(boldText);
-
     root.appendChild(container);
   };
   // -- Ack
@@ -140,7 +139,21 @@ function initNotification() {
     const plainText = window.document.createTextNode('Acknowledgement Received');
     container.appendChild(boldText);
     container.appendChild(plainText);
-
+    root.appendChild(container);
+  };
+  // -- File
+  notification = document.querySelector('#notifyFile');
+  notification.renderer = function(root) {
+    // Check if there is a content generated with the previous renderer call not to recreate it.
+    if (root.firstElementChild) {
+      return;
+    }
+    const container = window.document.createElement('div');
+    const boldText = window.document.createElement('b');
+    boldText.textContent = 'Notice: ';
+    const plainText = window.document.createTextNode('File Received');
+    container.appendChild(boldText);
+    container.appendChild(plainText);
     root.appendChild(container);
   };
 }
@@ -150,6 +163,8 @@ function initApp() {
   getMyHandle(showHandle, handleSignal)
 
   // -- FileBox -- //
+  checkIncomingAck(logResult, handleSignal)
+  checkIncomingMail(logResult, handleSignal)
   getAllMails(handleMails, update_fileBox, handleSignal)
 
   // -- ContactList -- //
@@ -188,6 +203,8 @@ function initMenuBar() {
       set_DeleteButtonState(true)
     }
     if (e.detail.value.text === 'Refresh') {
+      checkIncomingAck(logResult, handleSignal)
+      checkIncomingMail(logResult, handleSignal)
       getAllMails(handleMails, update_fileBox, handleSignal)
     }
   });

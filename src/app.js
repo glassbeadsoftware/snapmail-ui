@@ -117,6 +117,7 @@ function handleMails(callResult) {
     }
     items.push(into_gridItem(mailItem));
   }
+  console.log('mailCount = ' + items.length)
   mailGrid.items = items;
 }
 
@@ -214,6 +215,14 @@ function handleSignal(signalwrapper) {
       const notification = document.querySelector('#notifyAck');
       notification.open();
       getAllMails(handleMails, update_fileBox, handleSignal)
+      break;
+    }
+    case "received_file": {
+      let itemJson = signalwrapper.signal.arguments;
+      let item = JSON.parse(itemJson).ReceivedFile;
+      console.log("Received File: " + JSON.stringify(item))
+      const notification = document.querySelector('#notifyFile');
+      notification.open();
       break;
     }
   }
