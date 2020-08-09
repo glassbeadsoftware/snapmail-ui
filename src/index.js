@@ -362,7 +362,7 @@ async function fillAttachmentGrid(mail) {
     };
     items.push(item)
   }
-  console.log({items})
+  //console.log({items})
   attachmentGrid.items = items;
   attachmentGrid.selectedItems = [];
   attachmentGrid.activeItem = null;
