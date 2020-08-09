@@ -132,8 +132,8 @@ function chunkResult(callResult) {
 }
 
 // Calback for writeManifest
-function manifestResult(callResult) {
-  console.log('manifestResult: ' + JSON.stringify(callResult))
+function writeManifestResult(callResult) {
+  console.log('writeManifestResult: ' + JSON.stringify(callResult))
   let manifestAddress = callResult.Ok;
   g_fileList.push(manifestAddress);
 }
@@ -187,7 +187,6 @@ function pingResult(callResult) {
   isAgentOnline = callResult.Ok;
   hasPingResult = true;
 }
-
 
 // -- Signal -- //
 

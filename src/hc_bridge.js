@@ -40,7 +40,7 @@ const call_dna = (functionName, params = {}, signalCallback) => {
       if (paramsStr.length > 1024) {
         paramsStr =  paramsStr.substring(0, 1024) + ' ...';
       }
-      console.log('dna call: ' + functionName + '(' + paramsStr + ') ; response:')
+      console.log('dna call: ' + functionName + '(' + paramsStr + ')')
       console.log(response)
       succ(JSON.parse(response))
     }).catch(error=>{

@@ -23,6 +23,8 @@ import '@vaadin/vaadin-lumo-styles';
 import '@vaadin/vaadin-lumo-styles/icons';
 import '@vaadin/vaadin-notification';
 
+var g_hasAttachment = 0;
+
 window.addEventListener('load', () => {
   initUi();
 });
@@ -291,7 +293,6 @@ function initFileBox() {
     return classes;
   };
 
-
   // On item select: Display in inMailArea
   mailGrid.addEventListener('active-item-changed', function(event) {
     const item = event.detail.value;
@@ -301,47 +302,74 @@ function initFileBox() {
       return;
     }
     g_currentMailItem = item;
-    console.log('mail grid item: ' + JSON.stringify(item))
+    console.log('mail grid item: ' + JSON.stringify(item));
     var span = document.getElementById('inMailArea');
     let mailItem = mail_map.get(item.id);
-    console.log('mail item: ' + JSON.stringify(mailItem))
+    console.log('mail item: ' + JSON.stringify(mailItem));
     span.value = into_mailText(mailItem);
-    fillAttachmentGrid(mailItem.mail);
-    acknowledgeMail(item.id, regenerate_mailGrid, handleSignal);
-    // Allow delete button
-    if (g_currentFolder !== systemFolders.TRASH) {
-      set_DeleteButtonState(false)
-    }
+
+    fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
+      if (missingCount > 0) {
+        getMissingAttachments(mailItem.author, mailItem.address, missingAttachmentsResult, handleSignal);
+      }
+      acknowledgeMail(item.id, regenerate_mailGrid, handleSignal);
+      // Allow delete button
+      if (g_currentFolder !== systemFolders.TRASH) {
+        set_DeleteButtonState(false)
+      }
+    });
   });
 }
 
-function fillAttachmentGrid(mail) {
+function manifestResult(callResult) {
+  console.log('manifestResult:');
+  console.log({callResult});
+  if (callResult.Ok === undefined) {
+    g_hasAttachment = -1;
+    return;
+  }
+  g_hasAttachment = 1;
+}
+
+function missingAttachmentsResult(callResult) {
+  console.log('missingAttachmentsResult')
+  console.log({callResult});
+  let attachmentGrid = document.querySelector('#attachmentGrid');
+  attachmentGrid.render();
+}
+
+async function fillAttachmentGrid(mail) {
   let attachmentGrid = document.querySelector('#attachmentGrid');
   let items = [];
+  const emoji = String.fromCodePoint(0x1F6D1);
+  g_hasAttachment = 0;
+  let missingCount = 0;
   for (let attachmentInfo of mail.attachments) {
     console.log({attachmentInfo});
+    getManifest(attachmentInfo.manifest_address, manifestResult, handleSignal);
+    while (g_hasAttachment === 0) {
+      await sleep(10);
+    }
+    const hasAttachment = g_hasAttachment > 0;
+    missingCount += 0 + !hasAttachment;
     let item = {
-      "fileId": attachmentInfo.data_hash, "filename": attachmentInfo.filename, "filesize": Math.ceil(attachmentInfo.orig_filesize / 1024), "filetype": attachmentInfo.filetype, "status": ' ',
+      "fileId": attachmentInfo.data_hash,
+      "filename": attachmentInfo.filename,
+      "filesize": Math.ceil(attachmentInfo.orig_filesize / 1024),
+      "filetype": attachmentInfo.filetype,
+      "status": hasAttachment? ' ' : emoji,
+      "hasFile": hasAttachment,
     };
     items.push(item)
   }
+  console.log({items})
   attachmentGrid.items = items;
   attachmentGrid.selectedItems = [];
   attachmentGrid.activeItem = null;
   attachmentGrid.render();
+  console.log({missingCount})
+  return missingCount;
 }
-
-// function intoAttachmentItem(attachmentInfo) {
-//   let username = username_map.get(mailItem.author)
-//   let dateStr = customDateString(mailItem.date)
-//   if (mailItem.state.hasOwnProperty('Out')) {
-//     username = 'To: ' + username_map.get(mailItem.mail.to[0])
-//   }
-//   let item = {
-//     "fileId": attachmentInfo.dataHash, "filename": attachmentInfo.filename, "filesize": attachmentInfo.fileSize, "filetype": dateStr,
-//   };
-//   return item;
-// }
 
 function regenerate_mailGrid(callResult) {
   getAllMails(handleMails, update_fileBox, handleSignal)
@@ -360,15 +388,28 @@ function initAttachmentGrid() {
   const attachmentGrid = document.querySelector('#attachmentGrid');
   attachmentGrid.items = [];
 
+  attachmentGrid.cellClassNameGenerator = function(column, rowData) {
+    //console.log({rowData})
+    let classes = '';
+    if (!rowData.item.hasFile) {
+      classes += ' pending';
+    } else {
+      //classes += ' newmail';
+    }
+    return classes;
+  };
+
   // On select, download attachment
   attachmentGrid.addEventListener('active-item-changed', function(event) {
     const item = event.detail.value;
     console.log({item})
     attachmentGrid.activeItem = null;
     attachmentGrid.selectedItems = [];
-    if (!item) {
+
+    if (!item || !item.hasFile) {
       return;
     }
+
     if (!attachmentGrid.selectedItems.includes(item)) {
       //attachmentGrid.selectedItems = [];
       item.status = String.fromCodePoint(0x23F3);
@@ -422,6 +463,9 @@ async function getFile(fileId) {
   findManifest(fileId, findManifestResult, handleSignal);
   while (g_manifest ==  null) {
     await sleep(10)
+  }
+  if (g_manifest.Ok === null) {
+    return;
   }
   g_getChunks = [];
   let i = 0;
@@ -569,7 +613,7 @@ async function sendAction() {
     while (g_chunkList.length < splitObj.numChunks) {
       await sleep(10);
     }
-    writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, manifestResult, handleSignal)
+    writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, writeManifestResult, handleSignal)
   }
   while (g_fileList.length < files.length) {
     await sleep(10);
