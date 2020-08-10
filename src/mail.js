@@ -1,11 +1,18 @@
-// Functions for manipulating mailItems
+/**
+ * Functions for manipulating mailItems
+ */
 
+/**
+ * All Folders for fileBox
+ * @type {{ALL: string, TRASH: string, SENT: string, INBOX: string}}
+ */
 const systemFolders = {
   ALL: String.fromCodePoint(0x1F4C1) + ' All',
   INBOX: String.fromCodePoint(0x1F4E5) + ' Inbox',
   SENT: String.fromCodePoint(0x1F4E4) + ' Sent',
   TRASH: String.fromCodePoint(0x1F5D1) + ' Trash'
 };
+module.exports.systemFolders = systemFolders;
 
 /**
  * Return True if mail has been deleted
@@ -21,6 +28,7 @@ function isMailDeleted(mailItem) {
   console.error('Invalid mailItem object')
   return false;
 }
+module.exports.isMailDeleted = isMailDeleted;
 
 /**
  * Return True if mail is an OutMail
@@ -37,6 +45,7 @@ function is_OutMail(mailItem) {
   console.error('Invalid mailItem object')
   return false;
 }
+module.exports.is_OutMail = is_OutMail;
 
 // /**
 //  * Return True if mail has been acknoweldged by this agent
@@ -85,6 +94,7 @@ function determineMailClass(mailItem) {
   console.error('Invalid mailItem object');
   return '';
 }
+module.exports.determineMailClass = determineMailClass;
 
 function customDateString(dateItem) {
   let date = new Date(dateItem);
@@ -112,6 +122,7 @@ function into_gridItem(usernameMap, mailItem) {
   };
   return item;
 }
+module.exports.into_gridItem = into_gridItem;
 
 function into_mailText(usernameMap, mailItem) {
   let intext = 'Subject: ' + mailItem.mail.subject + '\n\n'
@@ -147,3 +158,4 @@ function into_mailText(usernameMap, mailItem) {
   intext += '\nFiles: ' + mailItem.mail.attachments.length;
   return intext;
 }
+module.exports.into_mailText = into_mailText;

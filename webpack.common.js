@@ -20,10 +20,6 @@ module.exports = {
           from: '**/*.js',
           to: 'webcomponents'
         }
-        //, { context: './', from: './src/app.js', to: './' }
-        , { context: './', from: './src/mail.js', to: './' }
-        //, { context: './', from: './src/hc_bridge.js', to: './' }
-        , { context: './', from: './src/utils.js', to: './' }
       ])
     ],
   output: {

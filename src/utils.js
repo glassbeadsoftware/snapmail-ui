@@ -1,12 +1,23 @@
+
 const CHUNK_MAX_SIZE = 200 * 1024;
 
+
+var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+module.exports.base64regex = base64regex;
+
+/**
+ * Sleep via timeout promise
+ */
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+module.exports.sleep = sleep;
 
-var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
-
-
+/**
+ *
+ * @param buffer
+ * @returns {string}
+ */
 function arrayBufferToBase64(buffer) {
   var binary = '';
   var bytes = new Uint8Array( buffer );
@@ -16,6 +27,7 @@ function arrayBufferToBase64(buffer) {
   }
   return window.btoa( binary );
 }
+module.exports.arrayBufferToBase64 = arrayBufferToBase64;
 
 function base64ToArrayBuffer(base64) {
   var binary_string = window.atob(base64);
@@ -26,6 +38,7 @@ function base64ToArrayBuffer(base64) {
   }
   return bytes.buffer;
 }
+module.exports.base64ToArrayBuffer = base64ToArrayBuffer;
 
 function sha256(message) {
   //console.log('message: ' + message)
@@ -35,6 +48,7 @@ function sha256(message) {
   //console.log('hashHex: ' + hashHex)
   return hashHex;
 }
+module.exports.sha256 = sha256;
 
 function chunkSubstr(str, size) {
   var numChunks = Math.ceil(str.length / size);
@@ -58,3 +72,4 @@ function splitFile(full_data_string) {
     chunks: chunks,
   }
 }
+module.exports.splitFile = splitFile;

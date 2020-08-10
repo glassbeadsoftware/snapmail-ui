@@ -24,8 +24,10 @@ import '@vaadin/vaadin-lumo-styles/icons';
 import '@vaadin/vaadin-notification';
 //import '@vaadin-component-factory/vcf-tooltip';
 
-import * as DNA from './hc_bridge'
 //import * from './app'
+import * as DNA from './hc_bridge'
+import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex} from './utils'
+import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
 var g_hasAttachment = 0;
 
