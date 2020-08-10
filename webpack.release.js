@@ -5,13 +5,11 @@ process.env.NODE_ENV = 'prod';
 
 module.exports = merge(common, {
   optimization: {
-    minimize: true
+    minimize: false
   },
-  mode: 'production',
+  mode: 'development',
+  devtool: 'inline-source-map',
   devServer: {
     contentBase: './dist',
   },
-  // output: {
-  //   publicPath: './dist'
-  // }
-});
+})
