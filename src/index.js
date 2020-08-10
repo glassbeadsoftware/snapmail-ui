@@ -95,6 +95,18 @@ function readSingleFile(e) {
   reader.readAsBinaryString(file);
 }
 
+/**
+ * getAllMails wrapper that throttles calls
+ */
+var canGetAllMutex = true;
+function callGetAllMails() {
+  if (!canGetAllMutex) {
+    return;
+  }
+  canGetAllMutex = false;
+  DNA.getAllMails(handleMails, update_fileBox, handleSignal);
+}
+
 // Generic callback: log response
 function logResult(callResult) {
   console.log('callResult = ' + JSON.stringify(callResult));
@@ -199,7 +211,7 @@ function handleSignal(signalwrapper) {
       console.log("received_mail: " + JSON.stringify(item));
       const notification = document.querySelector('#notifyMail');
       notification.open();
-      DNA.getAllMails(handleMails, update_fileBox, console.log);
+      callGetAllMails();
       break;
     }
     case "received_ack": {
@@ -208,7 +220,7 @@ function handleSignal(signalwrapper) {
       console.log("received_ack: " + JSON.stringify(item))
       const notification = document.querySelector('#notifyAck');
       notification.open();
-      DNA.getAllMails(handleMails, update_fileBox, console.log);
+      callGetAllMails();
       break;
     }
     case "received_file": {
@@ -221,8 +233,6 @@ function handleSignal(signalwrapper) {
     }
   }
 }
-
-
 
 /**
  *
@@ -366,7 +376,7 @@ function initDna() {
   // -- FileBox -- //
   DNA.checkIncomingAck(logResult, handleSignal);
   DNA.checkIncomingMail(logResult, handleSignal);
-  DNA.getAllMails(handleMails, update_fileBox, handleSignal);
+  callGetAllMails();
   // -- ContactList -- //
   DNA.getAllHandles(handleHandleList, handleSignal);
   // After
@@ -489,7 +499,7 @@ function initMenuBar() {
       console.log('Refresh called');
       DNA.checkIncomingAck(logResult, handleSignal);
       DNA.checkIncomingMail(logResult, handleSignal);
-      DNA.getAllMails(handleMails, update_fileBox, handleSignal);
+      callGetAllMails();
     }
   });
 }
@@ -657,7 +667,7 @@ function regenerate_mailGrid(callResult) {
   if (callResult.Ok === undefined) {
     return;
   }
-  DNA.getAllMails(handleMails, update_fileBox, handleSignal);
+  callGetAllMails();
 }
 
 function initInMail() {
@@ -940,7 +950,7 @@ async function sendAction() {
     contactGrid.activeItem = null;
     resetRecepients();
     console.log('sendMail -> getAllMails');
-    DNA.getAllMails(handleMails, update_fileBox, handleSignal);
+    callGetAllMails();
     upload.files = [];
   } else {
     console.log('Send Mail Failed: No receipient selected')
@@ -948,14 +958,15 @@ async function sendAction() {
 }
 
 /**
- *
+ * FIXME performance
  */
+//function update_fileBox() {}
 function update_fileBox() {
   const mailGrid = document.querySelector('#mailGrid');
   const activeItem = mailGrid.activeItem;
   console.log('update_fileBox ; activeItem = ' + JSON.stringify(activeItem))
   const folderBoxAll = document.querySelector('#fileboxFolder');
-  update_mailGrid(folderBoxAll.value)
+  update_mailGrid(folderBoxAll.value);
 
   if (activeItem) {
     let newActiveItem = null;
@@ -967,6 +978,7 @@ function update_fileBox() {
     }
     mailGrid.selectItem(newActiveItem);
   }
+  canGetAllMutex = true;
 }
 
 function set_SendButtonState(isDisabled) {
@@ -986,5 +998,5 @@ function set_DeleteButtonState(isDisabled) {
 function handleDelete(_callResult) {
   // TODO check if call result succeeded
   console.log('handleDelete')
-  DNA.getAllMails(handleMails, update_fileBox, handleSignal)
+  callGetAllMails();
 }

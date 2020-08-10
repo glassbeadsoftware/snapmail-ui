@@ -3,6 +3,8 @@
 
 var holochain_connection = holochainclient.connect();
 
+var noop = function() { };
+
 /**
  * Not working
  * Try:
