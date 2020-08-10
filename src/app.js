@@ -1,4 +1,3 @@
-
 // Map of (agentId -> username)
 username_map = new Map();
 // Map of (address -> mailItem)
@@ -117,6 +116,7 @@ function handleMails(callResult) {
     }
     items.push(into_gridItem(mailItem));
   }
+
   console.log('mailCount = ' + items.length)
   mailGrid.items = items;
 }

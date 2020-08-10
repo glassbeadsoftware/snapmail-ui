@@ -5,11 +5,11 @@
   "scripts": {
     "start": "webpack-dev-server --open --config webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "esbuild": "esbuild --sourcemap --bundle src/index.js --outdir=dist",
+    "release": "esbuild --minify --bundle src/index.js --outdir=dist",
     "devserver": "webpack-dev-server --env.mode development",
     "prod": "webpack --env.mode production",
     "dev": "webpack --config webpack.dev.js",
-    "esbuild": "esbuild --sourcemap --bundle src/index.js --outdir=dist",
-    "release": "esbuild --minify --bundle src/index.js --outdir=dist",
     "build": "webpack --config webpack.prod.js"
   },
   "repository": {
@@ -45,8 +45,9 @@
     "@vaadin/vaadin-text-field": "^2.5.5",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
+    "prop-types": "^15.7.2",
     "sjcl": "^1.0.8",
-    "prop-types": "^15.7.2"
+    "uglifyjs-webpack-plugin": "^2.2.0"
   },
   "main": "webpack.common.js"
 }

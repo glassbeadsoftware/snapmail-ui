@@ -177,7 +177,9 @@ function initDebugBar() {
   const debug_menu = document.querySelector('#DebugBar');
   debug_menu.items = [{ text: 'Refresh' }];
   debug_menu.addEventListener('item-selected', function(e) {
-    console.log(JSON.stringify(e.detail.value))
+    if (process.env.NODE_ENV === 'dev') {
+      console.log(JSON.stringify(e.detail.value));
+    }
     if (e.detail.value.text === 'Refresh') {
       debug_menu.items[0].disabled = true;
       debug_menu.render();
