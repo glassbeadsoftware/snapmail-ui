@@ -7,7 +7,6 @@ module.exports = {
   entry: {
     app: './src/index.js',
     // hc_bridge: './src/hc-bridge.js',
-    // main: './src/main.js',
     // mail: './src/mail.js',
   },
   plugins: [
@@ -21,9 +20,9 @@ module.exports = {
           from: '**/*.js',
           to: 'webcomponents'
         }
-        , { context: './', from: './src/app.js', to: './' }
+        //, { context: './', from: './src/app.js', to: './' }
         , { context: './', from: './src/mail.js', to: './' }
-        , { context: './', from: './src/hc_bridge.js', to: './' }
+        //, { context: './', from: './src/hc_bridge.js', to: './' }
         , { context: './', from: './src/utils.js', to: './' }
       ])
     ],
@@ -37,34 +36,6 @@ module.exports = {
   },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-        },
-      },
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              url: (url, resourcePath) => {
-                // resourcePath - path to css file
-
-                // Don't handle `splash-image.png` urls
-                if (url.includes('splash-image.png')) {
-                  return false
-                }
-
-                return true
-              },
-            },
-          },
-        ],
-      },
     ],
   },
 }

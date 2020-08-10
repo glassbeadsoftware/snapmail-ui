@@ -22,40 +22,229 @@ import '@vaadin/vaadin-icons/vaadin-icons';
 import '@vaadin/vaadin-lumo-styles';
 import '@vaadin/vaadin-lumo-styles/icons';
 import '@vaadin/vaadin-notification';
+//import '@vaadin-component-factory/vcf-tooltip';
+
+import * as DNA from './hc_bridge'
+//import * from './app'
 
 var g_hasAttachment = 0;
 
+/**
+ * Setup load
+ */
 window.addEventListener('load', () => {
   initUi();
 });
 
+
+/**
+ * Setup recurrent handle and mail fetchs
+ */
 //var myVar = setInterval(onLoop, 1000);
 // function onLoop() {
 //   getAllHandles(handleHandleList)
 //   getAllMails(handleMails, update_fileBox)
 // }
 
-function initUi() {
 
-  // const splitObj = splitFile('ABCDF');
-  // console.log({splitObj})
+// Map of (agentId -> username)
+var g_username_map = new Map();
+// Map of (address -> mailItem)
+var g_mail_map = new Map();
 
+//file_map = new Map();
+
+var g_myHandle = '<unknown>';
+
+var g_currentFolder = '';
+var g_currentMailItem = {};
+var g_manifest = null;
+var g_getChunks = [];
+
+function readSingleFile(e) {
+  console.log('readSingleFile: ' + JSON.stringify(e));
+  const file = e.target.files[0];
+  if (!file) {
+    return;
+  }
+  console.log('file: ' + JSON.stringify(file));
+  // Not supported in Safari for iOS.
+  const name = file.name ? file.name : 'NOT SUPPORTED';
+  // Not supported in Firefox for Android or Opera for Android.
+  const type = file.type ? file.type : 'NOT SUPPORTED';
+  // Unknown cross-browser support.
+  const size = file.size ? file.size : 'NOT SUPPORTED';
+  console.log({file, name, type, size});
+
+  let fileList = document.getElementById('fileList');
+  let items = fileList.items ? fileList.items : [];
+  console.log({items});
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const content = e.target.result;
+    const fileContent = {
+      name, type, size, content
+    }
+    g_mail_map.set(name, fileContent)
+    items.push(fileContent)
+    //console.log(contents);
+  };
+  reader.readAsBinaryString(file);
+}
+
+// Generic callback: log response
+function logResult(callResult) {
+  console.log('callResult = ' + JSON.stringify(callResult));
+}
+
+function allowChangeHandle() {
+  setChangeHandleHidden(false)
+}
+
+function cancelMyHandle() {
   setChangeHandleHidden(true)
-  initDebugBar()
-  initMenuBar()
-  initApp()
-  initFileBox()
-  initInMail()
-  initOutMail()
-  initActionBar()
-  initUpload()
+}
+
+function setChangeHandleHidden(hidden) {
+  let handleButton = document.getElementById('handleDisplay');
+  handleButton.hidden = !hidden;
+  let handleInput = document.getElementById('myNewHandleInput');
+  handleInput.hidden = hidden;
+  let updateButton = document.getElementById('setMyHandleButton');
+  updateButton.hidden = hidden;
+  let cancelButton = document.getElementById('cancelHandleButton');
+  cancelButton.hidden = hidden;
+  if (!hidden && g_myHandle !== '<noname>') {
+    handleInput.value = g_myHandle
+  } else {
+    handleInput.value = ''
+  }
+}
+
+// Callback for getMyHandle()
+function showHandle(callResult) {
+  var handleButton = document.getElementById('handleText');
+  handleButton.textContent = '' + callResult.Ok;
+  g_myHandle = callResult.Ok;
+}
+
+
+// Callback for getAllMails()
+function handleMails(callResult) {
+  if (callResult.Ok === undefined) {
+    return;
+  }
+  let mailGrid = document.querySelector('#mailGrid');
+  let mailList = callResult.Ok;
+  let items = [];
+  g_mail_map.clear();
+  const folderBox = document.querySelector('#fileboxFolder');
+  let selectedBox = folderBox.value;
+  for (let mailItem of mailList) {
+    g_mail_map.set(mailItem.address, mailItem);
+    // Determine if should add to grid
+    if (isMailDeleted(mailItem) && selectedBox !== systemFolders.TRASH) {
+      continue;
+    }
+    if (is_OutMail(mailItem) && selectedBox === systemFolders.INBOX) {
+      continue;
+    }
+    if (!is_OutMail(mailItem) && selectedBox === systemFolders.SENT) {
+      continue;
+    }
+    items.push(into_gridItem(g_username_map, mailItem));
+  }
+
+  console.log('mailCount = ' + items.length);
+  mailGrid.items = items;
+}
+
+var g_chunkList = [];
+var g_fileList = [];
+
+// Calback for writeChunk
+function chunkResult(callResult) {
+  console.log('chunkResult: ' + JSON.stringify(callResult))
+  let chunkAddress = callResult.Ok;
+  g_chunkList.push(chunkAddress);
+}
+
+// Calback for writeManifest
+function writeManifestResult(callResult) {
+  console.log('writeManifestResult: ' + JSON.stringify(callResult))
+  let manifestAddress = callResult.Ok;
+  g_fileList.push(manifestAddress);
+}
+
+const redDot = String.fromCodePoint(0x1F534);
+const greenDot = String.fromCodePoint(0x1F7E2);
+
+
+// -- Signal -- //
+
+function handleSignal(signalwrapper) {
+  if (signalwrapper.type !== undefined && signalwrapper.type !== "InstanceSignal") {
+    return;
+  }
+  if (signalwrapper.signal.signal_type !== "User") {
+    return;
+  }
+  switch (signalwrapper.signal.name) {
+    case "received_mail": {
+      let itemJson = signalwrapper.signal.arguments;
+      let item = JSON.parse(itemJson).ReceivedMail;
+      console.log("received_mail: " + JSON.stringify(item));
+      const notification = document.querySelector('#notifyMail');
+      notification.open();
+      DNA.getAllMails(handleMails, update_fileBox, console.log);
+      break;
+    }
+    case "received_ack": {
+      let itemJson = signalwrapper.signal.arguments;
+      let item = JSON.parse(itemJson).ReceivedAck;
+      console.log("received_ack: " + JSON.stringify(item))
+      const notification = document.querySelector('#notifyAck');
+      notification.open();
+      DNA.getAllMails(handleMails, update_fileBox, console.log);
+      break;
+    }
+    case "received_file": {
+      let itemJson = signalwrapper.signal.arguments;
+      let item = JSON.parse(itemJson).ReceivedFile;
+      console.log("received_file: " + JSON.stringify(item))
+      const notification = document.querySelector('#notifyFile');
+      notification.open();
+      break;
+    }
+  }
+}
+
+
+
+/**
+ *
+ */
+function initUi() {
+  setChangeHandleHidden(true);
+  initTopBar();
+  initMenuBar();
+  initFileBox();
+  initInMail();
+  initOutMail();
+  initActionBar();
+  initUpload();
   // getMyAgentId(logResult)
-  initNotification()
+  initNotification();
+  initDna();
+  // -- init progress bar -- //
   const sendProgressBar = document.querySelector('#sendProgressBar');
   sendProgressBar.style.display = "none";
 }
 
-//
+/**
+ *
+ */
 function initUpload() {
   customElements.whenDefined('vaadin-upload').then(function() {
     const upload = document.querySelector('vaadin-upload');
@@ -114,6 +303,10 @@ function initUpload() {
   });
 }
 
+
+/**
+ *
+ */
 function initNotification() {
   //  -- Mail
   let notification = document.querySelector('#notifyMail');
@@ -160,32 +353,116 @@ function initNotification() {
   };
 }
 
-function initApp() {
+
+/**
+ *
+ */
+function initDna() {
+  console.log('initDna()');
   // -- App Bar -- //
-  getMyHandle(showHandle, handleSignal)
-
+  DNA.getMyHandle(showHandle, handleSignal);
   // -- FileBox -- //
-  checkIncomingAck(logResult, handleSignal)
-  checkIncomingMail(logResult, handleSignal)
-  getAllMails(handleMails, update_fileBox, handleSignal)
-
+  DNA.checkIncomingAck(logResult, handleSignal);
+  DNA.checkIncomingMail(logResult, handleSignal);
+  DNA.getAllMails(handleMails, update_fileBox, handleSignal);
   // -- ContactList -- //
-  getAllHandles(handleHandleList, handleSignal)
+  DNA.getAllHandles(handleHandleList, handleSignal);
+  // After
+  const handleButton = document.getElementById('handleText');
+  DNA.findAgent(handleButton.textContent, findAgentResult, handleSignal);
 }
-function initDebugBar() {
-  // Menu -- vaadin-menu-bar
-  const debug_menu = document.querySelector('#DebugBar');
-  debug_menu.items = [{ text: 'Refresh' }];
-  debug_menu.addEventListener('item-selected', function(e) {
+
+
+/**
+ *
+ */
+function initTopBar() {
+  customElements.whenDefined('vaadin-button').then(function() {
+    let button = document.querySelector('#setMyHandleButton');
+    button.addEventListener('click', setMyHandle);
+    button = document.querySelector('#handleDisplay');
+    button.addEventListener('click', allowChangeHandle);
+    button = document.querySelector('#cancelHandleButton');
+    button.addEventListener('click', cancelMyHandle);
+  });
+
+  // TopBar -- vaadin-menu-bar
+  const topBar = document.querySelector('#TopBar');
+  topBar.items = [{ text: 'Refresh' }];
+  topBar.addEventListener('item-selected', function(e) {
     if (process.env.NODE_ENV === 'dev') {
       console.log(JSON.stringify(e.detail.value));
     }
     if (e.detail.value.text === 'Refresh') {
-      debug_menu.items[0].disabled = true;
-      debug_menu.render();
-      getAllHandles(handleHandleList, handleSignal)
+      topBar.items[0].disabled = true;
+      topBar.render();
+      DNA.getAllHandles(handleHandleList, handleSignal);
     }
   });
+}
+
+// Calback for getAllHandles()
+function handleHandleList(callResult) {
+  //const contactGrid = document.querySelector('#contactGrid');
+  let handleList = callResult.Ok;
+  g_username_map.clear();
+  for (let handleItem of handleList) {
+    // FIXME: exclude self from list
+    g_username_map.set(handleItem[1], handleItem[0])
+  }
+  resetRecepients().then(function() {
+    const debugMenu = document.querySelector('#TopBar');
+    debugMenu.items[0].disabled = false;
+    debugMenu.render();
+  });
+}
+
+var hasPingResult = false;
+var isAgentOnline = false;
+
+function pingResult(callResult) {
+  isAgentOnline = callResult.Ok;
+  hasPingResult = true;
+}
+
+async function resetRecepients() {
+  const contactGrid = document.querySelector('#contactGrid');
+  let items = [];
+  for (let entry of g_username_map.entries()) {
+    //g_username_map.set(entry[1], entry[0]);
+    hasPingResult = false;
+    isAgentOnline = false;
+    DNA.pingAgent(entry[0], pingResult, handleSignal);
+    while (!hasPingResult) {
+      await sleep(10)
+    }
+    let item = { "username": entry[1], "agentId": entry[0], "recepientType": '',
+      status: isAgentOnline? greenDot : redDot
+    };
+    items.push(item);
+  }
+  contactGrid.items = items;
+  contactGrid.selectedItems = [];
+  contactGrid.activeItem = null;
+  contactGrid.render();
+}
+
+function setMyHandle() {
+  let input = document.getElementById('myNewHandleInput');
+  console.log('new handle = ' + input.value);
+  DNA.setHandle(input.value, console.log, handleSignal);
+  showHandle({ Ok: input.value});
+  input.value = '';
+  setChangeHandleHidden(true);
+}
+
+function findAgentResult(callResult) {
+  let button = document.querySelector('#handleDisplay');
+  if (callResult.Ok === undefined) {
+    button.title = "";
+    return;
+  }
+  button.title = callResult.Ok[0];
 }
 
 function initMenuBar() {
@@ -201,15 +478,16 @@ function initMenuBar() {
     ];
 
   menu.addEventListener('item-selected', function(e) {
-    console.log(JSON.stringify(e.detail.value))
+    console.log(JSON.stringify(e.detail.value));
     if (e.detail.value.text === 'Trash') {
-      deleteMail(g_currentMailItem.id, handleDelete, handleSignal)
+      DNA.deleteMail(g_currentMailItem.id, handleDelete, handleSignal);
       set_DeleteButtonState(true)
     }
     if (e.detail.value.text === 'Refresh') {
-      checkIncomingAck(logResult, handleSignal)
-      checkIncomingMail(logResult, handleSignal)
-      getAllMails(handleMails, update_fileBox, handleSignal)
+      console.log('Refresh called');
+      DNA.checkIncomingAck(logResult, handleSignal);
+      DNA.checkIncomingMail(logResult, handleSignal);
+      DNA.getAllMails(handleMails, update_fileBox, handleSignal);
     }
   });
 }
@@ -220,32 +498,32 @@ function update_mailGrid(folder) {
   console.log('update_mailGrid: ' + folder);
   switch(folder) {
     case systemFolders.ALL:
-      for (mailItem of mail_map.values()) {
-        //folderItems = Array.from(mail_map.values());
-        folderItems.push(into_gridItem(mailItem));
+      for (let mailItem of g_mail_map.values()) {
+        //folderItems = Array.from(g_mail_map.values());
+        folderItems.push(into_gridItem(g_username_map, mailItem));
       }
       break;
     case systemFolders.INBOX:
     case systemFolders.SENT:
-      for (mailItem of mail_map.values()) {
+      for (let mailItem of g_mail_map.values()) {
         //console.log('mailItem: ' + JSON.stringify(mailItem))
         let is_out = is_OutMail(mailItem);
         if (isMailDeleted(mailItem)) {
           continue;
         }
         if (is_out && folder == systemFolders.SENT) {
-          folderItems.push(into_gridItem(mailItem));
+          folderItems.push(into_gridItem(g_username_map, mailItem));
           continue;
         }
         if (!is_out && folder == systemFolders.INBOX) {
-          folderItems.push(into_gridItem(mailItem));
+          folderItems.push(into_gridItem(g_username_map, mailItem));
         }
       }
       break;
     case systemFolders.TRASH: {
-      for (mailItem of mail_map.values()) {
+      for (let mailItem of g_mail_map.values()) {
         if(isMailDeleted(mailItem)) {
-          folderItems.push(into_gridItem(mailItem));
+          folderItems.push(into_gridItem(g_username_map, mailItem));
         }
       }
     }
@@ -284,7 +562,7 @@ function initFileBox() {
   // Display bold if mail not acknowledged
   mailGrid.cellClassNameGenerator = function(column, rowData) {
     let classes = '';
-    let mailItem = mail_map.get(rowData.item.id);
+    let mailItem = g_mail_map.get(rowData.item.id);
     console.assert(mailItem);
     classes += determineMailClass(mailItem);
     // let is_old = hasMailBeenOpened(mailItem);
@@ -306,15 +584,15 @@ function initFileBox() {
     g_currentMailItem = item;
     console.log('mail grid item: ' + JSON.stringify(item));
     var span = document.getElementById('inMailArea');
-    let mailItem = mail_map.get(item.id);
+    let mailItem = g_mail_map.get(item.id);
     console.log('mail item: ' + JSON.stringify(mailItem));
-    span.value = into_mailText(mailItem);
+    span.value = into_mailText(g_username_map, mailItem);
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
-        getMissingAttachments(mailItem.author, mailItem.address, missingAttachmentsResult, handleSignal);
+        DNA.getMissingAttachments(mailItem.author, mailItem.address, missingAttachmentsResult, handleSignal);
       }
-      acknowledgeMail(item.id, regenerate_mailGrid, handleSignal);
+      DNA.acknowledgeMail(item.id, regenerate_mailGrid, handleSignal);
       // Allow delete button
       if (g_currentFolder !== systemFolders.TRASH) {
         set_DeleteButtonState(false)
@@ -348,7 +626,7 @@ async function fillAttachmentGrid(mail) {
   let missingCount = 0;
   for (let attachmentInfo of mail.attachments) {
     console.log({attachmentInfo});
-    getManifest(attachmentInfo.manifest_address, manifestResult, handleSignal);
+    DNA.getManifest(attachmentInfo.manifest_address, manifestResult, handleSignal);
     while (g_hasAttachment === 0) {
       await sleep(10);
     }
@@ -374,7 +652,10 @@ async function fillAttachmentGrid(mail) {
 }
 
 function regenerate_mailGrid(callResult) {
-  getAllMails(handleMails, update_fileBox, handleSignal)
+  if (callResult.Ok === undefined) {
+    return;
+  }
+  DNA.getAllMails(handleMails, update_fileBox, handleSignal);
 }
 
 function initInMail() {
@@ -462,7 +743,7 @@ function initAttachmentGrid() {
 
 async function getFile(fileId) {
   g_manifest = null;
-  findManifest(fileId, findManifestResult, handleSignal);
+  DNA.findManifest(fileId, findManifestResult, handleSignal);
   while (g_manifest ==  null) {
     await sleep(10)
   }
@@ -473,7 +754,7 @@ async function getFile(fileId) {
   let i = 0;
   for (let chunkAddress of g_manifest.chunks) {
     i++;
-    getChunk(chunkAddress, getChunkResult, handleSignal)
+    DNA.getChunk(chunkAddress, getChunkResult, handleSignal)
     while (g_getChunks.length !=  i) {
       await sleep(10)
     }
@@ -607,7 +888,7 @@ async function sendAction() {
     // Submit each chunk
     for (var i = 0; i < splitObj.numChunks; ++i) {
       //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
-      writeChunk(splitObj.dataHash, i, splitObj.chunks[i], chunkResult, handleSignal);
+      DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], chunkResult, handleSignal);
       while (g_chunkList.length !=  i + 1) {
         await sleep(10)
       }
@@ -615,7 +896,7 @@ async function sendAction() {
     while (g_chunkList.length < splitObj.numChunks) {
       await sleep(10);
     }
-    writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, writeManifestResult, handleSignal)
+    DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, writeManifestResult, handleSignal)
   }
   while (g_fileList.length < files.length) {
     await sleep(10);
@@ -648,7 +929,7 @@ async function sendAction() {
     };
     console.log('sending mail: ' + JSON.stringify(mail));
     // Send Mail
-    sendMail(mail, logResult, handleSignal);
+    DNA.sendMail(mail, logResult, handleSignal);
     // Update UI
     set_SendButtonState(true);
     outMailSubjectArea.value = '';
@@ -656,7 +937,8 @@ async function sendAction() {
     contactGrid.selectedItems = [];
     contactGrid.activeItem = null;
     resetRecepients();
-    getAllMails(handleMails, update_fileBox, handleSignal);
+    console.log('sendMail -> getAllMails');
+    DNA.getAllMails(handleMails, update_fileBox, handleSignal);
     upload.files = [];
   } else {
     console.log('Send Mail Failed: No receipient selected')
@@ -675,7 +957,7 @@ function update_fileBox() {
 
   if (activeItem) {
     let newActiveItem = null;
-    for(mailItem of mailGrid.items) {
+    for (let mailItem of mailGrid.items) {
       if(mailItem.id === activeItem.id) {
         newActiveItem = mailItem;
         break;
@@ -701,5 +983,6 @@ function set_DeleteButtonState(isDisabled) {
 
 function handleDelete(_callResult) {
   // TODO check if call result succeeded
-  getAllMails(handleMails, update_fileBox, handleSignal)
+  console.log('handleDelete')
+  DNA.getAllMails(handleMails, update_fileBox, handleSignal)
 }

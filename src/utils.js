@@ -40,7 +40,7 @@ function chunkSubstr(str, size) {
   var numChunks = Math.ceil(str.length / size);
   var chunks = new Array(numChunks);
 
-  for(var i = 0, o = 0; i < numChunks; ++i, o += size) {
+  for (var i = 0, o = 0; i < numChunks; ++i, o += size) {
     chunks[i] = str.substr(o, size);
   }
 

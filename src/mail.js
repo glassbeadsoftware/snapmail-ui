@@ -100,11 +100,11 @@ function customDateString(dateItem) {
   return dday
 }
 
-function into_gridItem(mailItem) {
-  let username = username_map.get(mailItem.author)
+function into_gridItem(usernameMap, mailItem) {
+  let username = usernameMap.get(mailItem.author)
   let dateStr = customDateString(mailItem.date)
   if (mailItem.state.hasOwnProperty('Out')) {
-    username = 'To: ' + username_map.get(mailItem.mail.to[0])
+    username = 'To: ' + usernameMap.get(mailItem.mail.to[0])
   }
   let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
   let item = {
@@ -113,24 +113,24 @@ function into_gridItem(mailItem) {
   return item;
 }
 
-function into_mailText(mailItem) {
+function into_mailText(usernameMap, mailItem) {
   let intext = 'Subject: ' + mailItem.mail.subject + '\n\n'
     + mailItem.mail.payload + '\n\n'
-    + 'Mail from: ' + username_map.get(mailItem.author) + ' at ' + customDateString(mailItem.date);
+    + 'Mail from: ' + usernameMap.get(mailItem.author) + ' at ' + customDateString(mailItem.date);
   let to_line = '';
-  for (item of mailItem.mail.to) {
-    to_line += ' ' + username_map.get(item);
+  for (let item of mailItem.mail.to) {
+    to_line += ' ' + usernameMap.get(item);
   }
   let cc_line = '';
   let can_cc = false;
-  for (item of mailItem.mail.cc) {
-    cc_line += ' ' + username_map.get(item);
+  for (let item of mailItem.mail.cc) {
+    cc_line += ' ' + usernameMap.get(item);
     can_cc = true;
   }
   let bcc_line = '';
   let can_bcc = false;
-  for (item of mailItem.bcc) {
-    bcc_line += ' ' + username_map.get(item);
+  for (let item of mailItem.bcc) {
+    bcc_line += ' ' + usernameMap.get(item);
     can_bcc = true;
   }
   intext += '\nTo: ' + to_line;

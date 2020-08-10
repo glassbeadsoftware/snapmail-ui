@@ -58,9 +58,9 @@
     <script type="text/javascript" src="vendor/hc-web-client/hc-web-client-0.5.3.browser.min.js"></script>
     <script type="text/javascript" src="vendor/sjcl/sjcl.js"></script>
     <script type="text/javascript" src="utils.js"></script>
-    <script type="text/javascript" src="hc_bridge.js"></script>
+<!--    <script type="text/javascript" src="hc_bridge.js"></script>-->
     <script type="text/javascript" src="mail.js"></script>
-    <script type="text/javascript" src="app.js"></script>
+<!--    <script type="text/javascript" src="app.js"></script>-->
     <script src="webcomponents/webcomponents-loader.js"></script>
     <script>
       if (!window.customElements) { document.write('<!--'); }
@@ -70,22 +70,21 @@
 </head>
 
 <body style="background-color: white">
-<vaadin-notification duration="4000" theme="contrast" position="bottom-center" id="notifyMail"></vaadin-notification>
-<vaadin-notification duration="4000" position="bottom-center" id="notifyAck"></vaadin-notification>
-<vaadin-notification duration="4000" position="bottom-center" id="notifyFile"></vaadin-notification>
-<vaadin-vertical-layout theme="spacing-s" style="">
-    <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
-        <img src="favicon.ico" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/>
-        <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;">SnapMail v0.0.2 - </span>
-<!--        <vaadin-text-field clear-button-visible placeholder="Search">-->
-<!--            <iron-icon icon="lumo:search" slot="prefix"></iron-icon>-->
-<!--        </vaadin-text-field>-->
-        <vaadin-button id="handleDisplay" onclick="allowChangeHandle()" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
-    <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
-        <vaadin-button theme="icon" id="setMyHandleButton" onclick="setMyHandle()">
-            <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
-        </vaadin-button>
-        <vaadin-button theme="icon" id="cancelHandleButton" onclick="cancelMyHandle()">
+    <vaadin-notification duration="4000" theme="contrast" position="bottom-center" id="notifyMail"></vaadin-notification>
+    <vaadin-notification duration="4000" position="bottom-center" id="notifyAck"></vaadin-notification>
+    <vaadin-notification duration="4000" position="bottom-center" id="notifyFile"></vaadin-notification>
+    <!-- FILEBOX AREA -->
+    <vaadin-vertical-layout theme="spacing-s" style="">
+        <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
+            <img src="favicon.ico" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/>
+            <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;">SnapMail v0.0.2 - </span>
+            <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
+<!--            <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip>-->
+        <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
+            <vaadin-button theme="icon" id="setMyHandleButton" title="unknown">
+                <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
+            </vaadin-button>
+        <vaadin-button theme="icon" id="cancelHandleButton">
             <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
         </vaadin-button>
         </vaadin-horizontal-layout>
@@ -130,7 +129,7 @@
         <vaadin-vertical-layout theme="padding spacing-xs" style="min-width: 20px; width: 25%;">
             <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
 <!--                <h4 style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">Contacts</h4>-->
-                <vaadin-menu-bar open-on-hover id="DebugBar"></vaadin-menu-bar>
+                <vaadin-menu-bar open-on-hover id="TopBar"></vaadin-menu-bar>
             </vaadin-horizontal-layout>
             <vaadin-grid theme="no-row-borders" id="contactGrid" >
                 <vaadin-grid-column path="status" header=" " width="30px" flex-grow="0"></vaadin-grid-column>
@@ -140,7 +139,6 @@
             </vaadin-grid>
         </vaadin-vertical-layout>
     </vaadin-split-layout>
-<!--    <vaadin-button type="file" id="uploadFile" onclick="onUploadClick()"><span id="uploadHandleText"></span><iron-icon icon="lumo:upload" slot="prefix"></iron-icon>Upload</vaadin-button>-->
 <!--    <input type="file" hidden id="file-input" name="myfile">-->
 <!--    </div>-->
 <!--    <vaadin-list-box id="fileList"></vaadin-list-box>-->

@@ -24,13 +24,8 @@
   },
   "homepage": "https://github.com/ddd-mtl/snapmail#readme",
   "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@babel/preset-react": "^7.0.0",
     "@webcomponents/webcomponentsjs": "^2.4.3",
-    "babel-loader": "^8.0.6",
     "copy-webpack-plugin": "^5.1.1",
-    "css-loader": "^3.2.0",
     "html-webpack-plugin": "^4.2.0",
     "style-loader": "^1.0.0",
     "webpack": "^4.41.3",
@@ -39,16 +34,15 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.7.4",
     "@polymer/polymer": "^3.3.1",
+    "@vaadin-component-factory/vcf-tooltip": "^1.2.2",
     "@vaadin/vaadin": "^15.0.5",
     "@vaadin/vaadin-icons": "^4.3.1",
     "@vaadin/vaadin-text-field": "^2.5.5",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
     "prop-types": "^15.7.2",
-    "sjcl": "^1.0.8",
-    "uglifyjs-webpack-plugin": "^2.2.0"
+    "sjcl": "^1.0.8"
   },
   "main": "webpack.common.js"
 }
