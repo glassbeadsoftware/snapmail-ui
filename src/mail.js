@@ -151,11 +151,15 @@ function into_mailText(usernameMap, mailItem) {
   if (can_bcc) {
     intext += '\nBCC: ' + bcc_line;
   }
+
   // Debug info
-  intext += '\n\nDEBUG INFO';
-  intext += '\nState: ' + JSON.stringify(mailItem.state);
-  intext += '\nAddress: ' + mailItem.address;
-  intext += '\nFiles: ' + mailItem.mail.attachments.length;
+  if (process.env.NODE_ENV === 'dev') {
+    intext += '\n\nDEBUG INFO';
+    intext += '\nState: ' + JSON.stringify(mailItem.state);
+    intext += '\nAddress: ' + mailItem.address;
+    intext += '\nFiles: ' + mailItem.mail.attachments.length;
+  }
+
   return intext;
 }
 module.exports.into_mailText = into_mailText;
