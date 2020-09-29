@@ -8,10 +8,10 @@
     "esbuild": "esbuild --sourcemap --bundle src/index.js --outdir=dist",
     "esprod": "esbuild --minify --bundle src/index.js --outdir=dist",
     "devserver": "webpack-dev-server --env.mode development",
-    "prod": "webpack --env.mode production",
+    "build": "webpack --env.mode production",
     "dev": "webpack --config webpack.dev.js",
     "release": "webpack --config webpack.release.js",
-    "build": "webpack --config webpack.prod.js"
+    "prod": "webpack --config webpack.prod.js"
   },
   "repository": {
     "type": "git",

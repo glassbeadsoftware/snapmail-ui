@@ -2,6 +2,7 @@
 
 <html lang="en">
 
+<!-- Dynamic styles for vaadin -->
 <dom-module id="my-grid-styles" theme-for="vaadin-grid">
     <template>
         <style>
@@ -48,13 +49,14 @@
     </template>
 </dom-module>
 
+<!-- HEAD -->
 <head>
     <meta charset="utf-8" />
-    <title>SnapMail - v0.0.2</title>
+    <title>SnapMail - v0.0.3</title>
     <link rel="icon"
           type="image/ico"
           href="favicon.ico">
-    <meta name="description" content="UI for SnapMail happ" />
+    <meta name="description" content="SnapMail happ" />
     <script type="text/javascript" src="vendor/hc-web-client/hc-web-client-0.5.3.browser.min.js"></script>
     <script type="text/javascript" src="vendor/sjcl/sjcl.js"></script>
     <script src="webcomponents/webcomponents-loader.js"></script>
@@ -65,17 +67,22 @@
     <!-- ! DO NOT REMOVE THIS COMMENT, WE NEED ITS CLOSING MARKER -->
 </head>
 
+<!-- BODY -->
 <body style="background-color: white">
-    <vaadin-notification duration="4000" theme="contrast" position="bottom-center" id="notifyMail"></vaadin-notification>
-    <vaadin-notification duration="4000" position="bottom-center" id="notifyAck"></vaadin-notification>
-    <vaadin-notification duration="4000" position="bottom-center" id="notifyFile"></vaadin-notification>
-    <!-- FILEBOX AREA -->
-    <vaadin-vertical-layout theme="spacing-s" style="">
-        <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
-            <img src="favicon.ico" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/>
-            <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;">SnapMail v0.0.2 - </span>
-            <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
-<!--            <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip>-->
+<!-- Notifications -->
+<vaadin-notification duration="4000" theme="contrast" position="bottom-center" id="notifyMail"></vaadin-notification>
+<vaadin-notification duration="4000" position="bottom-center" id="notifyAck"></vaadin-notification>
+<vaadin-notification duration="4000" position="bottom-center" id="notifyFile"></vaadin-notification>
+
+<!-- MAIN VERTICAL LAYOUT -->
+<vaadin-vertical-layout theme="spacing-s" style="">
+
+    <!-- TITLE BAR -->
+    <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
+        <img src="favicon.ico" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/>
+        <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;">SnapMail v0.0.3 - </span>
+        <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
+        <!-- <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip> -->
         <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
             <vaadin-button theme="icon" id="setMyHandleButton" title="unknown">
                 <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
@@ -83,30 +90,32 @@
         <vaadin-button theme="icon" id="cancelHandleButton">
             <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
         </vaadin-button>
-        </vaadin-horizontal-layout>
+    </vaadin-horizontal-layout>
+
+    <!-- FILEBOX MENU -->
     <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
-    <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>
-    <vaadin-menu-bar open-on-hover id="MenuBar"></vaadin-menu-bar>
+        <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>
+        <vaadin-menu-bar open-on-hover id="MenuBar"></vaadin-menu-bar>
         <span style="padding:10px 0;">Messages: <span id="messageCount">0</span></span>
     </vaadin-horizontal-layout>
     <!-- FILEBOX AREA -->
     <vaadin-grid id="mailGrid" theme="compact" style="height: 250px; width: 100%;">
-<!--        <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>-->
+        <!--  <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>-->
         <vaadin-grid-column path="id" header="id" width="0em" hidden></vaadin-grid-column>
-<!--        <vaadin-grid-column header="A" width="60px" flex-grow="0" text-align="end"></vaadin-grid-column>-->
+        <!-- <vaadin-grid-column header="A" width="60px" flex-grow="0" text-align="end"></vaadin-grid-column>-->
         <vaadin-grid-sort-column path="status" header=" " width="50px" flex-grow="0"></vaadin-grid-sort-column>
         <vaadin-grid-sort-column path="username" header="Who" width="100px"></vaadin-grid-sort-column>
         <vaadin-grid-sort-column path="subject" header="Subject" width="500px"></vaadin-grid-sort-column>
         <vaadin-grid-sort-column path="date" header="Date"></vaadin-grid-sort-column>
     </vaadin-grid>
 
-    <!-- IN MAIL AREA -->
+    <!-- IN-MAIL AREA -->
     <vaadin-horizontal-layout theme="spacing-xs" style="height:250px;width: 100%;">
-    <vaadin-text-area style="width: 70%;" id="inMailArea" placeholder="<no selection>" readonly>
-<!--        <span id="mailDisplay"></span>-->
-    </vaadin-text-area>
-        <!-- Attachment grid -->
-        <vaadin-grid theme="no-row-borders" id="attachmentGrid" style="height: 100%; border-style: dotted; max-width: 400px;">
+        <vaadin-text-area style="width: 70%;" id="inMailArea" placeholder="<no selection>" readonly>
+        <!-- <span id="mailDisplay"></span>-->
+        </vaadin-text-area>
+        <!-- ATTACHMENT GRID -->
+        <vaadin-grid theme="no-row-borders" id="attachmentGrid" style="width: 30%;height: 100%; border-style: dotted;">
             <vaadin-grid-column path="status" header=" " width="40px" flex-grow="0"></vaadin-grid-column>
             <vaadin-grid-column auto-width path="filename" header="Attachments"></vaadin-grid-column>
             <vaadin-grid-column auto-width path="filesize" text-align="end" header="KiB"></vaadin-grid-column>
@@ -115,18 +124,23 @@
         </vaadin-grid>
     </vaadin-horizontal-layout>
 
-    <!-- WRITE AREA -->
+    <!-- OUT-MAIL AREA -->
     <h4 style="margin:20px 0 5px 0;">&#128394; Write Mail</h4>
     <vaadin-split-layout id="outMailBlock" style="height: 250px; width: 100%; margin: 0px;">
-        <vaadin-vertical-layout style="min-width: 40px; width: 75%;">
+        <!-- WRITE AREA -->
+        <vaadin-vertical-layout style="min-width: 40px; width: 70%;">
             <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>
             <vaadin-text-area style="width: 100%; height: 100%;" id="outMailContentArea" placeholder="Write here..."></vaadin-text-area>
         </vaadin-vertical-layout>
-        <vaadin-vertical-layout theme="padding spacing-xs" style="min-width: 20px; width: 25%;">
-            <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
-<!--                <h4 style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">Contacts</h4>-->
-                <vaadin-menu-bar open-on-hover id="TopBar"></vaadin-menu-bar>
+        <!-- CONTACTS AREA -->
+        <vaadin-vertical-layout theme="spacing-xs" style="min-width: 20px; width: 30%;">
+            <!-- CONTACTS MENU -->
+<!--            <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">-->
+                <vaadin-horizontal-layout theme="spacing-xs">
+                <!-- <h4 style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">Contacts</h4>-->
+                <vaadin-menu-bar open-on-hover id="ContactsMenu"></vaadin-menu-bar>
             </vaadin-horizontal-layout>
+            <!-- CONTACTS GRID -->
             <vaadin-grid theme="no-row-borders" id="contactGrid" >
                 <vaadin-grid-column path="status" header=" " width="30px" flex-grow="0"></vaadin-grid-column>
                 <vaadin-grid-column auto-width path="username" header="Contacts"></vaadin-grid-column>
@@ -135,12 +149,17 @@
             </vaadin-grid>
         </vaadin-vertical-layout>
     </vaadin-split-layout>
-<!--    <input type="file" hidden id="file-input" name="myfile">-->
-<!--    </div>-->
-<!--    <vaadin-list-box id="fileList"></vaadin-list-box>-->
+
+    <!-- <input type="file" hidden id="file-input" name="myfile">-->
+    <!-- </div>-->
+    <!-- <vaadin-list-box id="fileList"></vaadin-list-box>-->
+
+    <!-- SEND MENU -->
     <vaadin-upload nodrop max-file-size="750000" style="width: 280px;"></vaadin-upload>
     <vaadin-menu-bar theme="primary" id="ActionBar"></vaadin-menu-bar>
     <vaadin-progress-bar indeterminate value="0" id="sendProgressBar" ></vaadin-progress-bar>
+
 </vaadin-vertical-layout>
+
 </body>
 </html>

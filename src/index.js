@@ -29,19 +29,14 @@ import * as DNA from './hc_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
-var g_hasAttachment = 0;
+
+//---------------------------------------------------------------------------------------------------------------------
+// DEBUG MODE
+//---------------------------------------------------------------------------------------------------------------------
 
 if (process.env.NODE_ENV === 'prod') {
   console.log = () => {};
 }
-
-/**
- * Setup load
- */
-window.addEventListener('load', () => {
-  initUi();
-});
-
 
 /**
  * Setup recurrent handle and mail fetchs
@@ -53,55 +48,44 @@ window.addEventListener('load', () => {
 // }
 
 
+//---------------------------------------------------------------------------------------------------------------------
+// Globals
+//---------------------------------------------------------------------------------------------------------------------
+
+const redDot   = String.fromCodePoint(0x1F534);
+const greenDot = String.fromCodePoint(0x1F7E2);
+
+var g_hasAttachment = 0;
+var g_hasPingResult = false;
+var g_isAgentOnline = false;
+var g_chunkList = [];
+var g_fileList = [];
+
 // Map of (agentId -> username)
 var g_username_map = new Map();
 // Map of (address -> mailItem)
 var g_mail_map = new Map();
 
-//file_map = new Map();
-
 var g_myHandle = '<unknown>';
-
 var g_currentFolder = '';
 var g_currentMailItem = {};
 var g_manifest = null;
 var g_getChunks = [];
 
-
-// function readSingleFile(e) {
-//   console.log('readSingleFile: ' + JSON.stringify(e));
-//   const file = e.target.files[0];
-//   if (!file) {
-//     return;
-//   }
-//   console.log('file: ' + JSON.stringify(file));
-//   // Not supported in Safari for iOS.
-//   const name = file.name ? file.name : 'NOT SUPPORTED';
-//   // Not supported in Firefox for Android or Opera for Android.
-//   const type = file.type ? file.type : 'NOT SUPPORTED';
-//   // Unknown cross-browser support.
-//   const size = file.size ? file.size : 'NOT SUPPORTED';
-//   console.log({file, name, type, size});
-//
-//   let fileList = document.getElementById('fileList');
-//   let items = fileList.items ? fileList.items : [];
-//   console.log({items});
-//
-//   const reader = new FileReader();
-//   reader.onload = function(e) {
-//     const content = e.target.result;
-//     const fileContent = {
-//       name, type, size, content
-//     }
-//     g_mail_map.set(name, fileContent)
-//     items.push(fileContent)
-//     //console.log(contents);
-//   };
-//   reader.readAsBinaryString(file);
-// }
+//---------------------------------------------------------------------------------------------------------------------
+// App
+//---------------------------------------------------------------------------------------------------------------------
 
 /**
- * getAllMails wrapper that throttles calls
+ * Set on load
+ */
+window.addEventListener('load', () => {
+  initUi();
+});
+
+
+/**
+ * Wrapper for dna call GetAllMails that throttles calls with a manual mutex
  */
 var canGetAllMutex = true;
 function callGetAllMails() {
@@ -109,113 +93,8 @@ function callGetAllMails() {
     return;
   }
   canGetAllMutex = false;
-  DNA.getAllMails(handleMails, update_fileBox, handleSignal);
+  DNA.getAllMails(handle_getAllMails, update_fileBox, handleSignal);
 }
-
-// Generic callback: log response
-function logResult(callResult) {
-  console.log('callResult = ' + JSON.stringify(callResult));
-}
-
-function allowChangeHandle() {
-  setChangeHandleHidden(false)
-}
-
-function cancelMyHandle() {
-  setChangeHandleHidden(true)
-}
-
-function setChangeHandleHidden(hidden) {
-  let handleButton = document.getElementById('handleDisplay');
-  handleButton.hidden = !hidden;
-  let handleInput = document.getElementById('myNewHandleInput');
-  handleInput.hidden = hidden;
-  let updateButton = document.getElementById('setMyHandleButton');
-  updateButton.hidden = hidden;
-  let cancelButton = document.getElementById('cancelHandleButton');
-  cancelButton.hidden = hidden;
-  if (!hidden && g_myHandle !== '<noname>') {
-    handleInput.value = g_myHandle
-  } else {
-    handleInput.value = ''
-  }
-}
-
-
-/**
- *
- */
-function showHandle(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('getMyHandle dna call failed');
-    console.error(err);
-    return;
-  }
-  var handleButton = document.getElementById('handleText');
-  handleButton.textContent = '' + callResult.Ok;
-  g_myHandle = callResult.Ok;
-}
-
-
-// Callback for getAllMails()
-function handleMails(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('writeChunk dna call failed');
-    console.error(err);
-    return;
-  }
-  let mailGrid = document.querySelector('#mailGrid');
-  let mailList = callResult.Ok;
-  let items = [];
-  g_mail_map.clear();
-  const folderBox = document.querySelector('#fileboxFolder');
-  let selectedBox = folderBox.value;
-  for (let mailItem of mailList) {
-    g_mail_map.set(mailItem.address, mailItem);
-    // Determine if should add to grid
-    if (isMailDeleted(mailItem) && selectedBox !== systemFolders.TRASH) {
-      continue;
-    }
-    if (is_OutMail(mailItem) && selectedBox === systemFolders.INBOX) {
-      continue;
-    }
-    if (!is_OutMail(mailItem) && selectedBox === systemFolders.SENT) {
-      continue;
-    }
-    items.push(into_gridItem(g_username_map, mailItem));
-  }
-
-  console.log('mailCount = ' + items.length);
-  mailGrid.items = items;
-}
-
-var g_chunkList = [];
-var g_fileList = [];
-
-// Calback for writeChunk
-function handleWriteChunk(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('writeChunk dna call failed');
-    console.error(err);
-    return;
-  }
-  let chunkAddress = callResult.Ok;
-  g_chunkList.push(chunkAddress);
-}
-
-// Calback for writeManifest
-function writeManifestResult(callResult) {
-  console.log('writeManifestResult: ' + JSON.stringify(callResult))
-  let manifestAddress = callResult.Ok;
-  g_fileList.push(manifestAddress);
-}
-
-const redDot = String.fromCodePoint(0x1F534);
-const greenDot = String.fromCodePoint(0x1F7E2);
-
 
 // -- Signal -- //
 
@@ -256,16 +135,18 @@ function handleSignal(signalwrapper) {
   }
 }
 
+// -- INIT -- //
+
 /**
  *
  */
 function initUi() {
-  setChangeHandleHidden(true);
-  initTopBar();
+  setState_ChangeHandleBar(true);
+  initTitleBar();
   initMenuBar();
   initFileBox();
   initInMail();
-  initOutMail();
+  initOutMailArea();
   initActionBar();
   initUpload();
   // getMyAgentId(logResult)
@@ -396,86 +277,60 @@ function initDna() {
   // -- App Bar -- //
   DNA.getMyHandle(showHandle, handleSignal);
   // -- FileBox -- //
-  DNA.checkIncomingAck(logResult, handleSignal);
-  DNA.checkIncomingMail(logResult, handleSignal);
+  DNA.checkIncomingAck(logCallResult, handleSignal);
+  DNA.checkIncomingMail(logCallResult, handleSignal);
   callGetAllMails();
   // -- ContactList -- //
-  DNA.getAllHandles(handleGetAllHandles, handleSignal);
+  DNA.getAllHandles(handle_getAllHandles, handleSignal);
   // After
   const handleButton = document.getElementById('handleText');
-  DNA.findAgent(handleButton.textContent, handleFindAgent, handleSignal);
+  DNA.findAgent(handleButton.textContent, handle_findAgent, handleSignal);
 }
 
 
 /**
  *
  */
-function initTopBar() {
+function initTitleBar() {
+  // Title bar buttons
   customElements.whenDefined('vaadin-button').then(function() {
     let button = document.querySelector('#setMyHandleButton');
-    button.addEventListener('click', setMyHandle);
+    button.addEventListener('click', () => {
+      let input = document.getElementById('myNewHandleInput');
+      console.log('new handle = ' + input.value);
+      DNA.setHandle(input.value, console.log, handleSignal);
+      showHandle({ Ok: input.value});
+      input.value = '';
+      setState_ChangeHandleBar(true);
+    });
     button = document.querySelector('#handleDisplay');
-    button.addEventListener('click', allowChangeHandle);
+    button.addEventListener('click', () => {
+      setState_ChangeHandleBar(false)
+    });
     button = document.querySelector('#cancelHandleButton');
-    button.addEventListener('click', cancelMyHandle);
-  });
-
-  // TopBar -- vaadin-menu-bar
-  const topBar = document.querySelector('#TopBar');
-  topBar.items = [{ text: 'Refresh' }];
-  topBar.addEventListener('item-selected', function(e) {
-    console.log(JSON.stringify(e.detail.value));
-    if (e.detail.value.text === 'Refresh') {
-      topBar.items[0].disabled = true;
-      topBar.render();
-      DNA.getAllHandles(handleGetAllHandles, handleSignal);
-    }
+    button.addEventListener('click', () =>{
+      setState_ChangeHandleBar(true)
+    });
   });
 }
 
-// Calback for getAllHandles()
-function handleGetAllHandles(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('getAllHandles dna call failed');
-    console.error(err);
-    return;
-  }
-  //const contactGrid = document.querySelector('#contactGrid');
-  let handleList = callResult.Ok;
-  g_username_map.clear();
-  for (let handleItem of handleList) {
-    // FIXME: exclude self from list
-    g_username_map.set(handleItem[1], handleItem[0])
-  }
-  resetRecepients().then(function() {
-    const debugMenu = document.querySelector('#TopBar');
-    debugMenu.items[0].disabled = false;
-    debugMenu.render();
-  });
-}
-
-var hasPingResult = false;
-var isAgentOnline = false;
-
-function pingResult(callResult) {
-  isAgentOnline = callResult.Ok;
-  hasPingResult = true;
-}
-
+/**
+ *
+ * @returns {Promise<void>}
+ */
 async function resetRecepients() {
   const contactGrid = document.querySelector('#contactGrid');
   let items = [];
   for (let entry of g_username_map.entries()) {
     //g_username_map.set(entry[1], entry[0]);
-    hasPingResult = false;
-    isAgentOnline = false;
-    DNA.pingAgent(entry[0], pingResult, handleSignal);
-    while (!hasPingResult) {
+    g_hasPingResult = false;
+    g_isAgentOnline = false;
+    DNA.pingAgent(entry[0], handle_pingAgent, handleSignal);
+    while (!g_hasPingResult) {
       await sleep(10)
     }
     let item = { "username": entry[1], "agentId": entry[0], "recepientType": '',
-      status: isAgentOnline? greenDot : redDot
+      status: g_isAgentOnline? greenDot : redDot
     };
     items.push(item);
   }
@@ -483,27 +338,6 @@ async function resetRecepients() {
   contactGrid.selectedItems = [];
   contactGrid.activeItem = null;
   contactGrid.render();
-}
-
-function setMyHandle() {
-  let input = document.getElementById('myNewHandleInput');
-  console.log('new handle = ' + input.value);
-  DNA.setHandle(input.value, console.log, handleSignal);
-  showHandle({ Ok: input.value});
-  input.value = '';
-  setChangeHandleHidden(true);
-}
-
-function handleFindAgent(callResult) {
-  let button = document.querySelector('#handleDisplay');
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('findAgent dna call failed');
-    console.error(err);
-    button.title = "";
-    return;
-  }
-  button.title = callResult.Ok[0];
 }
 
 function initMenuBar() {
@@ -521,18 +355,22 @@ function initMenuBar() {
   menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value));
     if (e.detail.value.text === 'Trash') {
-      DNA.deleteMail(g_currentMailItem.id, handleDeleteMail, handleSignal);
-      set_DeleteButtonState(true)
+      DNA.deleteMail(g_currentMailItem.id, handle_deleteMail, handleSignal);
+      setState_DeleteButton(true)
     }
     if (e.detail.value.text === 'Refresh') {
       console.log('Refresh called');
-      DNA.checkIncomingAck(logResult, handleSignal);
-      DNA.checkIncomingMail(logResult, handleSignal);
+      DNA.checkIncomingAck(logCallResult, handleSignal);
+      DNA.checkIncomingMail(logCallResult, handleSignal);
       callGetAllMails();
     }
   });
 }
 
+
+/**
+ *
+ */
 function update_mailGrid(folder) {
   const grid = document.querySelector('#mailGrid');
   let folderItems = [];
@@ -581,6 +419,10 @@ function update_mailGrid(folder) {
   grid.render();
 }
 
+
+/**
+ *
+ */
 function initFileBox() {
   // Combobox -- vaadin-combo-box
   const systemFoldersVec = [systemFolders.ALL, systemFolders.INBOX, systemFolders.SENT, systemFolders.TRASH];
@@ -593,7 +435,7 @@ function initFileBox() {
   folderBox.addEventListener('change', function(event) {
     update_mailGrid(event.target.value)
     g_currentFolder = event.target.value;
-    set_DeleteButtonState(true)
+    setState_DeleteButton(true)
   });
 
   // Filebox -- vaadin-grid
@@ -631,39 +473,22 @@ function initFileBox() {
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
-        DNA.getMissingAttachments(mailItem.author, mailItem.address, handleMissingAttachments, handleSignal);
+        DNA.getMissingAttachments(mailItem.author, mailItem.address, handle_missingAttachments, handleSignal);
       }
-      DNA.acknowledgeMail(item.id, regenerate_mailGrid, handleSignal);
+      DNA.acknowledgeMail(item.id, handle_acknowledgeMail, handleSignal);
       // Allow delete button
       if (g_currentFolder !== systemFolders.TRASH) {
-        set_DeleteButtonState(false)
+        setState_DeleteButton(false)
       }
     });
   });
 }
 
-function handleGetManifest(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('getManifest dna call failed');
-    console.error(err);
-    g_hasAttachment = -1;
-    return;
-  }
-  g_hasAttachment = 1;
-}
 
-function handleMissingAttachments(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('missingAttachments dna call failed');
-    console.error(err);
-    return;
-  }
-  let attachmentGrid = document.querySelector('#attachmentGrid');
-  attachmentGrid.render();
-}
-
+/**
+ *
+ * @returns {Promise<number>}
+ */
 async function fillAttachmentGrid(mail) {
   let attachmentGrid = document.querySelector('#attachmentGrid');
   let items = [];
@@ -672,7 +497,7 @@ async function fillAttachmentGrid(mail) {
   let missingCount = 0;
   for (let attachmentInfo of mail.attachments) {
     console.log({attachmentInfo});
-    DNA.getManifest(attachmentInfo.manifest_address, handleGetManifest, handleSignal);
+    DNA.getManifest(attachmentInfo.manifest_address, handle_getManifest, handleSignal);
     while (g_hasAttachment === 0) {
       await sleep(10);
     }
@@ -697,17 +522,9 @@ async function fillAttachmentGrid(mail) {
   return missingCount;
 }
 
-
 /**
  *
  */
-function regenerate_mailGrid(callResult) {
-  if (callResult.Ok === undefined) {
-    return;
-  }
-  callGetAllMails();
-}
-
 function initInMail() {
   // inMailArea -- vaadin-text-item
   const inMailArea = document.querySelector('#inMailArea');
@@ -715,7 +532,9 @@ function initInMail() {
   initAttachmentGrid();
 }
 
-
+/**
+ *
+ */
 function initAttachmentGrid() {
   // attachmentGrid -- vaadin-grid
   const attachmentGrid = document.querySelector('#attachmentGrid');
@@ -780,24 +599,14 @@ function initAttachmentGrid() {
        attachmentGrid.render();
      });
   });
-
-  // attachmentGrid.addEventListener('click', function(e) {
-  //   const item = attachmentGrid.getEventContext(e).item;
-  //   if (item) {
-  //     console.log('selectedItems size = ' + attachmentGrid.selectedItems.length)
-  //     // contactGrid.removeHeaderRow
-  //     // contactGrid.render();
-  //   }
-  // });
 }
-
 
 /**
  *
  */
 async function getFile(fileId) {
   g_manifest = null;
-  DNA.findManifest(fileId, handleFindManifest, handleSignal);
+  DNA.findManifest(fileId, handle_findManifest, handleSignal);
   while (g_manifest ==  null) {
     await sleep(10)
   }
@@ -808,7 +617,7 @@ async function getFile(fileId) {
   let i = 0;
   for (let chunkAddress of g_manifest.chunks) {
     i++;
-    DNA.getChunk(chunkAddress, handleGetChunk, handleSignal)
+    DNA.getChunk(chunkAddress, handle_getChunk, handleSignal)
     while (g_getChunks.length !=  i) {
       await sleep(10)
     }
@@ -826,90 +635,78 @@ async function getFile(fileId) {
   return g_manifest;
 }
 
-function handleGetChunk(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('GetChunk dna call failed');
-    console.error(err);
-    return;
-  }
-  let chunk = callResult.Ok;
-  console.log({chunk});
-  g_getChunks.push(chunk);
-}
 
-function handleFindManifest(callResult) {
-  if (callResult.Ok === undefined) {
-    const err = callResult.Err;
-    console.error('findManifest dna call failed');
-    console.error(err);
-    return;
-  }
-  let maybeManifest = callResult.Ok;
-  console.log({maybeManifest})
-  g_manifest = maybeManifest;
-}
+/**
+ *
+ */
+function initOutMailArea() {
+  // -- ContactsMenu -- vaadin-menu-bar
+  const contactsMenu = document.querySelector('#ContactsMenu');
+  contactsMenu.items = [{ text: 'Refresh' }];
+  contactsMenu.addEventListener('item-selected', function(e) {
+    console.log(JSON.stringify(e.detail.value));
+    if (e.detail.value.text === 'Refresh') {
+      contactsMenu.items[0].disabled = true;
+      contactsMenu.render();
+      DNA.getAllHandles(handle_getAllHandles, handleSignal);
+    }
+  });
 
-function initOutMail() {
-  // ContactList -- vaadin-grid
-  //customElements.whenDefined('#contactGrid').then(function() {
-    const contactGrid = document.querySelector('#contactGrid');
-    contactGrid.items = [];
-
-    contactGrid.cellClassNameGenerator = function(column, rowData) {
-      //console.log({rowData})
-      let classes = rowData.item.status;
-      if (column.path === 'status') {
-        classes += ' statusColumn';
+  // -- contactGrid -- vaadin-grid
+  const contactGrid = document.querySelector('#contactGrid');
+  contactGrid.items = [];
+  contactGrid.cellClassNameGenerator = function(column, rowData) {
+    //console.log({rowData})
+    let classes = rowData.item.status;
+    if (column.path === 'status') {
+      classes += ' statusColumn';
+    }
+    return classes;
+  };
+  // ON SELECT
+  contactGrid.addEventListener('active-item-changed', function(event) {
+    const item = event.detail.value;
+    if (item && !contactGrid.selectedItems.includes(item)) {
+      contactGrid.selectedItems.push(item);
+    }
+    setState_SendButton(contactGrid.selectedItems.length == 0);
+  });
+  // ON CLICK
+  contactGrid.addEventListener('click', function(e) {
+    const item = contactGrid.getEventContext(e).item;
+    //contactGrid.selectedItems = item ? [item] : [];
+    if (item) {
+      // toggleRecepientType
+      let nextType = '';
+      switch(item.recepientType) {
+        case '': nextType = 'to'; break;
+        case 'to': nextType = 'cc'; break;
+        case 'cc': nextType = 'bcc'; break;
+        case 'bcc': nextType = ''; break;
+        default: console.err('unknown recepientType');
       }
-      return classes;
-    };
-
-    // ON SELECT
-    contactGrid.addEventListener('active-item-changed', function(event) {
-      const item = event.detail.value;
-      if (item && !contactGrid.selectedItems.includes(item)) {
-        contactGrid.selectedItems.push(item);
-      }
-      set_SendButtonState(contactGrid.selectedItems.length == 0)
-    });
-
-    // ON CLICK
-    contactGrid.addEventListener('click', function(e) {
-      const item = contactGrid.getEventContext(e).item;
-      //contactGrid.selectedItems = item ? [item] : [];
-      if (item) {
-        // contactGrid.selectedItems = [item];
-        toggleRecepientType(item);
-        console.log('selectedItems size = ' + contactGrid.selectedItems.length)
-        contactGrid.removeHeaderRow
-        contactGrid.render();
-      }
-    });
-  //});
+      item.recepientType = nextType;
+      // --
+      console.log('selectedItems size = ' + contactGrid.selectedItems.length);
+      contactGrid.removeHeaderRow;
+      contactGrid.render();
+    }
+  });
 }
 
-function toggleRecepientType(item) {
-  let nextType = '';
-  switch(item.recepientType) {
-    case '': nextType = 'to'; break;
-    case 'to': nextType = 'cc'; break;
-    case 'cc': nextType = 'bcc'; break;
-    case 'bcc': nextType = ''; break;
-    default: console.err('unknown recepientType');
-  }
-  item.recepientType = nextType;
-}
-
+/**
+ *
+ */
 function initActionBar() {
-  // Action -- vaadin-menu-bar
+  // -- actionMenu -- vaadin-menu-bar
   const actionMenu = document.querySelector('#ActionBar');
   actionMenu.items = [
       { text: 'Clear' },
     //{ text: '+File', disabled: true },
       { text: 'Snap', disabled: true },
       { text: 'Send', disabled: true }
-    ];
+  ];
+  // ON SELECT
   actionMenu.addEventListener('item-selected', function(e) {
     console.log('actionMenu: ' + JSON.stringify(e.detail.value.text))
     const outMailSubjectArea = document.querySelector('#outMailSubjectArea');
@@ -931,10 +728,13 @@ function initActionBar() {
         upload.style.display = "block";
       });
     }
-    });
+  });
 }
 
-//
+/**
+ *
+ * @returns {Promise<void>}
+ */
 async function sendAction() {
   // Submit each attachment
   const upload = document.querySelector('vaadin-upload');
@@ -954,7 +754,7 @@ async function sendAction() {
     // Submit each chunk
     for (var i = 0; i < splitObj.numChunks; ++i) {
       //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
-      DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], handleWriteChunk, handleSignal);
+      DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], handle_writeChunk, handleSignal);
       while (g_chunkList.length !=  i + 1) {
         await sleep(10)
       }
@@ -962,7 +762,7 @@ async function sendAction() {
     while (g_chunkList.length < splitObj.numChunks) {
       await sleep(10);
     }
-    DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, writeManifestResult, handleSignal)
+    DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, handle_writeManifest, handleSignal)
   }
   while (g_fileList.length < files.length) {
     await sleep(10);
@@ -995,9 +795,9 @@ async function sendAction() {
     };
     console.log('sending mail: ' + JSON.stringify(mail));
     // Send Mail
-    DNA.sendMail(mail, logResult, handleSignal);
+    DNA.sendMail(mail, logCallResult, handleSignal);
     // Update UI
-    set_SendButtonState(true);
+    setState_SendButton(true);
     outMailSubjectArea.value = '';
     outMailContentArea.value = '';
     contactGrid.selectedItems = [];
@@ -1011,6 +811,125 @@ async function sendAction() {
   }
 }
 
+
+/**
+ *
+ */
+function setState_ChangeHandleBar(hidden) {
+  let handleButton = document.getElementById('handleDisplay');
+  handleButton.hidden = !hidden;
+  let handleInput = document.getElementById('myNewHandleInput');
+  handleInput.hidden = hidden;
+  let updateButton = document.getElementById('setMyHandleButton');
+  updateButton.hidden = hidden;
+  let cancelButton = document.getElementById('cancelHandleButton');
+  cancelButton.hidden = hidden;
+  if (!hidden && g_myHandle !== '<noname>') {
+    handleInput.value = g_myHandle
+  } else {
+    handleInput.value = ''
+  }
+}
+
+/**
+ *
+ */
+function setState_SendButton(isDisabled) {
+  let actionMenu = document.querySelector('#ActionBar');
+  //actionMenu.items[1].disabled = isDisabled;
+  actionMenu.items[2].disabled = isDisabled;
+  actionMenu.render();
+}
+
+function setState_DeleteButton(isDisabled) {
+  let menu = document.querySelector('#MenuBar');
+  console.log('menu.items = ' + JSON.stringify(menu.items))
+  menu.items[2].disabled = isDisabled;
+  menu.render();
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+// Zome call Callbacks
+//---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Generic callback: log response
+ */
+function logCallResult(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('Zome call failed:');
+    console.error(err);
+    return;
+  }
+  console.log('callResult = ' + JSON.stringify(callResult));
+}
+
+/**
+ * Generic callback: Refresh my handle
+ */
+function showHandle(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('getMyHandle zome call failed');
+    console.error(err);
+    return;
+  }
+  var handleButton = document.getElementById('handleText');
+  handleButton.textContent = '' + callResult.Ok;
+  g_myHandle = callResult.Ok;
+}
+
+
+/**
+ * On delete, refresh filebox
+ */
+function handle_deleteMail(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('deleteMail zome call failed');
+    console.error(err);
+    return;
+  }
+  // TODO check if call result succeeded
+  callGetAllMails();
+}
+
+
+/**
+ * Refresh g_mail_map and mailGrid
+ */
+function handle_getAllMails(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('getAllMails zome call failed');
+    console.error(err);
+    return;
+  }
+  let mailGrid = document.querySelector('#mailGrid');
+  let mailList = callResult.Ok;
+  let items = [];
+  g_mail_map.clear();
+  const folderBox = document.querySelector('#fileboxFolder');
+  let selectedBox = folderBox.value;
+  for (let mailItem of mailList) {
+    g_mail_map.set(mailItem.address, mailItem);
+    // Determine if should add to grid
+    if (isMailDeleted(mailItem) && selectedBox !== systemFolders.TRASH) {
+      continue;
+    }
+    if (is_OutMail(mailItem) && selectedBox === systemFolders.INBOX) {
+      continue;
+    }
+    if (!is_OutMail(mailItem) && selectedBox === systemFolders.SENT) {
+      continue;
+    }
+    items.push(into_gridItem(g_username_map, mailItem));
+  }
+
+  console.log('mailCount = ' + items.length);
+  mailGrid.items = items;
+}
 /**
  * Post callback for getAllMails()
  */
@@ -1034,27 +953,157 @@ function update_fileBox() {
   canGetAllMutex = true;
 }
 
-function set_SendButtonState(isDisabled) {
-  let actionMenu = document.querySelector('#ActionBar');
-  //actionMenu.items[1].disabled = isDisabled;
-  actionMenu.items[2].disabled = isDisabled;
-  actionMenu.render();
-}
 
-function set_DeleteButtonState(isDisabled) {
-  let menu = document.querySelector('#MenuBar');
-  console.log('menu.items = ' + JSON.stringify(menu.items))
-  menu.items[2].disabled = isDisabled;
-  menu.render();
-}
-
-function handleDeleteMail(callResult) {
+/**
+ * Add chunk to chunkList
+ */
+function handle_writeChunk(callResult) {
   if (callResult.Ok === undefined) {
     const err = callResult.Err;
-    console.error('deleteMail dna call failed');
+    console.error('writeChunk zome call failed');
     console.error(err);
     return;
   }
-  // TODO check if call result succeeded
+  let chunkAddress = callResult.Ok;
+  g_chunkList.push(chunkAddress);
+}
+
+/**
+ * Add manifest to fileList
+ */
+function handle_writeManifest(callResult) {
+  //console.log('writeManifestResult: ' + JSON.stringify(callResult));
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('writeManifest zome call failed');
+    console.error(err);
+    return;
+  }
+  let manifestAddress = callResult.Ok;
+  g_fileList.push(manifestAddress);
+}
+
+
+/**
+ * Refresh g_username_map and recepients
+ */
+function handle_getAllHandles(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('getAllHandles zome call failed');
+    console.error(err);
+    return;
+  }
+  //const contactGrid = document.querySelector('#contactGrid');
+  let handleList = callResult.Ok;
+  g_username_map.clear();
+  for (let handleItem of handleList) {
+    // FIXME: exclude self from list
+    g_username_map.set(handleItem[1], handleItem[0])
+  }
+  resetRecepients().then(function() {
+    const contactsMenu = document.querySelector('#ContactsMenu');
+    contactsMenu.items[0].disabled = false;
+    contactsMenu.render();
+  });
+}
+
+/**
+ *
+ */
+function handle_pingAgent(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('pingAgent zome call failed');
+    console.error(err);
+    return;
+  }
+  g_isAgentOnline = callResult.Ok;
+  g_hasPingResult = true;
+}
+
+/**
+ *
+ */
+function handle_findAgent(callResult) {
+  let button = document.querySelector('#handleDisplay');
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('findAgent dna call failed');
+    console.error(err);
+    button.title = "";
+    return;
+  }
+  button.title = callResult.Ok[0];
+}
+
+/**
+ *
+ */
+function handle_getManifest(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('GetManifest zome call failed');
+    console.error(err);
+    g_hasAttachment = -1;
+    return;
+  }
+  g_hasAttachment = 1;
+}
+
+/**
+ *
+ */
+function handle_missingAttachments(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('MissingAttachments zome call failed');
+    console.error(err);
+    return;
+  }
+  let attachmentGrid = document.querySelector('#attachmentGrid');
+  attachmentGrid.render();
+}
+
+/**
+ *
+ */
+function handle_acknowledgeMail(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('AcknowledgeMail zome call failed');
+    console.error(err);
+    return;
+  }
   callGetAllMails();
+}
+
+/**
+ *
+ */
+function handle_getChunk(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('GetChunk zome call failed');
+    console.error(err);
+    return;
+  }
+  let chunk = callResult.Ok;
+  console.log({chunk});
+  g_getChunks.push(chunk);
+}
+
+/**
+ *
+ */
+function handle_findManifest(callResult) {
+  if (callResult.Ok === undefined) {
+    const err = callResult.Err;
+    console.error('FindManifest zome call failed');
+    console.error(err);
+    return;
+  }
+  let maybeManifest = callResult.Ok;
+  console.log({maybeManifest});
+  g_manifest = maybeManifest;
 }
