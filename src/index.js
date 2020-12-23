@@ -25,7 +25,8 @@ import '@vaadin/vaadin-notification';
 //import '@vaadin-component-factory/vcf-tooltip';
 
 //import * from './app'
-import * as DNA from './hc_bridge'
+//import * as DNA from './hc_bridge'
+import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
@@ -473,7 +474,8 @@ function initFileBox() {
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
-        DNA.getMissingAttachments(mailItem.author, mailItem.address, handle_missingAttachments, handleSignal);
+        // TODO File
+        // DNA.getMissingAttachments(mailItem.author, mailItem.address, handle_missingAttachments, handleSignal);
       }
       DNA.acknowledgeMail(item.id, handle_acknowledgeMail, handleSignal);
       // Allow delete button
@@ -536,7 +538,7 @@ function initInMail() {
  *
  */
 function initAttachmentGrid() {
-  // attachmentGrid -- vaadin-grid
+  /// attachmentGrid -- vaadin-grid
   const attachmentGrid = document.querySelector('#attachmentGrid');
   attachmentGrid.items = [];
 
@@ -551,7 +553,7 @@ function initAttachmentGrid() {
     return classes;
   };
 
-  // On select, download attachment
+  /// On select, download attachment
   attachmentGrid.addEventListener('active-item-changed', function(event) {
     const item = event.detail.value;
     console.log({item})
@@ -570,40 +572,41 @@ function initAttachmentGrid() {
       attachmentGrid.render();
     }
 
-    // Get File on source chain
-     getFile(item.fileId).then(function(manifest) {
-       console.log({ manifest })
-       item.status = String.fromCodePoint(0x2714);
-       //attachmentGrid.deselectItem(item);
-       // DEBUG - check if content is valid base64
-       if (!base64regex.test(manifest.content)) {
-         const invalid_hash = sha256(manifest.content);
-         console.error("File '" + manifest.filename + "' is invalid base64. hash is: " + invalid_hash);
-       }
-       let filetype = manifest.filetype;
-       const fields = manifest.filetype.split(':');
-       if (fields.length > 1) {
-         const types = fields[1].split(';');
-         filetype = types[0];
-       }
-       let byteArray = base64ToArrayBuffer(manifest.content)
-       const blob = new Blob([byteArray], { type: filetype});
-       const url = URL.createObjectURL(blob);
-       const a = document.createElement('a');
-       a.href = url;
-       a.download = item.filename || 'download';
-       a.addEventListener('click', {}, false);
-       a.click();
-       attachmentGrid.activeItem = null;
-       attachmentGrid.selectedItems = [];
-       attachmentGrid.render();
-     });
+    /// Get File on source chain
+    // TODO File
+    //  getFile(item.fileId).then(function(manifest) {
+    //    console.log({ manifest })
+    //    item.status = String.fromCodePoint(0x2714);
+    //    //attachmentGrid.deselectItem(item);
+    //    // DEBUG - check if content is valid base64
+    //    if (!base64regex.test(manifest.content)) {
+    //      const invalid_hash = sha256(manifest.content);
+    //      console.error("File '" + manifest.filename + "' is invalid base64. hash is: " + invalid_hash);
+    //    }
+    //    let filetype = manifest.filetype;
+    //    const fields = manifest.filetype.split(':');
+    //    if (fields.length > 1) {
+    //      const types = fields[1].split(';');
+    //      filetype = types[0];
+    //    }
+    //    let byteArray = base64ToArrayBuffer(manifest.content)
+    //    const blob = new Blob([byteArray], { type: filetype});
+    //    const url = URL.createObjectURL(blob);
+    //    const a = document.createElement('a');
+    //    a.href = url;
+    //    a.download = item.filename || 'download';
+    //    a.addEventListener('click', {}, false);
+    //    a.click();
+    //    attachmentGrid.activeItem = null;
+    //    attachmentGrid.selectedItems = [];
+    //    attachmentGrid.render();
+    //  });
   });
 }
 
 /**
  *
- */
+ *
 async function getFile(fileId) {
   g_manifest = null;
   DNA.findManifest(fileId, handle_findManifest, handleSignal);
@@ -634,7 +637,7 @@ async function getFile(fileId) {
   g_manifest.content = content;
   return g_manifest;
 }
-
+*/
 
 /**
  *
@@ -732,41 +735,42 @@ function initActionBar() {
 }
 
 /**
- *
  * @returns {Promise<void>}
  */
 async function sendAction() {
-  // Submit each attachment
-  const upload = document.querySelector('vaadin-upload');
-  const files = upload.files;
-  g_fileList = [];
-  for (let file of files) {
-    if (!base64regex.test(file.content)) {
-      const invalid_hash = sha256(file.content);
-      console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
-    }
-    const parts = file.content.split(',');
-    console.log("parts.length: " + parts.length)
-    console.log({parts})
-    const filetype = parts.length > 1? parts[0] : file.type;
-    const splitObj = splitFile(parts[parts.length - 1]);
-    g_chunkList = [];
-    // Submit each chunk
-    for (var i = 0; i < splitObj.numChunks; ++i) {
-      //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
-      DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], handle_writeChunk, handleSignal);
-      while (g_chunkList.length !=  i + 1) {
-        await sleep(10)
-      }
-    }
-    while (g_chunkList.length < splitObj.numChunks) {
-      await sleep(10);
-    }
-    DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, handle_writeManifest, handleSignal)
-  }
-  while (g_fileList.length < files.length) {
-    await sleep(10);
-  }
+  // TODO file
+  // /// Submit each attachment
+  // const upload = document.querySelector('vaadin-upload');
+  // const files = upload.files;
+  // g_fileList = [];
+  // for (let file of files) {
+  //   if (!base64regex.test(file.content)) {
+  //     const invalid_hash = sha256(file.content);
+  //     console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
+  //   }
+  //   const parts = file.content.split(',');
+  //   console.log("parts.length: " + parts.length)
+  //   console.log({parts})
+  //   const filetype = parts.length > 1? parts[0] : file.type;
+  //   const splitObj = splitFile(parts[parts.length - 1]);
+  //   g_chunkList = [];
+  //   /// Submit each chunk
+  //   for (var i = 0; i < splitObj.numChunks; ++i) {
+  //     //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
+  //     DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], handle_writeChunk, handleSignal);
+  //     while (g_chunkList.length !=  i + 1) {
+  //       await sleep(10)
+  //     }
+  //   }
+  //   while (g_chunkList.length < splitObj.numChunks) {
+  //     await sleep(10);
+  //   }
+  //   DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, handle_writeManifest, handleSignal)
+  // }
+  // while (g_fileList.length < files.length) {
+  //   await sleep(10);
+  // }
+
   // Get contact Lists
   const contactGrid = document.querySelector('#contactGrid');
   const selection = contactGrid.selectedItems;

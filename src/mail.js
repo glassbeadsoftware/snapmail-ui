@@ -66,6 +66,7 @@ module.exports.is_OutMail = is_OutMail;
 
 
 /**
+ *
  * Return mailItem class
  */
 function determineMailClass(mailItem) {
@@ -96,6 +97,11 @@ function determineMailClass(mailItem) {
 }
 module.exports.determineMailClass = determineMailClass;
 
+
+/**
+ *
+ * @returns {string}
+ */
 function customDateString(dateItem) {
   let date = new Date(dateItem);
   let hours = date.getHours();
@@ -110,6 +116,11 @@ function customDateString(dateItem) {
   return dday
 }
 
+
+/**
+ *
+ * @returns {{date: string, subject: Certificate, id: string | (() => AddressInfo) | (() => (AddressInfo | string)) | (() => (AddressInfo | string | null)) | app.address, username: string, status: string}}
+ */
 function into_gridItem(usernameMap, mailItem) {
   let username = usernameMap.get(mailItem.author)
   let dateStr = customDateString(mailItem.date)
@@ -124,6 +135,11 @@ function into_gridItem(usernameMap, mailItem) {
 }
 module.exports.into_gridItem = into_gridItem;
 
+
+/**
+ *
+ * @returns {string}
+ */
 function into_mailText(usernameMap, mailItem) {
   let intext = 'Subject: ' + mailItem.mail.subject + '\n\n'
     + mailItem.mail.payload + '\n\n'

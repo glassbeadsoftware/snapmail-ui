@@ -3,7 +3,10 @@
   "version": "0.0.2",
   "description": "the most wonderful mail app",
   "scripts": {
-    "start": "webpack-dev-server --open --config webpack.dev.js",
+    "start-all": "concurrently --kill-others \"npm:start-ui\" \"npm:start-holochain\"",
+    "start-ui": "CONDUCTOR_URL=ws://localhost:8888 concurrently -k --names tsc,dev-server \"npm run build-watch\" \"web-dev-server --config demo/web-dev-server.config.mjs\"",
+    "start-holochain": "RUST_LOG=warn holochain-run-dna ../zome/file_storage.dna.gz",
+    "start-old": "webpack-dev-server --open --config webpack.dev.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "esbuild": "esbuild --sourcemap --bundle src/index.js --outdir=dist",
     "esprod": "esbuild --minify --bundle src/index.js --outdir=dist",
@@ -39,10 +42,12 @@
     "@vaadin/vaadin": "^15.0.5",
     "@vaadin/vaadin-icons": "^4.3.1",
     "@vaadin/vaadin-text-field": "^2.5.5",
+    "@holochain/conductor-api": "0.0.1-dev.14",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
     "prop-types": "^15.7.2",
-    "sjcl": "^1.0.8"
+    "sjcl": "^1.0.8",
+    "concurrently": "^5.1.0"
   },
   "main": "webpack.common.js"
 }

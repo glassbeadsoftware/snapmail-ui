@@ -15,7 +15,6 @@ module.exports.sleep = sleep;
 
 /**
  *
- * @param buffer
  * @returns {string}
  */
 function arrayBufferToBase64(buffer) {
@@ -29,6 +28,11 @@ function arrayBufferToBase64(buffer) {
 }
 module.exports.arrayBufferToBase64 = arrayBufferToBase64;
 
+
+/**
+ *
+ * @returns {ArrayBufferLike}
+ */
 function base64ToArrayBuffer(base64) {
   var binary_string = window.atob(base64);
   var len = binary_string.length;
@@ -40,6 +44,11 @@ function base64ToArrayBuffer(base64) {
 }
 module.exports.base64ToArrayBuffer = base64ToArrayBuffer;
 
+
+/**
+ *
+ * @returns {*}
+ */
 function sha256(message) {
   //console.log('message: ' + message)
   const myBitArray = sjcl.hash.sha256.hash(message)
@@ -50,6 +59,11 @@ function sha256(message) {
 }
 module.exports.sha256 = sha256;
 
+
+/**
+ *
+ * @returns {any[]}
+ */
 function chunkSubstr(str, size) {
   var numChunks = Math.ceil(str.length / size);
   var chunks = new Array(numChunks);
@@ -61,6 +75,11 @@ function chunkSubstr(str, size) {
   return chunks;
 }
 
+
+/**
+ *
+ * @returns {{numChunks: number, dataHash: *, chunks: any[]}}
+ */
 function splitFile(full_data_string) {
   const hash = sha256(full_data_string);
   console.log('file hash: ' + hash)
