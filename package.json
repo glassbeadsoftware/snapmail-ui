@@ -41,6 +41,9 @@
   "dependencies": {
     "@holochain/conductor-api": "0.0.1-dev.14",
     "@polymer/polymer": "^3.3.1",
+    "@rollup/plugin-commonjs": "^15.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-replace": "^2.3.3",
     "@vaadin-component-factory/vcf-tooltip": "^1.2.2",
     "@vaadin/vaadin": "^15.0.5",
     "@vaadin/vaadin-icons": "^4.3.1",
@@ -50,6 +53,8 @@
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
     "prop-types": "^15.7.2",
+    "rollup": "^2.32.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
     "sjcl": "^1.0.8"
   },
   "main": "webpack.common.js"

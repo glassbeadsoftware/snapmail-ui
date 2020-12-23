@@ -24,11 +24,94 @@ import '@vaadin/vaadin-lumo-styles/icons';
 import '@vaadin/vaadin-notification';
 //import '@vaadin-component-factory/vcf-tooltip';
 
+import {AdminWebsocket, AppWebsocket} from '@holochain/conductor-api';
+
 //import * from './app'
 //import * as DNA from './hc_bridge'
-import * as DNA from './rsm_bridge'
+//import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
+
+
+// -- CONNECT TO ADMIN -- //
+
+const TIMEOUT = 6000
+
+const ADMIN_PORT = 1234
+const APP_PORT = 8888
+
+/**
+ *
+ */
+const printAdmin = () => {
+  g_adminWs.listDnas().then((dnaList) => {
+    console.log({dnaList})
+  })
+  g_adminWs.listCellIds().then((cellList) => {
+    console.log({cellList})
+  })
+  g_adminWs.listActiveApps().then((appList) => {
+    console.log({appList})
+  })
+}
+
+var g_adminWs = undefined;
+var g_newKey = undefined;
+AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`, TIMEOUT).then((adminWs) => {
+  g_adminWs = adminWs
+  adminWs.generateAgentPubKey().then((newKey) => {
+    g_newKey = newKey
+    console.log({newKey})
+
+    printAdmin()
+  })
+})
+
+// -- CONNECT TO APP -- //
+
+const receiveSignal = (signal/*: AppSignal*/) => {
+  // impl...
+  console.log({signal})
+  resolve()
+}
+
+var g_appId = undefined
+var g_cellId = undefined
+var g_cellNick = undefined
+var g_appClient = undefined
+AppWebsocket.connect(`ws://localhost:${APP_PORT}`, TIMEOUT, receiveSignal).then((appClient) => {
+  g_appClient = appClient
+  console.log('*** Connected to Snapmail app: ' + JSON.stringify(appClient))
+  appClient.appInfo({ installed_app_id: 'test-app' }, 1000).then((appInfo) => {
+    console.log({appInfo})
+    g_cellId = appInfo.cell_data[0][0];
+    console.log({g_cellId})
+    dumpState(g_cellId)
+
+    appClient.callZome({
+      cap: null,
+      cell_id: g_cellId,
+      zome_name: 'snapmail',
+      fn_name: 'get_my_handle',
+      provenance: g_newKey,
+      payload: null,
+    }, 30000).then((result) => {
+      console.log('get_my_handle() result')
+      console.log({result})
+    })
+  })
+})
+
+/**
+ *
+ */
+const dumpState = (cellId) => {
+  g_adminWs.dumpState({cell_id: cellId}).then((stateDump) => {
+    console.log('stateDump of cell:')
+    console.log({stateDump})
+  })
+}
+//module.exports.dumpState = dumpState;
 
 
 //---------------------------------------------------------------------------------------------------------------------
