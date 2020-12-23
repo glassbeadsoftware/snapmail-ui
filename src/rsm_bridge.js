@@ -1,9 +1,27 @@
-import {ConductorApi, AppSignal} from '@holochain/conductor-api';
+import * as ConductorApi from '@holochain/conductor-api';
 
 const TIMEOUT = 6000
 
 const ADMIN_PORT = 8000
 const APP_PORT = 8080
+
+var noop = function() { };
+
+/**
+ *
+ */
+const printAdmin = () => {
+  g_adminWs.listDnas().then((dnaList) => {
+    console.log({dnaList})
+  })
+  adminConnection.listCellIds().then((cellList) => {
+    console.log({cellList})
+  })
+  adminConnection.listActiveApps().then((appList) => {
+    console.log({appList})
+  })
+}
+module.exports.printAdmin = printAdmin;
 
 // -- CONNECT TO ADMIN -- //
 
@@ -13,7 +31,7 @@ ConductorApi.AdminWebsocket.connect(`http://localhost:${ADMIN_PORT}`, TIMEOUT).t
   g_adminWs = adminWs
   adminConnection.generateAgentPubKey().then((newKey) => {
     g_newKey = newKey
-    printAdmin()
+    //printAdmin()
   })
 })
 
@@ -40,28 +58,11 @@ ConductorApi.AppWebsocket.connect(`http://localhost:${APP_PORT}`, TIMEOUT, recei
   console.log({g_cellNick})
 })
 
-
-/**
- *
- */
-const printAdmin = () => {
-  adminConnection.listDnas().then((dnaList) => {
-    console.log({dnaList})
-  })
-  adminConnection.listCellIds().then((cellList) => {
-    console.log({cellList})
-  })
-  adminConnection.listActiveApps().then((appList) => {
-    console.log({appList})
-  })
-}
-module.exports.printAdmin = printAdmin;
-
 /**
  *
  */
 const dumpState = (cellId) => {
-  adminConnectionl.dumpState(cellId).then((stateDump) => {
+  g_adminWs.dumpState(cellId).then((stateDump) => {
     console.log('stateDump of cell ' + cellId)
     console.log({stateDump})
   })
