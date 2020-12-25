@@ -27,7 +27,7 @@ import '@vaadin/vaadin-notification';
 import {AdminWebsocket, AppWebsocket} from '@holochain/conductor-api';
 
 //import * from './app'
-//import * as DNA from './hc_bridge'
+import * as DNA from './hc_bridge'
 //import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
@@ -92,13 +92,28 @@ AppWebsocket.connect(`ws://localhost:${APP_PORT}`, TIMEOUT, receiveSignal).then(
       cap: null,
       cell_id: g_cellId,
       zome_name: 'snapmail',
+      fn_name: 'set_handle',
+      provenance: g_cellId[1],
+      payload: 'toto',
+    }, 30000).then((result) => {
+      console.log('set_handle() result')
+      console.log({result})
+
+    appClient.callZome({
+      cap: null,
+      cell_id: g_cellId,
+      zome_name: 'snapmail',
       fn_name: 'get_my_handle',
-      provenance: g_newKey,
-      payload: null,
+      //provenance: g_newKey,
+      provenance: g_cellId[1],
+      payload: undefined,
     }, 30000).then((result) => {
       console.log('get_my_handle() result')
       console.log({result})
     })
+
+    })
+
   })
 })
 
