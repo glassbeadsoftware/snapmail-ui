@@ -24,13 +24,8 @@ import '@vaadin/vaadin-lumo-styles/icons';
 import '@vaadin/vaadin-notification';
 //import '@vaadin-component-factory/vcf-tooltip';
 
-//import {AdminWebsocket, AppWebsocket} from '@holochain/conductor-api';
-
-import {rsmConnect} from './rsm_bridge'
-
-//import * from './app'
-// import * as DNA from './hc_bridge'
-//import * as DNA from './rsm_bridge'
+//import {rsmConnect} from './rsm_bridge'
+import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
@@ -280,18 +275,19 @@ function initNotification() {
  */
 function initDna() {
   console.log('initDna()');
-  rsmConnect();
-  // -- App Bar -- //
-  // DNA.getMyHandle(showHandle, handleSignal);
-  // // -- FileBox -- //
-  // DNA.checkIncomingAck(logCallResult, handleSignal);
-  // DNA.checkIncomingMail(logCallResult, handleSignal);
-  // callGetAllMails();
-  // // -- ContactList -- //
-  // DNA.getAllHandles(handle_getAllHandles, handleSignal);
-  // // After
-  // const handleButton = document.getElementById('handleText');
-  // DNA.findAgent(handleButton.textContent, handle_findAgent, handleSignal);
+  DNA.rsmConnect().then(() => {
+    // -- App Bar -- //
+    DNA.getMyHandle(showHandle, handleSignal);
+    // -- FileBox -- //
+    DNA.checkIncomingAck(logCallResult, handleSignal);
+    DNA.checkIncomingMail(logCallResult, handleSignal);
+    callGetAllMails();
+    // -- ContactList -- //
+    DNA.getAllHandles(handle_getAllHandles, handleSignal);
+    // After
+    const handleButton = document.getElementById('handleText');
+    //DNA.findAgent(handleButton.textContent, handle_findAgent, handleSignal);
+  })
 }
 
 
@@ -505,7 +501,8 @@ async function fillAttachmentGrid(mail) {
   let missingCount = 0;
   for (let attachmentInfo of mail.attachments) {
     console.log({attachmentInfo});
-    DNA.getManifest(attachmentInfo.manifest_address, handle_getManifest, handleSignal);
+    // TODO file
+    // DNA.getManifest(attachmentInfo.manifest_address, handle_getManifest, handleSignal);
     while (g_hasAttachment === 0) {
       await sleep(10);
     }
@@ -866,7 +863,7 @@ function setState_DeleteButton(isDisabled) {
  * Generic callback: log response
  */
 function logCallResult(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('Zome call failed:');
     console.error(err);
@@ -879,15 +876,16 @@ function logCallResult(callResult) {
  * Generic callback: Refresh my handle
  */
 function showHandle(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('getMyHandle zome call failed');
     console.error(err);
     return;
   }
+  console.log('showHandle call result = ' + JSON.stringify(callResult))
   var handleButton = document.getElementById('handleText');
   handleButton.textContent = '' + callResult.Ok;
-  g_myHandle = callResult.Ok;
+  g_myHandle = callResult;
 }
 
 
@@ -895,7 +893,7 @@ function showHandle(callResult) {
  * On delete, refresh filebox
  */
 function handle_deleteMail(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('deleteMail zome call failed');
     console.error(err);
@@ -910,14 +908,14 @@ function handle_deleteMail(callResult) {
  * Refresh g_mail_map and mailGrid
  */
 function handle_getAllMails(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('getAllMails zome call failed');
     console.error(err);
     return;
   }
   let mailGrid = document.querySelector('#mailGrid');
-  let mailList = callResult.Ok;
+  let mailList = callResult;
   let items = [];
   g_mail_map.clear();
   const folderBox = document.querySelector('#fileboxFolder');
@@ -940,6 +938,7 @@ function handle_getAllMails(callResult) {
   console.log('mailCount = ' + items.length);
   mailGrid.items = items;
 }
+
 /**
  * Post callback for getAllMails()
  */
@@ -968,13 +967,13 @@ function update_fileBox() {
  * Add chunk to chunkList
  */
 function handle_writeChunk(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('writeChunk zome call failed');
     console.error(err);
     return;
   }
-  let chunkAddress = callResult.Ok;
+  let chunkAddress = callResult;
   g_chunkList.push(chunkAddress);
 }
 
@@ -983,13 +982,13 @@ function handle_writeChunk(callResult) {
  */
 function handle_writeManifest(callResult) {
   //console.log('writeManifestResult: ' + JSON.stringify(callResult));
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('writeManifest zome call failed');
     console.error(err);
     return;
   }
-  let manifestAddress = callResult.Ok;
+  let manifestAddress = callResult;
   g_fileList.push(manifestAddress);
 }
 
@@ -998,14 +997,14 @@ function handle_writeManifest(callResult) {
  * Refresh g_username_map and recepients
  */
 function handle_getAllHandles(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('getAllHandles zome call failed');
     console.error(err);
     return;
   }
   //const contactGrid = document.querySelector('#contactGrid');
-  let handleList = callResult.Ok;
+  let handleList = callResult;
   g_username_map.clear();
   for (let handleItem of handleList) {
     // FIXME: exclude self from list
@@ -1022,13 +1021,13 @@ function handle_getAllHandles(callResult) {
  *
  */
 function handle_pingAgent(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('pingAgent zome call failed');
     console.error(err);
     return;
   }
-  g_isAgentOnline = callResult.Ok;
+  g_isAgentOnline = callResult;
   g_hasPingResult = true;
 }
 
@@ -1037,21 +1036,21 @@ function handle_pingAgent(callResult) {
  */
 function handle_findAgent(callResult) {
   let button = document.querySelector('#handleDisplay');
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('findAgent dna call failed');
     console.error(err);
     button.title = "";
     return;
   }
-  button.title = callResult.Ok[0];
+  button.title = callResult[0];
 }
 
 /**
  *
  */
 function handle_getManifest(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('GetManifest zome call failed');
     console.error(err);
@@ -1065,7 +1064,7 @@ function handle_getManifest(callResult) {
  *
  */
 function handle_missingAttachments(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('MissingAttachments zome call failed');
     console.error(err);
@@ -1079,7 +1078,7 @@ function handle_missingAttachments(callResult) {
  *
  */
 function handle_acknowledgeMail(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('AcknowledgeMail zome call failed');
     console.error(err);
@@ -1092,13 +1091,13 @@ function handle_acknowledgeMail(callResult) {
  *
  */
 function handle_getChunk(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('GetChunk zome call failed');
     console.error(err);
     return;
   }
-  let chunk = callResult.Ok;
+  let chunk = callResult;
   console.log({chunk});
   g_getChunks.push(chunk);
 }
@@ -1107,13 +1106,13 @@ function handle_getChunk(callResult) {
  *
  */
 function handle_findManifest(callResult) {
-  if (callResult.Ok === undefined) {
+  if (callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('FindManifest zome call failed');
     console.error(err);
     return;
   }
-  let maybeManifest = callResult.Ok;
+  let maybeManifest = callResult;
   console.log({maybeManifest});
   g_manifest = maybeManifest;
 }
