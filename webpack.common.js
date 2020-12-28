@@ -20,7 +20,6 @@ module.exports = {
           from: '**/*.js',
           to: 'webcomponents'
         },
-        "./src/rsm_bridge.js",
       ])
     ],
   output: {

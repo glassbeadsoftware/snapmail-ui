@@ -1,7 +1,5 @@
 
 import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
-//import { AdminWebsocket, AppWebsocket } from './vendor/conductor-api/index.js';
-//import { AdminWebsocket, AppWebsocket } from '../dist/vendor/conductor-api/index.js';
 
 const TIMEOUT = 6000
 
@@ -15,14 +13,6 @@ var g_cellId = undefined
 var g_cellNick = undefined
 var g_appClient = undefined
 
-// function sleep(milliseconds) {
-//   const date = Date.now();
-//   let currentDate = null;
-//   do {
-//     currentDate = Date.now();
-//   } while (currentDate - date < milliseconds);
-// }
-
 const receiveSignal = (signal/*: AppSignal*/) => {
   // impl...
   console.log({signal})
@@ -31,21 +21,10 @@ const receiveSignal = (signal/*: AppSignal*/) => {
 
 // -- CONNECT TO ADMIN -- //
 
-// AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`, TIMEOUT).then((adminWs) => {
-//   g_adminWs = adminWs
-//   console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
-//   g_adminWs.generateAgentPubKey().then((newKey) =>
-//   {
-//     g_newKey = newKey
-//     console.log({ newKey })
-//     printAdmin()
-//   })
-// })
-
-// rsmConnect().then(() => {
-//   console.log('***** rsmConnect done')
-// })
-
+/**
+ *
+ * @returns {Promise<void>}
+ */
 export async function rsmConnect() {
    g_adminWs = await AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`, TIMEOUT)
   console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
@@ -66,30 +45,29 @@ export async function rsmConnect() {
   console.log({g_cellId})
   dumpState(g_cellId)
 
-  let result = await g_appClient.callZome({
-    cap: null,
-    cell_id: g_cellId,
-    zome_name: 'snapmail',
-    fn_name: 'set_handle',
-    provenance: g_cellId[1],
-    payload: 'toto',
-  }, 30000)
-  console.log('set_handle() result')
-  console.log({result})
-
-  result = await g_appClient.callZome({
-    cap: null,
-    cell_id: g_cellId,
-    zome_name: 'snapmail',
-    fn_name: 'get_my_handle',
-    //provenance: g_newKey,
-    provenance: g_cellId[1],
-    payload: undefined,
-  }, 30000)
-  console.log('get_my_handle() result')
-  console.log({result})
+  // let result = await g_appClient.callZome({
+  //   cap: null,
+  //   cell_id: g_cellId,
+  //   zome_name: 'snapmail',
+  //   fn_name: 'set_handle',
+  //   provenance: g_cellId[1],
+  //   payload: 'toto',
+  // }, 30000)
+  // console.log('set_handle() result')
+  // console.log({result})
+  //
+  // result = await g_appClient.callZome({
+  //   cap: null,
+  //   cell_id: g_cellId,
+  //   zome_name: 'snapmail',
+  //   fn_name: 'get_my_handle',
+  //   //provenance: g_newKey,
+  //   provenance: g_cellId[1],
+  //   payload: undefined,
+  // }, 30000)
+  // console.log('get_my_handle() result')
+  // console.log({result})
 }
-
 
 /**
  *
