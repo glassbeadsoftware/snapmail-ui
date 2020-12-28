@@ -508,25 +508,26 @@ async function fillAttachmentGrid(mail) {
   const emoji = String.fromCodePoint(0x1F6D1);
   g_hasAttachment = 0;
   let missingCount = 0;
-  for (let attachmentInfo of mail.attachments) {
-    console.log({attachmentInfo});
-    // TODO file
-    // DNA.getManifest(attachmentInfo.manifest_address, handle_getManifest, handleSignal);
-    while (g_hasAttachment === 0) {
-      await sleep(10);
-    }
-    const hasAttachment = g_hasAttachment > 0;
-    missingCount += 0 + !hasAttachment;
-    let item = {
-      "fileId": attachmentInfo.data_hash,
-      "filename": attachmentInfo.filename,
-      "filesize": Math.ceil(attachmentInfo.orig_filesize / 1024),
-      "filetype": attachmentInfo.filetype,
-      "status": hasAttachment? ' ' : emoji,
-      "hasFile": hasAttachment,
-    };
-    items.push(item)
-  }
+  // TODO File
+  // for (let attachmentInfo of mail.attachments) {
+  //   console.log({attachmentInfo});
+  //   // TODO file
+  //   // DNA.getManifest(attachmentInfo.manifest_address, handle_getManifest, handleSignal);
+  //   while (g_hasAttachment === 0) {
+  //     await sleep(10);
+  //   }
+  //   const hasAttachment = g_hasAttachment > 0;
+  //   missingCount += 0 + !hasAttachment;
+  //   let item = {
+  //     "fileId": attachmentInfo.data_hash,
+  //     "filename": attachmentInfo.filename,
+  //     "filesize": Math.ceil(attachmentInfo.orig_filesize / 1024),
+  //     "filetype": attachmentInfo.filetype,
+  //     "status": hasAttachment? ' ' : emoji,
+  //     "hasFile": hasAttachment,
+  //   };
+  //   items.push(item)
+  // }
   //console.log({items})
   attachmentGrid.items = items;
   attachmentGrid.selectedItems = [];

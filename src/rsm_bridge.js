@@ -5,6 +5,9 @@ const TIMEOUT = 6000
 
 const ADMIN_PORT = 1234
 const APP_PORT = 8888
+let APP_URL = process.env.APP_URL? process.env.APP_URL : `ws://localhost:${APP_PORT}`
+let ADMIN_URL = process.env.CONDUCTOR_URL? process.env.CONDUCTOR_URL : `ws://localhost:${ADMIN_PORT}`
+
 
 var g_adminWs = undefined
 var g_cellId = undefined
@@ -13,11 +16,11 @@ var g_appId = undefined
 var g_newKey = undefined
 var g_cellNick = undefined
 
-const receiveSignal = (signal/*: AppSignal*/) => {
+var receiveSignal = (signal/*: AppSignal*/) => {
   // impl...
   console.log('Received signal:')
   console.log({signal})
-  resolve()
+  //resolve()
 }
 
 // -- CONNECT TO ADMIN -- //
@@ -27,17 +30,17 @@ const receiveSignal = (signal/*: AppSignal*/) => {
  * @returns {Promise<void>}
  */
 export async function rsmConnect() {
-   g_adminWs = await AdminWebsocket.connect(`ws://localhost:${ADMIN_PORT}`, TIMEOUT)
-  console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
-  // g_adminWs.generateAgentPubKey().then((newKey) => {
-  //     g_newKey = newKey
-  //     console.log({newKey})
-  //     printAdmin()
-  // })
+  //  g_adminWs = await AdminWebsocket.connect(ADMIN_URL, TIMEOUT)
+  // console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
+  // // g_adminWs.generateAgentPubKey().then((newKey) => {
+  // //     g_newKey = newKey
+  // //     console.log({newKey})
+  // //     printAdmin()
+  // // })
 
   // -- CONNECT TO APP -- //
 
-  g_appClient = await AppWebsocket.connect(`ws://localhost:${APP_PORT}`, TIMEOUT, receiveSignal);
+  g_appClient = await AppWebsocket.connect(APP_URL, TIMEOUT, receiveSignal);
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
   const appInfo = await g_appClient.appInfo({ installed_app_id: 'test-app' }, 1000)
   console.log({appInfo})
@@ -70,7 +73,7 @@ const printAdmin = () => {
 const dumpState = async (cellId) => {
   if (g_adminWs === undefined) {
     console.log('dumpState() Error: g_adminWs undefined')
-    resolve()
+    //resolve()
     return
   }
   const stateDump = await g_adminWs.dumpState({cell_id: cellId})

@@ -70,27 +70,24 @@ module.exports.is_OutMail = is_OutMail;
  * Return mailItem class
  */
 function determineMailClass(mailItem) {
-  //console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
+
+  console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
   let state = mailItem.state;
 
   if (state.hasOwnProperty('Out')) {
-    switch (state.Out) {
-      case 'Pending': return 'pending';
-      case 'PartiallyArrived_NoAcknowledgement': return 'partially';
-      case 'PartiallyArrived_PartiallyAcknowledged': return 'partially';
-      case 'Arrived_NoAcknowledgement': return 'arrived';
-      case 'Arrived_PartiallyAcknowledged': return 'arrived';
-      case 'Received': return 'received';
-      case 'Deleted': return 'deleted';
-    }
+    if (state.Out.hasOwnProperty('Pending')) return 'pending';
+    if (state.Out.hasOwnProperty('PartiallyArrived_NoAcknowledgement')) return 'partially';
+    if (state.Out.hasOwnProperty('PartiallyArrived_PartiallyAcknowledged')) return 'partially';
+    if (state.Out.hasOwnProperty('Arrived_NoAcknowledgement')) return 'arrived';
+    if (state.Out.hasOwnProperty('Arrived_PartiallyAcknowledged')) return 'arrived';
+    if (state.Out.hasOwnProperty('Received')) return 'received';
+    if (state.Out.hasOwnProperty('Deleted')) return 'deleted';
   }
   if (state.hasOwnProperty('In')) {
-    switch(state.In) {
-      case 'Acknowledged':return 'received';
-      case 'AckReceived': return 'received';
-      case 'Arrived':     return 'newmail';
-      case 'Deleted':     return 'deleted';
-    }
+    if (state.In.hasOwnProperty('Acknowledged')) return 'received';
+    if (state.In.hasOwnProperty('AckReceived')) return 'received';
+    if (state.In.hasOwnProperty('Arrived')) return 'newmail';
+    if (state.In.hasOwnProperty('Deleted')) return 'deleted';
   }
   console.error('Invalid mailItem object');
   return '';
@@ -127,7 +124,9 @@ function into_gridItem(usernameMap, mailItem) {
   if (mailItem.state.hasOwnProperty('Out')) {
     username = 'To: ' + usernameMap.get(mailItem.mail.to[0])
   }
-  let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
+  // TODO File
+  //let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
+  let status = '';
   let item = {
     "id": mailItem.address, "username": username, "subject": mailItem.mail.subject, "date": dateStr, "status": status
   };
@@ -173,7 +172,8 @@ function into_mailText(usernameMap, mailItem) {
     intext += '\n\nDEBUG INFO';
     intext += '\nState: ' + JSON.stringify(mailItem.state);
     intext += '\nAddress: ' + mailItem.address;
-    intext += '\nFiles: ' + mailItem.mail.attachments.length;
+    // TODO File
+    //intext += '\nFiles: ' + mailItem.mail.attachments.length;
   }
 
   return intext;
