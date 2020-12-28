@@ -4,9 +4,13 @@ import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
 const TIMEOUT = 6000
 
 const ADMIN_PORT = 1234
-const APP_PORT = 8888
-let APP_URL = process.env.APP_URL? process.env.APP_URL : `ws://localhost:${APP_PORT}`
+//const APP_PORT = 8888
+//let APP_URL = process.env.APP_URL? process.env.APP_URL : `ws://localhost:${APP_PORT}`
 let ADMIN_URL = process.env.CONDUCTOR_URL? process.env.CONDUCTOR_URL : `ws://localhost:${ADMIN_PORT}`
+
+const HREF_PORT = window.location.port
+const APP_PORT = parseInt(window.location.port) + 800
+let APP_URL =`ws://localhost:${APP_PORT}`
 
 
 var g_adminWs = undefined
@@ -39,7 +43,9 @@ export async function rsmConnect() {
   // // })
 
   // -- CONNECT TO APP -- //
-
+  let env = window.location
+  console.log(env)
+  console.log('*** Connected to Snapmail app at : ' + APP_URL)
   g_appClient = await AppWebsocket.connect(APP_URL, TIMEOUT, receiveSignal);
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
   const appInfo = await g_appClient.appInfo({ installed_app_id: 'test-app' }, 1000)
