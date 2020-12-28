@@ -19,9 +19,10 @@ import { WsClient } from './client';
 import { Transformer, Requester } from '../api/common';
 export declare class AdminWebsocket implements Api.AdminApi {
     client: WsClient;
-    constructor(client: WsClient);
-    static connect(url: string): Promise<AdminWebsocket>;
-    _requester: <ReqO, ReqI, ResI, ResO>(tag: string, transformer?: Transformer<ReqO, ReqI, ResI, ResO> | undefined) => (req: ReqO) => Promise<ResO>;
+    defaultTimeout: number;
+    constructor(client: WsClient, defaultTimeout?: number);
+    static connect(url: string, defaultTimeout?: number): Promise<AdminWebsocket>;
+    _requester: <ReqO, ReqI, ResI, ResO>(tag: string, transformer?: Transformer<ReqO, ReqI, ResI, ResO> | undefined) => (req: ReqO, timeout?: number | undefined) => Promise<ResO>;
     activateApp: Requester<Api.ActivateAppRequest, Api.ActivateAppResponse>;
     attachAppInterface: Requester<Api.AttachAppInterfaceRequest, Api.AttachAppInterfaceResponse>;
     deactivateApp: Requester<Api.DeactivateAppRequest, Api.DeactivateAppResponse>;

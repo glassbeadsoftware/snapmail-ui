@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Defines AdminWebsocket, an easy-to-use websocket implementation of the
  * Conductor Admin API
@@ -24,14 +23,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminWebsocket = void 0;
-const client_1 = require("./client");
-const common_1 = require("./common");
-const common_2 = require("../api/common");
-class AdminWebsocket {
-    constructor(client) {
-        this._requester = (tag, transformer) => common_2.requesterTransformer(req => this.client.request(req).then(common_1.catchError), tag, transformer);
+import { WsClient } from './client';
+import { catchError, promiseTimeout, DEFAULT_TIMEOUT } from './common';
+import { requesterTransformer } from '../api/common';
+export class AdminWebsocket {
+    constructor(client, defaultTimeout) {
+        this._requester = (tag, transformer) => requesterTransformer((req, timeout) => promiseTimeout(this.client.request(req), tag, timeout || this.defaultTimeout).then(catchError), tag, transformer);
         // the specific request/response types come from the Interface
         // which this class implements
         this.activateApp = this._requester('activate_app');
@@ -46,15 +43,15 @@ class AdminWebsocket {
         this.requestAgentInfo = this._requester('request_agent_info');
         this.addAgentInfo = this._requester('add_agent_info');
         this.client = client;
+        this.defaultTimeout = defaultTimeout === undefined ? DEFAULT_TIMEOUT : defaultTimeout;
     }
-    static connect(url) {
+    static connect(url, defaultTimeout) {
         return __awaiter(this, void 0, void 0, function* () {
-            const wsClient = yield client_1.WsClient.connect(url);
-            return new AdminWebsocket(wsClient);
+            const wsClient = yield WsClient.connect(url);
+            return new AdminWebsocket(wsClient, defaultTimeout);
         });
     }
 }
-exports.AdminWebsocket = AdminWebsocket;
 const dumpStateTransform = {
     input: (req) => req,
     output: (res) => {

@@ -19,7 +19,8 @@ module.exports = {
           context: 'node_modules/@webcomponents/webcomponentsjs',
           from: '**/*.js',
           to: 'webcomponents'
-        }
+        },
+        "./src/rsm_bridge.js",
       ])
     ],
   output: {

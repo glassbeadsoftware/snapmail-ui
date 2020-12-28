@@ -1,23 +1,3 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -27,21 +7,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.WsClient = void 0;
-const isomorphic_ws_1 = __importDefault(require("isomorphic-ws"));
-const msgpack = __importStar(require("@msgpack/msgpack"));
-const nanoid_1 = require("nanoid");
+import Websocket from 'isomorphic-ws';
+import * as msgpack from '@msgpack/msgpack';
+import { nanoid } from 'nanoid';
 /**
  * A Websocket client which can make requests and receive responses,
  * as well as send and receive signals
  *
  * Uses Holochain's websocket WireMessage for communication.
  */
-class WsClient {
+export class WsClient {
     constructor(socket) {
         this.socket = socket;
         this.pendingRequests = {};
@@ -55,7 +30,7 @@ class WsClient {
         this.socket.send(encodedMsg);
     }
     request(data) {
-        const id = nanoid_1.nanoid();
+        const id = nanoid();
         const encodedMsg = msgpack.encode({
             id,
             type: 'Request',
@@ -81,7 +56,7 @@ class WsClient {
     }
     static connect(url, signalCb) {
         return new Promise((resolve, reject) => {
-            const socket = new isomorphic_ws_1.default(url);
+            const socket = new Websocket(url);
             // make sure that there are no uncaught connection
             // errors because that causes nodejs thread to crash
             // with uncaught exception
@@ -127,7 +102,6 @@ class WsClient {
         });
     }
 }
-exports.WsClient = WsClient;
 const signalTransform = (res) => {
     return msgpack.decode(res);
 };
