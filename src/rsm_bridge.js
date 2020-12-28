@@ -45,28 +45,7 @@ export async function rsmConnect() {
   console.log({g_cellId})
   await dumpState(g_cellId)
 
-  // let result = await g_appClient.callZome({
-  //   cap: null,
-  //   cell_id: g_cellId,
-  //   zome_name: 'snapmail',
-  //   fn_name: 'set_handle',
-  //   provenance: g_cellId[1],
-  //   payload: 'toto',
-  // }, 30000)
-  // console.log('set_handle() result')
-  // console.log({result})
-  //
-  // result = await g_appClient.callZome({
-  //   cap: null,
-  //   cell_id: g_cellId,
-  //   zome_name: 'snapmail',
-  //   fn_name: 'get_my_handle',
-  //   //provenance: g_newKey,
-  //   provenance: g_cellId[1],
-  //   payload: undefined,
-  // }, 30000)
-  // console.log('get_my_handle() result')
-  // console.log({result})
+  return g_cellId[1];
 }
 
 /**
@@ -99,38 +78,11 @@ const dumpState = async (cellId) => {
   console.log({stateDump})
 }
 
-// ConductorApi.AppWebsocket.connect('ws://localhost:8888').then(
-//   async appWebsocket => {
-//     const appInfo = await appWebsocket.appInfo({
-//       installed_app_id: 'test-app',
-//     });
-//     const cellId = appInfo.cell_data[0][0];
-//     const context = document.getElementById('provider');
-//     context.appWebsocket = appWebsocket;
-//     context.cellId = cellId;
-//   }
-// )
 
 /**
  *
+ * @returns {Promise<any>}
  */
-// export const callDna = (functionName, payload, signalCallback) => {
-//   return new Promise((succ, err) => {
-//     if (g_appClient === undefined) {
-//       console.error("App Client Websocket not connected!")
-//     }
-//     console.log("*** callDna() => " + functionName + '()')
-//     return g_appClient.callZome({
-//       cap: null,
-//       cell_id: g_cellId,
-//       zome_name: "snapmail",
-//       fn_name: functionName,
-//       provenance: g_cellId[1],
-//       payload: payload,
-//     }, 30000) // default timeout set here (30000) will overwrite the defaultTimeout(12000) set above
-//   })
-// }
-
 export async function callDna (functionName, payload, signalCallback) {
     if (g_appClient === undefined) {
       console.error("App Client Websocket not connected!")
@@ -173,6 +125,7 @@ export function findAgent(handle, callback, signalCallback) {
 }
 
 export function pingAgent(agentId, callback, signalCallback) {
+  console.log('*** pingAgent() called!')
   callDna('ping_agent', agentId, signalCallback).then(result => callback(result));
 }
 

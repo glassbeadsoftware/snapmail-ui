@@ -67,6 +67,7 @@ var g_username_map = new Map();
 // Map of (address -> mailItem)
 var g_mail_map = new Map();
 
+var g_myAgentId = null;
 var g_myHandle = '<unknown>';
 var g_currentFolder = '';
 var g_currentMailItem = {};
@@ -150,7 +151,7 @@ function initUi() {
   initOutMailArea();
   initActionBar();
   initUpload();
-  // getMyAgentId(logResult)
+  //getMyAgentId(logResult)
   initNotification();
   initDna();
   // -- init progress bar -- //
@@ -275,7 +276,8 @@ function initNotification() {
  */
 function initDna() {
   console.log('initDna()');
-  DNA.rsmConnect().then(() => {
+  DNA.rsmConnect().then((myAgentId) => {
+    g_myAgentId = myAgentId;
     // -- App Bar -- //
     DNA.getMyHandle(showHandle, handleSignal);
     // -- FileBox -- //
@@ -326,11 +328,18 @@ async function resetRecepients() {
   let items = [];
   for (let entry of g_username_map.entries()) {
     //g_username_map.set(entry[1], entry[0]);
+    // -- Ping Agent -- //
     g_hasPingResult = false;
     g_isAgentOnline = false;
-    DNA.pingAgent(entry[0], handle_pingAgent, handleSignal);
-    while (!g_hasPingResult) {
-      await sleep(10)
+    // Bypass self
+    if (JSON.stringify(entry[0]) === JSON.stringify(g_myAgentId)) {
+      g_isAgentOnline = true;
+      g_hasPingResult = true;
+    } else {
+      DNA.pingAgent(entry[0], handle_pingAgent, handleSignal);
+      while(!g_hasPingResult) {
+        await sleep(10)
+      }
     }
     let item = { "username": entry[1], "agentId": entry[0], "recepientType": '',
       status: g_isAgentOnline? greenDot : redDot
@@ -882,9 +891,14 @@ function showHandle(callResult) {
     console.error(err);
     return;
   }
-  console.log('showHandle call result = ' + JSON.stringify(callResult))
+  //console.log('showHandle call result = ' + JSON.stringify(callResult))
   var handleButton = document.getElementById('handleText');
-  handleButton.textContent = '' + callResult.Ok;
+
+  if (callResult.Ok === undefined) {
+    handleButton.textContent = '' + callResult
+  } else {
+    handleButton.textContent = '' + callResult.Ok;
+  }
   g_myHandle = callResult;
 }
 
@@ -962,37 +976,6 @@ function update_fileBox() {
   canGetAllMutex = true;
 }
 
-
-/**
- * Add chunk to chunkList
- */
-function handle_writeChunk(callResult) {
-  if (callResult.Err !== undefined) {
-    const err = callResult.Err;
-    console.error('writeChunk zome call failed');
-    console.error(err);
-    return;
-  }
-  let chunkAddress = callResult;
-  g_chunkList.push(chunkAddress);
-}
-
-/**
- * Add manifest to fileList
- */
-function handle_writeManifest(callResult) {
-  //console.log('writeManifestResult: ' + JSON.stringify(callResult));
-  if (callResult.Err !== undefined) {
-    const err = callResult.Err;
-    console.error('writeManifest zome call failed');
-    console.error(err);
-    return;
-  }
-  let manifestAddress = callResult;
-  g_fileList.push(manifestAddress);
-}
-
-
 /**
  * Refresh g_username_map and recepients
  */
@@ -1010,7 +993,8 @@ function handle_getAllHandles(callResult) {
     // FIXME: exclude self from list
     g_username_map.set(handleItem[1], handleItem[0])
   }
-  resetRecepients().then(function() {
+  console.log('handleList: ' + JSON.stringify(handleList))
+  resetRecepients().then(() => {
     const contactsMenu = document.querySelector('#ContactsMenu');
     contactsMenu.items[0].disabled = false;
     contactsMenu.render();
@@ -1044,6 +1028,36 @@ function handle_findAgent(callResult) {
     return;
   }
   button.title = callResult[0];
+}
+
+
+/**
+ * Add chunk to chunkList
+ */
+function handle_writeChunk(callResult) {
+  if (callResult.Err !== undefined) {
+    const err = callResult.Err;
+    console.error('writeChunk zome call failed');
+    console.error(err);
+    return;
+  }
+  let chunkAddress = callResult;
+  g_chunkList.push(chunkAddress);
+}
+
+/**
+ * Add manifest to fileList
+ */
+function handle_writeManifest(callResult) {
+  //console.log('writeManifestResult: ' + JSON.stringify(callResult));
+  if (callResult.Err !== undefined) {
+    const err = callResult.Err;
+    console.error('writeManifest zome call failed');
+    console.error(err);
+    return;
+  }
+  let manifestAddress = callResult;
+  g_fileList.push(manifestAddress);
 }
 
 /**
