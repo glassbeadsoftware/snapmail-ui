@@ -20,6 +20,11 @@ var g_appId = undefined
 var g_newKey = undefined
 var g_cellNick = undefined
 
+// AppSignal {
+//   cellId: [Uint8Array(39), Uint8Array(39)],
+//     payload: any,
+//     type: "Signal"
+// }
 var receiveSignal = (signal/*: AppSignal*/) => {
   // impl...
   console.log('Received signal:')
@@ -46,7 +51,7 @@ export async function rsmConnect() {
   let env = window.location
   console.log(env)
   console.log('*** Connected to Snapmail app at : ' + APP_URL)
-  g_appClient = await AppWebsocket.connect(APP_URL, TIMEOUT, receiveSignal);
+  g_appClient = await AppWebsocket.connect(APP_URL, receiveSignal);
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
   const appInfo = await g_appClient.appInfo({ installed_app_id: 'test-app' }, 1000)
   console.log({appInfo})
@@ -168,14 +173,14 @@ export function checkIncomingAck(callback, signalCallback) {
   callDna('check_incoming_ack', undefined, signalCallback).then(result => callback(result));
 }
 
-export function acknowledgeMail(address, callback, signalCallback) {
-  callDna('acknowledge_mail', address, signalCallback).then(result => callback(result));
+export function acknowledgeMail(mailAddress, callback, signalCallback) {
+  callDna('acknowledge_mail', mailAddress, signalCallback).then(result => callback(result));
 }
 
-export function hasMailBeenReceived(address, callback, signalCallback) {
-  callDna('has_mail_been_received', address, signalCallback).then(result => callback(result));
+export function hasMailBeenReceived(mailAddress, callback, signalCallback) {
+  callDna('has_mail_been_received', mailAddress, signalCallback).then(result => callback(result));
 }
 
-export function hasAckBeenReceived(address, callback, signalCallback) {
-  callDna('has_ack_been_received', address, signalCallback).then(result => callback(result));
+export function hasAckBeenReceived(mailAddress, callback, signalCallback) {
+  callDna('has_ack_been_received', mailAddress, signalCallback).then(result => callback(result));
 }

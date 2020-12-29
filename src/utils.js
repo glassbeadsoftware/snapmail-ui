@@ -1,23 +1,44 @@
 
 const CHUNK_MAX_SIZE = 200 * 1024;
 
+import * as base64 from "byte-base64";
 
-var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
-module.exports.base64regex = base64regex;
+export var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+
+/**
+ * Convert hash (Uint8Array) to/from base64 string
+ */
+export function htos(u8array) {
+  return base64.bytesToBase64(u8array)
+}
+export function stoh(str) {
+  return base64.base64ToBytes(str)
+}
+
+/**
+ *
+ */
+export function cellIdToStr(cell) {
+  let res = '('
+  res += htos(cell.cellId[0])
+  res += ', '
+  res += htos(cell.cellId[1])
+  res += ')'
+  return res
+}
 
 /**
  * Sleep via timeout promise
  */
-function sleep(ms) {
+export function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-module.exports.sleep = sleep;
 
 /**
  *
  * @returns {string}
  */
-function arrayBufferToBase64(buffer) {
+export function arrayBufferToBase64(buffer) {
   var binary = '';
   var bytes = new Uint8Array( buffer );
   var len = bytes.byteLength;
@@ -26,14 +47,13 @@ function arrayBufferToBase64(buffer) {
   }
   return window.btoa( binary );
 }
-module.exports.arrayBufferToBase64 = arrayBufferToBase64;
 
 
 /**
  *
  * @returns {ArrayBufferLike}
  */
-function base64ToArrayBuffer(base64) {
+export function base64ToArrayBuffer(base64) {
   var binary_string = window.atob(base64);
   var len = binary_string.length;
   var bytes = new Uint8Array(len);
@@ -42,14 +62,13 @@ function base64ToArrayBuffer(base64) {
   }
   return bytes.buffer;
 }
-module.exports.base64ToArrayBuffer = base64ToArrayBuffer;
 
 
 /**
  *
  * @returns {*}
  */
-function sha256(message) {
+export function sha256(message) {
   //console.log('message: ' + message)
   const myBitArray = sjcl.hash.sha256.hash(message)
   //console.log('myBitArray: ' + JSON.stringify(myBitArray))
@@ -57,8 +76,6 @@ function sha256(message) {
   //console.log('hashHex: ' + hashHex)
   return hashHex;
 }
-module.exports.sha256 = sha256;
-
 
 /**
  *
@@ -67,11 +84,9 @@ module.exports.sha256 = sha256;
 function chunkSubstr(str, size) {
   var numChunks = Math.ceil(str.length / size);
   var chunks = new Array(numChunks);
-
   for (var i = 0, o = 0; i < numChunks; ++i, o += size) {
     chunks[i] = str.substr(o, size);
   }
-
   return chunks;
 }
 
@@ -80,15 +95,13 @@ function chunkSubstr(str, size) {
  *
  * @returns {{numChunks: number, dataHash: *, chunks: any[]}}
  */
-function splitFile(full_data_string) {
+export function splitFile(full_data_string) {
   const hash = sha256(full_data_string);
   console.log('file hash: ' + hash)
   const chunks = chunkSubstr(full_data_string, CHUNK_MAX_SIZE);
-
   return {
     dataHash: hash,
     numChunks: chunks.length,
     chunks: chunks,
   }
 }
-module.exports.splitFile = splitFile;

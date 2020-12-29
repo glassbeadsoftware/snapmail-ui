@@ -26,7 +26,7 @@ import '@vaadin/vaadin-notification';
 
 //import {rsmConnect} from './rsm_bridge'
 import * as DNA from './rsm_bridge'
-import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex} from './utils'
+import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex, htos, stoh} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
 
@@ -63,10 +63,12 @@ var g_chunkList = [];
 var g_fileList = [];
 
 // Map of (agentId -> username)
-var g_username_map = new Map();
-// Map of (address -> mailItem)
-var g_mail_map = new Map();
+// agentId is base64 string of a hash
+var g_usernameMap = new Map();
+// Map of (mailId -> mailItem)
+var g_mailMap = new Map();
 
+var g_myAgentHash = null;
 var g_myAgentId = null;
 var g_myHandle = '<unknown>';
 var g_currentFolder = '';
@@ -101,7 +103,7 @@ function callGetAllMails() {
 // -- Signal -- //
 
 function handleSignal(signalwrapper) {
-  if (signalwrapper.type !== undefined && signalwrapper.type !== "InstanceSignal") {
+  if (signalwrapper.type !== undefined && signalwrapper.type !== "Signal") {
     return;
   }
   if (signalwrapper.signal.signal_type !== "User") {
@@ -276,8 +278,9 @@ function initNotification() {
  */
 function initDna() {
   console.log('initDna()');
-  DNA.rsmConnect().then((myAgentId) => {
-    g_myAgentId = myAgentId;
+  DNA.rsmConnect().then((myAgentHash) => {
+    g_myAgentHash = myAgentHash
+    g_myAgentId = htos(g_myAgentHash)
     // -- App Bar -- //
     DNA.getMyHandle(showHandle, handleSignal);
     // -- FileBox -- //
@@ -326,23 +329,24 @@ function initTitleBar() {
 async function resetRecepients() {
   const contactGrid = document.querySelector('#contactGrid');
   let items = [];
-  for (let entry of g_username_map.entries()) {
-    //g_username_map.set(entry[1], entry[0]);
-    // -- Ping Agent -- //
+  console.log(g_usernameMap)
+  for (const [agentId, username] of g_usernameMap.entries()) {
+    const agentHash = stoh(agentId)
+    // Ping Agent, except self
     g_hasPingResult = false;
     g_isAgentOnline = false;
-    // Bypass self
-    if (JSON.stringify(entry[0]) === JSON.stringify(g_myAgentId)) {
+    if (agentId === g_myAgentId) {
       g_isAgentOnline = true;
       g_hasPingResult = true;
     } else {
-      DNA.pingAgent(entry[0], handle_pingAgent, handleSignal);
-      while(!g_hasPingResult) {
+      DNA.pingAgent(agentHash, handle_pingAgent, handleSignal);
+      while (!g_hasPingResult) {
         await sleep(10)
       }
     }
-    let item = { "username": entry[1], "agentId": entry[0], "recepientType": '',
-      status: g_isAgentOnline? greenDot : redDot
+    // Create and add contact grid item
+    let item = {
+      "username": username, "agentId": agentHash, "recepientType": '', status: g_isAgentOnline? greenDot : redDot
     };
     items.push(item);
   }
@@ -389,32 +393,32 @@ function update_mailGrid(folder) {
   console.log('update_mailGrid: ' + folder);
   switch(folder) {
     case systemFolders.ALL:
-      for (let mailItem of g_mail_map.values()) {
+      for (let mailItem of g_mailMap.values()) {
         //folderItems = Array.from(g_mail_map.values());
-        folderItems.push(into_gridItem(g_username_map, mailItem));
+        folderItems.push(into_gridItem(g_usernameMap, mailItem));
       }
       break;
     case systemFolders.INBOX:
     case systemFolders.SENT:
-      for (let mailItem of g_mail_map.values()) {
+      for (let mailItem of g_mailMap.values()) {
         //console.log('mailItem: ' + JSON.stringify(mailItem))
         let is_out = is_OutMail(mailItem);
         if (isMailDeleted(mailItem)) {
           continue;
         }
         if (is_out && folder == systemFolders.SENT) {
-          folderItems.push(into_gridItem(g_username_map, mailItem));
+          folderItems.push(into_gridItem(g_usernameMap, mailItem));
           continue;
         }
         if (!is_out && folder == systemFolders.INBOX) {
-          folderItems.push(into_gridItem(g_username_map, mailItem));
+          folderItems.push(into_gridItem(g_usernameMap, mailItem));
         }
       }
       break;
     case systemFolders.TRASH: {
-      for (let mailItem of g_mail_map.values()) {
+      for (let mailItem of g_mailMap.values()) {
         if(isMailDeleted(mailItem)) {
-          folderItems.push(into_gridItem(g_username_map, mailItem));
+          folderItems.push(into_gridItem(g_usernameMap, mailItem));
         }
       }
     }
@@ -457,7 +461,7 @@ function initFileBox() {
   // Display bold if mail not acknowledged
   mailGrid.cellClassNameGenerator = function(column, rowData) {
     let classes = '';
-    let mailItem = g_mail_map.get(rowData.item.id);
+    let mailItem = g_mailMap.get(htos(rowData.item.id));
     console.assert(mailItem);
     classes += determineMailClass(mailItem);
     // let is_old = hasMailBeenOpened(mailItem);
@@ -479,9 +483,9 @@ function initFileBox() {
     g_currentMailItem = item;
     console.log('mail grid item: ' + JSON.stringify(item));
     var span = document.getElementById('inMailArea');
-    let mailItem = g_mail_map.get(item.id);
+    let mailItem = g_mailMap.get(htos(item.id));
     console.log('mail item: ' + JSON.stringify(mailItem));
-    span.value = into_mailText(g_username_map, mailItem);
+    span.value = into_mailText(g_usernameMap, mailItem);
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
@@ -860,7 +864,7 @@ function setState_SendButton(isDisabled) {
 
 function setState_DeleteButton(isDisabled) {
   let menu = document.querySelector('#MenuBar');
-  console.log('menu.items = ' + JSON.stringify(menu.items))
+  //console.log('menu.items = ' + JSON.stringify(menu.items))
   menu.items[2].disabled = isDisabled;
   menu.render();
 }
@@ -879,7 +883,8 @@ function logCallResult(callResult) {
     console.error(err);
     return;
   }
-  console.log('callResult = ' + JSON.stringify(callResult));
+  // FIXME put back when debug finished
+  // console.log('callResult = ' + JSON.stringify(callResult));
 }
 
 /**
@@ -932,11 +937,11 @@ function handle_getAllMails(callResult) {
   let mailGrid = document.querySelector('#mailGrid');
   let mailList = callResult;
   let items = [];
-  g_mail_map.clear();
+  g_mailMap.clear();
   const folderBox = document.querySelector('#fileboxFolder');
   let selectedBox = folderBox.value;
   for (let mailItem of mailList) {
-    g_mail_map.set(mailItem.address, mailItem);
+    g_mailMap.set(htos(mailItem.address), mailItem);
     // Determine if should add to grid
     if (isMailDeleted(mailItem) && selectedBox !== systemFolders.TRASH) {
       continue;
@@ -947,7 +952,7 @@ function handle_getAllMails(callResult) {
     if (!is_OutMail(mailItem) && selectedBox === systemFolders.SENT) {
       continue;
     }
-    items.push(into_gridItem(g_username_map, mailItem));
+    items.push(into_gridItem(g_usernameMap, mailItem));
   }
 
   console.log('mailCount = ' + items.length);
@@ -989,13 +994,16 @@ function handle_getAllHandles(callResult) {
   }
   //const contactGrid = document.querySelector('#contactGrid');
   let handleList = callResult;
-  g_username_map.clear();
-  for (let handleItem of handleList) {
-    // FIXME: exclude self from list
-    g_username_map.set(handleItem[1], handleItem[0])
-  }
   console.log('handleList: ' + JSON.stringify(handleList))
+  g_usernameMap.clear();
+  for (let handleItem of handleList) {
+    // TODO: exclude self from list when in prod
+    let agentId = htos(Object.values(handleItem[1]))
+    g_usernameMap.set(agentId, handleItem[0])
+  }
+  console.log('g_usernameMap = ' + JSON.stringify(g_usernameMap))
   resetRecepients().then(() => {
+    console.log(g_usernameMap)
     const contactsMenu = document.querySelector('#ContactsMenu');
     contactsMenu.items[0].disabled = false;
     contactsMenu.render();

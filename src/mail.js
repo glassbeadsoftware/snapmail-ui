@@ -2,38 +2,38 @@
  * Functions for manipulating mailItems
  */
 
+import {htos} from './utils'
+
 /**
  * All Folders for fileBox
  * @type {{ALL: string, TRASH: string, SENT: string, INBOX: string}}
  */
-const systemFolders = {
+export const systemFolders = {
   ALL: String.fromCodePoint(0x1F4C1) + ' All',
   INBOX: String.fromCodePoint(0x1F4E5) + ' Inbox',
   SENT: String.fromCodePoint(0x1F4E4) + ' Sent',
   TRASH: String.fromCodePoint(0x1F5D1) + ' Trash'
 };
-module.exports.systemFolders = systemFolders;
 
 /**
  * Return True if mail has been deleted
  */
-function isMailDeleted(mailItem) {
+export function isMailDeleted(mailItem) {
   let state = mailItem.state;
   if (state.hasOwnProperty('In')) {
-    return state.In === 'Deleted';
+    return state.In.hasOwnProperty('Deleted');
   }
   if (state.hasOwnProperty('Out')) {
-    return state.Out === 'Deleted';
+    return state.Out.hasOwnProperty('Deleted');
   }
   console.error('Invalid mailItem object')
   return false;
 }
-module.exports.isMailDeleted = isMailDeleted;
 
 /**
  * Return True if mail is an OutMail
  */
-function is_OutMail(mailItem) {
+export function is_OutMail(mailItem) {
   let state = mailItem.state;
 
   if (state.hasOwnProperty('In')) {
@@ -45,7 +45,6 @@ function is_OutMail(mailItem) {
   console.error('Invalid mailItem object')
   return false;
 }
-module.exports.is_OutMail = is_OutMail;
 
 // /**
 //  * Return True if mail has been acknoweldged by this agent
@@ -69,9 +68,9 @@ module.exports.is_OutMail = is_OutMail;
  *
  * Return mailItem class
  */
-function determineMailClass(mailItem) {
+export function determineMailClass(mailItem) {
 
-  console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
+  //console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
   let state = mailItem.state;
 
   if (state.hasOwnProperty('Out')) {
@@ -92,7 +91,6 @@ function determineMailClass(mailItem) {
   console.error('Invalid mailItem object');
   return '';
 }
-module.exports.determineMailClass = determineMailClass;
 
 
 /**
@@ -118,11 +116,22 @@ function customDateString(dateItem) {
  *
  * @returns {{date: string, subject: Certificate, id: string | (() => AddressInfo) | (() => (AddressInfo | string)) | (() => (AddressInfo | string | null)) | app.address, username: string, status: string}}
  */
-function into_gridItem(usernameMap, mailItem) {
-  let username = usernameMap.get(mailItem.author)
+export function into_gridItem(usernameMap, mailItem) {
+  let authorId = htos(mailItem.author);
+  let username = usernameMap.get(authorId)
+  console.log('into_gridItem: ' + authorId + ' -> ' + username)
   let dateStr = customDateString(mailItem.date)
   if (mailItem.state.hasOwnProperty('Out')) {
-    username = 'To: ' + usernameMap.get(mailItem.mail.to[0])
+    if (mailItem.mail.hasOwnProperty('to')) {
+      const recepient = htos(mailItem.mail.to[0])
+      username = 'To: ' + usernameMap.get(recepient)
+    } else if (mailItem.mail.hasOwnProperty('cc')) {
+      const recepient = htos(mailItem.mail.cc[0])
+      username = 'To: ' + usernameMap.get(recepient)
+    } else if (mailItem.mail.hasOwnProperty('bcc')) {
+      const recepient = htos(mailItem.mail.bcc[0])
+      username = 'To: ' + usernameMap.get(recepient)
+    }
   }
   // TODO File
   //let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
@@ -132,31 +141,30 @@ function into_gridItem(usernameMap, mailItem) {
   };
   return item;
 }
-module.exports.into_gridItem = into_gridItem;
 
 
 /**
  *
  * @returns {string}
  */
-function into_mailText(usernameMap, mailItem) {
+export function into_mailText(usernameMap, mailItem) {
   let intext = 'Subject: ' + mailItem.mail.subject + '\n\n'
     + mailItem.mail.payload + '\n\n'
-    + 'Mail from: ' + usernameMap.get(mailItem.author) + ' at ' + customDateString(mailItem.date);
+    + 'Mail from: ' + usernameMap.get(htos(mailItem.author)) + ' at ' + customDateString(mailItem.date);
   let to_line = '';
   for (let item of mailItem.mail.to) {
-    to_line += ' ' + usernameMap.get(item);
+    to_line += ' ' + usernameMap.get(htos(item));
   }
   let cc_line = '';
   let can_cc = false;
   for (let item of mailItem.mail.cc) {
-    cc_line += ' ' + usernameMap.get(item);
+    cc_line += ' ' + usernameMap.get(htos(item));
     can_cc = true;
   }
   let bcc_line = '';
   let can_bcc = false;
   for (let item of mailItem.bcc) {
-    bcc_line += ' ' + usernameMap.get(item);
+    bcc_line += ' ' + usernameMap.get(htos(item));
     can_bcc = true;
   }
   intext += '\nTo: ' + to_line;
@@ -171,11 +179,10 @@ function into_mailText(usernameMap, mailItem) {
   if (process.env.NODE_ENV === 'dev') {
     intext += '\n\nDEBUG INFO';
     intext += '\nState: ' + JSON.stringify(mailItem.state);
-    intext += '\nAddress: ' + mailItem.address;
+    intext += '\nAddress: ' + htos(mailItem.address);
     // TODO File
     //intext += '\nFiles: ' + mailItem.mail.attachments.length;
   }
 
   return intext;
 }
-module.exports.into_mailText = into_mailText;

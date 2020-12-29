@@ -52,6 +52,7 @@
     "@vaadin/vaadin-icons": "^4.3.1",
     "@vaadin/vaadin-text-field": "^2.5.5",
     "@web/dev-server": "0.0.13",
+    "byte-base64": "^1.1.0",
     "concurrently": "^5.1.0",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
