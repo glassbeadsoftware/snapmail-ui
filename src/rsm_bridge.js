@@ -38,7 +38,7 @@ var receiveSignal = (signal/*: AppSignal*/) => {
  *
  * @returns {Promise<void>}
  */
-export async function rsmConnect() {
+export async function rsmConnect(signalCallback) {
   //  g_adminWs = await AdminWebsocket.connect(ADMIN_URL, TIMEOUT)
   // console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
   // // g_adminWs.generateAgentPubKey().then((newKey) => {
@@ -51,7 +51,7 @@ export async function rsmConnect() {
   let env = window.location
   console.log(env)
   console.log('*** Connected to Snapmail app at : ' + APP_URL)
-  g_appClient = await AppWebsocket.connect(APP_URL, receiveSignal);
+  g_appClient = await AppWebsocket.connect(APP_URL, signalCallback);
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
   const appInfo = await g_appClient.appInfo({ installed_app_id: 'test-app' }, 1000)
   console.log({appInfo})
@@ -97,7 +97,7 @@ const dumpState = async (cellId) => {
  *
  * @returns {Promise<any>}
  */
-export async function callDna (functionName, payload, signalCallback) {
+export async function callDna (functionName, payload) {
     if (g_appClient === undefined) {
       console.error("App Client Websocket not connected!")
       return Promise.Reject("App Client Websocket not connected!")
@@ -118,69 +118,69 @@ export async function callDna (functionName, payload, signalCallback) {
 
 // -- Handle -- //
 
-export function getMyHandle(callback, signalCallback) {
-  callDna('get_my_handle', null, signalCallback).then(result => callback(result));
+export function getMyHandle(callback) {
+  callDna('get_my_handle', null).then(result => callback(result));
 }
 
-export function getHandle(myAgentId, callback, signalCallback) {
-  callDna('get_handle', {agentId: myAgentId}, signalCallback).then(result => callback(result));
+export function getHandle(myAgentId, callback) {
+  callDna('get_handle', {agentId: myAgentId}).then(result => callback(result));
 }
 
-export function setHandle(username, callback, signalCallback) {
-  callDna('set_handle', username, signalCallback).then(result => callback(result));
+export function setHandle(username, callback) {
+  callDna('set_handle', username).then(result => callback(result));
 }
 
-export function getAllHandles(callback, signalCallback) {
-  callDna('get_all_handles', null, signalCallback).then(result => callback(result));
+export function getAllHandles(callback) {
+  callDna('get_all_handles', null).then(result => callback(result));
 }
 
-export function findAgent(handle, callback, signalCallback) {
-  callDna('find_agent', handle, signalCallback).then(result => callback(result));
+export function findAgent(handle, callback) {
+  callDna('find_agent', handle).then(result => callback(result));
 }
 
-export function pingAgent(agentId, callback, signalCallback) {
+export function pingAgent(agentId, callback) {
   console.log('*** pingAgent() called!')
-  callDna('ping_agent', agentId, signalCallback).then(result => callback(result));
+  callDna('ping_agent', agentId).then(result => callback(result));
 }
 
 // -- Mail -- //
 
-export function sendMail(mail, callback, signalCallback) {
-  callDna('send_mail', {subject: mail.subject, payload: mail.payload, to: mail.to, cc: mail.cc, bcc: mail.bcc, manifest_address_list: mail.manifest_address_list}, signalCallback).then(result => callback(result));
+export function sendMail(mail, callback) {
+  callDna('send_mail', {subject: mail.subject, payload: mail.payload, to: mail.to, cc: mail.cc, bcc: mail.bcc, manifest_address_list: mail.manifest_address_list}).then(result => callback(result));
 }
 
-export function getMail(otherAgentId, callback, signalCallback) {
-  callDna('get_mail', otherAgentId, signalCallback).then(result => callback(result));
+export function getMail(otherAgentId, callback) {
+  callDna('get_mail', otherAgentId).then(result => callback(result));
 }
 
-export function deleteMail(mailAddress, callback, signalCallback) {
-  callDna('delete_mail', mailAddress, signalCallback).then(result => callback(result));
+export function deleteMail(mailAddress, callback) {
+  callDna('delete_mail', mailAddress).then(result => callback(result));
 }
 
-export function getAllArrivedMail(callback, signalCallback) {
-  callDna('get_all_arrived_mail', undefined, signalCallback).then(result => callback(result));
+export function getAllArrivedMail(callback) {
+  callDna('get_all_arrived_mail', undefined).then(result => callback(result));
 }
 
-export function getAllMails(callback, afterCallback, signalCallback) {
-  callDna('get_all_mails', undefined, signalCallback).then(result => {callback(result); afterCallback();});
+export function getAllMails(callback, afterCallback) {
+  callDna('get_all_mails', undefined).then(result => {callback(result); afterCallback();});
 }
 
-export function checkIncomingMail(callback, signalCallback) {
-  callDna('check_incoming_mail', undefined, signalCallback).then(result => callback(result));
+export function checkIncomingMail(callback) {
+  callDna('check_incoming_mail', undefined).then(result => callback(result));
 }
 
-export function checkIncomingAck(callback, signalCallback) {
-  callDna('check_incoming_ack', undefined, signalCallback).then(result => callback(result));
+export function checkIncomingAck(callback) {
+  callDna('check_incoming_ack', undefined).then(result => callback(result));
 }
 
-export function acknowledgeMail(mailAddress, callback, signalCallback) {
-  callDna('acknowledge_mail', mailAddress, signalCallback).then(result => callback(result));
+export function acknowledgeMail(mailAddress, callback) {
+  callDna('acknowledge_mail', mailAddress).then(result => callback(result));
 }
 
-export function hasMailBeenReceived(mailAddress, callback, signalCallback) {
-  callDna('has_mail_been_received', mailAddress, signalCallback).then(result => callback(result));
+export function hasMailBeenReceived(mailAddress, callback) {
+  callDna('has_mail_been_received', mailAddress).then(result => callback(result));
 }
 
-export function hasAckBeenReceived(mailAddress, callback, signalCallback) {
-  callDna('has_ack_been_received', mailAddress, signalCallback).then(result => callback(result));
+export function hasAckBeenReceived(mailAddress, callback) {
+  callDna('has_ack_been_received', mailAddress).then(result => callback(result));
 }

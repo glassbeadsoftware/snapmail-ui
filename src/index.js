@@ -97,46 +97,51 @@ function callGetAllMails() {
     return;
   }
   canGetAllMutex = false;
-  DNA.getAllMails(handle_getAllMails, update_fileBox, handleSignal);
+  DNA.getAllMails(handle_getAllMails, update_fileBox);
 }
 
 // -- Signal -- //
-
+// AppSignal {
+//   data: {
+//       cellId: [Uint8Array(39), Uint8Array(39)],
+//       payload: any,
+//     }
+//     type: "Signal"
+// }
 function handleSignal(signalwrapper) {
+  console.log('Received signal:')
+  console.log({signalwrapper})
   if (signalwrapper.type !== undefined && signalwrapper.type !== "Signal") {
     return;
   }
-  if (signalwrapper.signal.signal_type !== "User") {
-    return;
-  }
-  switch (signalwrapper.signal.name) {
-    case "received_mail": {
-      let itemJson = signalwrapper.signal.arguments;
-      let item = JSON.parse(itemJson).ReceivedMail;
+  // FIXME
+  // if (signalwrapper.signal.signal_type !== "User") {
+  //   return;
+  // }
+
+  if (signalwrapper.data.payload.hasOwnProperty('ReceivedMail')) {
+      let item = signalwrapper.data.payload.ReceivedMail;
       console.log("received_mail: " + JSON.stringify(item));
       const notification = document.querySelector('#notifyMail');
       notification.open();
       callGetAllMails();
-      break;
-    }
-    case "received_ack": {
-      let itemJson = signalwrapper.signal.arguments;
-      let item = JSON.parse(itemJson).ReceivedAck;
+      return
+  }
+  if (signalwrapper.data.payload.hasOwnProperty('ReceivedAck')) {
+      let item = signalwrapper.data.payload.ReceivedAck;
       console.log("received_ack: " + JSON.stringify(item))
       const notification = document.querySelector('#notifyAck');
       notification.open();
       callGetAllMails();
-      break;
-    }
-    case "received_file": {
-      let itemJson = signalwrapper.signal.arguments;
-      let item = JSON.parse(itemJson).ReceivedFile;
+      return
+  }
+  if (signalwrapper.data.payload.hasOwnProperty('ReceivedFile')) {
+      let item = signalwrapper.data.payload.ReceivedFile;
       console.log("received_file: " + JSON.stringify(item))
       const notification = document.querySelector('#notifyFile');
       notification.open();
-      break;
+      return
     }
-  }
 }
 
 // -- INIT -- //
@@ -278,20 +283,20 @@ function initNotification() {
  */
 function initDna() {
   console.log('initDna()');
-  DNA.rsmConnect().then((myAgentHash) => {
+  DNA.rsmConnect(handleSignal).then((myAgentHash) => {
     g_myAgentHash = myAgentHash
     g_myAgentId = htos(g_myAgentHash)
     // -- App Bar -- //
-    DNA.getMyHandle(showHandle, handleSignal);
+    DNA.getMyHandle(showHandle);
     // -- FileBox -- //
-    DNA.checkIncomingAck(logCallResult, handleSignal);
-    DNA.checkIncomingMail(logCallResult, handleSignal);
+    DNA.checkIncomingAck(logCallResult);
+    DNA.checkIncomingMail(logCallResult);
     callGetAllMails();
     // -- ContactList -- //
-    DNA.getAllHandles(handle_getAllHandles, handleSignal);
+    DNA.getAllHandles(handle_getAllHandles);
     // After
     const handleButton = document.getElementById('handleText');
-    //DNA.findAgent(handleButton.textContent, handle_findAgent, handleSignal);
+    //DNA.findAgent(handleButton.textContent, handle_findAgent);
   })
 }
 
@@ -306,7 +311,7 @@ function initTitleBar() {
     button.addEventListener('click', () => {
       let input = document.getElementById('myNewHandleInput');
       console.log('new handle = ' + input.value);
-      DNA.setHandle(input.value, console.log, handleSignal);
+      DNA.setHandle(input.value, console.log);
       showHandle({ Ok: input.value});
       input.value = '';
       setState_ChangeHandleBar(true);
@@ -339,7 +344,7 @@ async function resetRecepients() {
       g_isAgentOnline = true;
       g_hasPingResult = true;
     } else {
-      DNA.pingAgent(agentHash, handle_pingAgent, handleSignal);
+      DNA.pingAgent(agentHash, handle_pingAgent);
       while (!g_hasPingResult) {
         await sleep(10)
       }
@@ -371,13 +376,13 @@ function initMenuBar() {
   menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value));
     if (e.detail.value.text === 'Trash') {
-      DNA.deleteMail(g_currentMailItem.id, handle_deleteMail, handleSignal);
+      DNA.deleteMail(g_currentMailItem.id, handle_deleteMail);
       setState_DeleteButton(true)
     }
     if (e.detail.value.text === 'Refresh') {
       console.log('Refresh called');
-      DNA.checkIncomingAck(logCallResult, handleSignal);
-      DNA.checkIncomingMail(logCallResult, handleSignal);
+      DNA.checkIncomingAck(logCallResult);
+      DNA.checkIncomingMail(logCallResult);
       callGetAllMails();
     }
   });
@@ -490,9 +495,9 @@ function initFileBox() {
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
         // TODO File
-        // DNA.getMissingAttachments(mailItem.author, mailItem.address, handle_missingAttachments, handleSignal);
+        // DNA.getMissingAttachments(mailItem.author, mailItem.address, handle_missingAttachments);
       }
-      DNA.acknowledgeMail(item.id, handle_acknowledgeMail, handleSignal);
+      DNA.acknowledgeMail(item.id, handle_acknowledgeMail);
       // Allow delete button
       if (g_currentFolder !== systemFolders.TRASH) {
         setState_DeleteButton(false)
@@ -516,7 +521,7 @@ async function fillAttachmentGrid(mail) {
   // for (let attachmentInfo of mail.attachments) {
   //   console.log({attachmentInfo});
   //   // TODO file
-  //   // DNA.getManifest(attachmentInfo.manifest_address, handle_getManifest, handleSignal);
+  //   // DNA.getManifest(attachmentInfo.manifest_address, handle_getManifest);
   //   while (g_hasAttachment === 0) {
   //     await sleep(10);
   //   }
@@ -626,7 +631,7 @@ function initAttachmentGrid() {
  *
 async function getFile(fileId) {
   g_manifest = null;
-  DNA.findManifest(fileId, handle_findManifest, handleSignal);
+  DNA.findManifest(fileId, handle_findManifest);
   while (g_manifest ==  null) {
     await sleep(10)
   }
@@ -637,7 +642,7 @@ async function getFile(fileId) {
   let i = 0;
   for (let chunkAddress of g_manifest.chunks) {
     i++;
-    DNA.getChunk(chunkAddress, handle_getChunk, handleSignal)
+    DNA.getChunk(chunkAddress, handle_getChunk)
     while (g_getChunks.length !=  i) {
       await sleep(10)
     }
@@ -668,7 +673,7 @@ function initOutMailArea() {
     if (e.detail.value.text === 'Refresh') {
       contactsMenu.items[0].disabled = true;
       contactsMenu.render();
-      DNA.getAllHandles(handle_getAllHandles, handleSignal);
+      DNA.getAllHandles(handle_getAllHandles);
     }
   });
 
@@ -774,7 +779,7 @@ async function sendAction() {
   //   /// Submit each chunk
   //   for (var i = 0; i < splitObj.numChunks; ++i) {
   //     //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
-  //     DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], handle_writeChunk, handleSignal);
+  //     DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], handle_writeChunk);
   //     while (g_chunkList.length !=  i + 1) {
   //       await sleep(10)
   //     }
@@ -782,7 +787,7 @@ async function sendAction() {
   //   while (g_chunkList.length < splitObj.numChunks) {
   //     await sleep(10);
   //   }
-  //   DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, handle_writeManifest, handleSignal)
+  //   DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, handle_writeManifest)
   // }
   // while (g_fileList.length < files.length) {
   //   await sleep(10);
@@ -816,7 +821,7 @@ async function sendAction() {
     };
     console.log('sending mail: ' + JSON.stringify(mail));
     // Send Mail
-    DNA.sendMail(mail, logCallResult, handleSignal);
+    DNA.sendMail(mail, logCallResult);
     // Update UI
     setState_SendButton(true);
     outMailSubjectArea.value = '';
