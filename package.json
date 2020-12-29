@@ -11,7 +11,7 @@
     "start-hc-billy": "RUST_LOG=warn holochain-run-dna -p 8881 ../snapmail-rsm/snapmail.dna.gz",
     "start-camille": "concurrently --kill-others \"npm:start-ui-camille\" \"npm:start-hc-camille\"",
     "start-ui-camille": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server-camille.config.mjs\"",
-    "start-hc-camille": "RUST_LOG=warn holochain-run-dna -p 8882 -r ./tmp/camille ../snapmail-rsm/snapmail.dna.gz",
+    "start-hc-camille": "RUST_LOG=warn holochain-run-dna -p 8882 ../snapmail-rsm/snapmail.dna.gz",
     "build-watch": "rollup -c rollup.config.js -w",
     "build-rollup": "rimraf dist && rollup -c rollup.config.js",
     "start-old": "webpack-dev-server --open --config webpack.dev.js",

@@ -1,5 +1,6 @@
 
 import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
+import { htos } from './utils';
 
 const TIMEOUT = 6000
 
@@ -39,6 +40,7 @@ var receiveSignal = (signal/*: AppSignal*/) => {
  * @returns {Promise<void>}
  */
 export async function rsmConnect(signalCallback) {
+  // -- CONNECT TO ADMIN -- //
   //  g_adminWs = await AdminWebsocket.connect(ADMIN_URL, TIMEOUT)
   // console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
   // // g_adminWs.generateAgentPubKey().then((newKey) => {
@@ -46,7 +48,6 @@ export async function rsmConnect(signalCallback) {
   // //     console.log({newKey})
   // //     printAdmin()
   // // })
-
   // -- CONNECT TO APP -- //
   let env = window.location
   console.log(env)
@@ -97,20 +98,31 @@ const dumpState = async (cellId) => {
  *
  * @returns {Promise<any>}
  */
-export async function callDna (functionName, payload) {
+export async function callDna(functionName, payload, timeout) {
     if (g_appClient === undefined) {
       console.error("App Client Websocket not connected!")
-      return Promise.Reject("App Client Websocket not connected!")
+      return Promise.reject("App Client Websocket not connected!")
     }
-    //console.log("*** callDna() => " + functionName + '()')
-    let result = await g_appClient.callZome({
-      cap: null,
-      cell_id: g_cellId,
-      zome_name: "snapmail",
-      fn_name: functionName,
-      provenance: g_cellId[1],
-      payload: payload,
-    }, 30000) // default timeout set here (30000) will overwrite the defaultTimeout(12000) set above
+    const t = timeout !== undefined? timeout : 30000; // default timeout to 30 sec
+    console.log("*** callDna() => " + functionName + '() ; ' + t)
+  let result = undefined;
+  try
+  {
+    result = await g_appClient.callZome({
+        cap: null,
+        cell_id: g_cellId,
+        zome_name: "snapmail",
+        fn_name: functionName,
+        provenance: g_cellId[1],
+        payload: payload
+      },
+      t
+    )
+  } catch(err) {
+    console.log("*** callDna() => " + functionName + '() failed:')
+    console.log({err})
+    return Promise.reject("callZome() failed")
+  }
   console.log("*** callDna() => " + functionName + '() result:')
   console.log({result})
   return result;
@@ -138,9 +150,11 @@ export function findAgent(handle, callback) {
   callDna('find_agent', handle).then(result => callback(result));
 }
 
-export function pingAgent(agentId, callback) {
+export function pingAgent(agentHash, callback) {
   console.log('*** pingAgent() called!')
-  callDna('ping_agent', agentId).then(result => callback(result));
+  callDna('ping_agent', agentHash, 2000)
+    .then(result => callback(result))
+    .catch(error => console.log('Ping failed for: ' + htos(agentHash)))
 }
 
 // -- Mail -- //

@@ -286,6 +286,8 @@ function initDna() {
   DNA.rsmConnect(handleSignal).then((myAgentHash) => {
     g_myAgentHash = myAgentHash
     g_myAgentId = htos(g_myAgentHash)
+    let label = document.getElementById('agentIdDisplay');
+    label.textContent = g_myAgentId
     // -- App Bar -- //
     DNA.getMyHandle(showHandle);
     // -- FileBox -- //
@@ -324,6 +326,8 @@ function initTitleBar() {
     button.addEventListener('click', () =>{
       setState_ChangeHandleBar(true)
     });
+    let label = document.getElementById('agentIdDisplay');
+    label.textContent = '<AgentPubKey>'
   });
 }
 
@@ -334,7 +338,6 @@ function initTitleBar() {
 async function resetRecepients() {
   const contactGrid = document.querySelector('#contactGrid');
   let items = [];
-  console.log(g_usernameMap)
   for (const [agentId, username] of g_usernameMap.entries()) {
     const agentHash = stoh(agentId)
     // Ping Agent, except self
@@ -1008,11 +1011,14 @@ function handle_getAllHandles(callResult) {
   }
   console.log('g_usernameMap = ' + JSON.stringify(g_usernameMap))
   resetRecepients().then(() => {
-    console.log(g_usernameMap)
     const contactsMenu = document.querySelector('#ContactsMenu');
     contactsMenu.items[0].disabled = false;
     contactsMenu.render();
   });
+  // Allow button anyway
+  const contactsMenu = document.querySelector('#ContactsMenu');
+  contactsMenu.items[0].disabled = false;
+  contactsMenu.render();
 }
 
 /**
@@ -1023,6 +1029,7 @@ function handle_pingAgent(callResult) {
     const err = callResult.Err;
     console.error('pingAgent zome call failed');
     console.error(err);
+    g_hasPingResult = true;
     return;
   }
   g_isAgentOnline = callResult;
