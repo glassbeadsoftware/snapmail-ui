@@ -198,3 +198,43 @@ export function hasMailBeenReceived(mailAddress, callback) {
 export function hasAckBeenReceived(mailAddress, callback) {
   callDna('has_ack_been_received', mailAddress).then(result => callback(result));
 }
+
+// -- File -- //
+
+export function writeManifest(dataHash, filename, filetype, orig_filesize, chunks, callback, signalCallback) {
+  const params = {
+    data_hash: dataHash,
+    filename, filetype, orig_filesize,
+    chunks
+  }
+  callDna('write_manifest', params, signalCallback).then(result => callback(result));
+}
+
+export function writeChunk(dataHash, chunkIndex, chunk, callback, signalCallback) {
+  const params = {
+    data_hash: dataHash,
+    chunk_index: chunkIndex,
+    chunk
+  }
+  callDna('write_chunk', params, signalCallback).then(result => callback(result));
+}
+
+export function getChunk(chunkAddress, callback, signalCallback) {
+  callDna('get_chunk', chunkAddress, signalCallback).then(result => callback(result));
+}
+
+export function getManifest(manifestAddress, callback, signalCallback) {
+  callDna('get_manifest', manifestAddress, signalCallback).then(result => callback(result));
+}
+
+export function findManifest(dataHash, callback, signalCallback) {
+  callDna('find_manifest', dataHash, signalCallback).then(result => callback(result));
+}
+
+export function getAllManifests(callback, signalCallback) {
+  callDna('get_all_manifests', undefined, signalCallback).then(result => callback(result));
+}
+
+export function getMissingAttachments(from, inMailAddress, callback, signalCallback) {
+  callDna('get_missing_attachments', {from, inmail_address: inMailAddress}, signalCallback).then(result => callback(result));
+}

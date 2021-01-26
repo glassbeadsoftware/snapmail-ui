@@ -3,6 +3,7 @@
   "version": "0.0.3",
   "description": "the most wonderful mail app",
   "scripts": {
+    "start-all": "concurrently --kill-others \"npm:start-billy\" \"npm:start-alex\" \"npm:start-camille\"",
     "start-alex": "concurrently --kill-others \"npm:start-ui-alex\" \"npm:start-hc-alex\"",
     "start-ui-alex": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server.config.mjs\"",
     "start-hc-alex": "RUST_LOG=warn holochain-run-dna -p 8880 ../snapmail-rsm/snapmail.dna.gz",
@@ -12,6 +13,7 @@
     "start-camille": "concurrently --kill-others \"npm:start-ui-camille\" \"npm:start-hc-camille\"",
     "start-ui-camille": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server-camille.config.mjs\"",
     "start-hc-camille": "RUST_LOG=warn holochain-run-dna -p 8882 ../snapmail-rsm/snapmail.dna.gz",
+    "start-hc-camille-perm": "RUST_LOG=warn holochain-run-dna -p 8882 -r ./tmp/camille ../snapmail-rsm/snapmail.dna.gz",
     "build-watch": "rollup -c rollup.config.js -w",
     "build-rollup": "rimraf dist && rollup -c rollup.config.js",
     "start-old": "webpack-dev-server --open --config webpack.dev.js",
@@ -45,7 +47,7 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "@holochain/conductor-api": "0.0.1-dev.14",
+    "@holochain/conductor-api": "0.0.1-dev.16",
     "@polymer/polymer": "^3.3.1",
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",

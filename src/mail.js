@@ -133,9 +133,8 @@ export function into_gridItem(usernameMap, mailItem) {
       username = 'To: ' + usernameMap.get(recepient)
     }
   }
-  // TODO File
-  //let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
-  let status = '';
+  let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
+  //let status = '';
   let item = {
     "id": mailItem.address, "username": username, "subject": mailItem.mail.subject, "date": dateStr, "status": status
   };
@@ -180,8 +179,7 @@ export function into_mailText(usernameMap, mailItem) {
     intext += '\n\nDEBUG INFO';
     intext += '\nState: ' + JSON.stringify(mailItem.state);
     intext += '\nAddress: ' + htos(mailItem.address);
-    // TODO File
-    //intext += '\nFiles: ' + mailItem.mail.attachments.length;
+    intext += '\nFiles: ' + mailItem.mail.attachments.length;
   }
 
   return intext;
