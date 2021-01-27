@@ -286,8 +286,8 @@ function initDna() {
   DNA.rsmConnect(handleSignal).then((myAgentHash) => {
     g_myAgentHash = myAgentHash
     g_myAgentId = htos(g_myAgentHash)
-    let label = document.getElementById('agentIdDisplay');
-    label.textContent = g_myAgentId
+    // let label = document.getElementById('agentIdDisplay');
+    // label.textContent = g_myAgentId
     // -- App Bar -- //
     DNA.getMyHandle(showHandle);
     // -- FileBox -- //
@@ -299,6 +299,8 @@ function initDna() {
     // After
     const handleButton = document.getElementById('handleText');
     //DNA.findAgent(handleButton.textContent, handle_findAgent);
+    const handleAbbr = document.getElementById('handleAbbr');
+    handleAbbr.title = g_myAgentId
   })
 }
 

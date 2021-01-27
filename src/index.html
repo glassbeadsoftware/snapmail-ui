@@ -77,10 +77,12 @@
 <vaadin-vertical-layout theme="spacing-s" style="">
 
     <!-- TITLE BAR -->
-    <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;">
+    <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;margin-top:0;">
         <img src="favicon.ico" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/>
         <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;">SnapMail v0.0.3 - </span>
-        <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
+        <abbr title="World Health Organization" id="handleAbbr">
+            <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
+        </abbr>
         <!-- <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip> -->
         <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
             <vaadin-button theme="icon" id="setMyHandleButton" title="unknown">
@@ -89,17 +91,17 @@
         <vaadin-button theme="icon" id="cancelHandleButton">
             <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
         </vaadin-button>
-        <span id="agentIdDisplay" style="text-align: center; font-size: small; padding: 15px 10px 10px 25px;"></span>
+<!--        <span id="agentIdDisplay" style="text-align: center; font-size: small; padding: 15px 10px 10px 25px;"></span>-->
     </vaadin-horizontal-layout>
 
     <!-- FILEBOX MENU -->
-    <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">
+    <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar" style="margin-top:0;">
         <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>
         <vaadin-menu-bar open-on-hover id="MenuBar"></vaadin-menu-bar>
         <span style="padding:10px 0;">Messages: <span id="messageCount">0</span></span>
     </vaadin-horizontal-layout>
     <!-- FILEBOX AREA -->
-    <vaadin-grid id="mailGrid" theme="compact" style="height: 250px; width: 100%;">
+    <vaadin-grid id="mailGrid" theme="compact" style="height: 250px; width: 100%;margin-top:0;">
         <!--  <vaadin-grid-selection-column width="2em" auto-select></vaadin-grid-selection-column>-->
         <vaadin-grid-column path="id" header="id" width="0em" hidden></vaadin-grid-column>
         <!-- <vaadin-grid-column header="A" width="60px" flex-grow="0" text-align="end"></vaadin-grid-column>-->
@@ -110,8 +112,8 @@
     </vaadin-grid>
 
     <!-- IN-MAIL AREA -->
-    <vaadin-horizontal-layout theme="spacing-xs" style="height:200px;width: 100%;">
-        <vaadin-text-area style="width: 70%;" id="inMailArea" placeholder="<no selection>" readonly>
+    <vaadin-horizontal-layout theme="spacing-xs" style="height:200px;width: 100%;margin-top: 4px;">
+        <vaadin-text-area style="width: 70%;padding:0;" id="inMailArea" placeholder="<no selection>" readonly>
         <!-- <span id="mailDisplay"></span>-->
         </vaadin-text-area>
         <!-- ATTACHMENT GRID -->
@@ -130,7 +132,7 @@
         <!-- WRITE AREA -->
         <vaadin-vertical-layout style="min-width: 40px; width: 70%;">
             <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>
-            <vaadin-text-area style="width: 100%; height: 100%;" id="outMailContentArea" placeholder="Write here..."></vaadin-text-area>
+            <vaadin-text-area style="width: 100%; height: 100%;padding-bottom:0;" id="outMailContentArea" placeholder="Write here..."></vaadin-text-area>
         </vaadin-vertical-layout>
         <!-- CONTACTS AREA -->
         <vaadin-vertical-layout theme="spacing-xs" style="min-width: 20px; width: 30%;">
@@ -155,8 +157,8 @@
     <!-- <vaadin-list-box id="fileList"></vaadin-list-box>-->
 
     <!-- SEND MENU -->
-    <vaadin-upload nodrop max-file-size="750000" style="width: 280px;"></vaadin-upload>
-    <vaadin-menu-bar theme="primary" id="ActionBar"></vaadin-menu-bar>
+    <vaadin-upload nodrop max-file-size="7500000" style="width: 280px;margin-top:0;"></vaadin-upload>
+    <vaadin-menu-bar theme="primary" id="ActionBar" style="margin-top:0;"></vaadin-menu-bar>
     <vaadin-progress-bar indeterminate value="0" id="sendProgressBar" ></vaadin-progress-bar>
 
 </vaadin-vertical-layout>
