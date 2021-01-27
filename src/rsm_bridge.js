@@ -4,13 +4,17 @@ import { htos } from './utils';
 
 const TIMEOUT = 6000
 
-const ADMIN_PORT = 1234
+const HREF_PORT = window.location.port
+// In Electron HREF PORT is empty, so use different hardcoded ports for Electron
+const ADMIN_PORT = HREF_PORT != ""? 1234 : 1235
+const APP_ID = HREF_PORT != ""? 'test-app' : 'snapmail-app'
+
 //const APP_PORT = 8888
 //let APP_URL = process.env.APP_URL? process.env.APP_URL : `ws://localhost:${APP_PORT}`
 let ADMIN_URL = process.env.CONDUCTOR_URL? process.env.CONDUCTOR_URL : `ws://localhost:${ADMIN_PORT}`
 
-const HREF_PORT = window.location.port
-const APP_PORT = parseInt(window.location.port) + 800
+
+const APP_PORT = HREF_PORT != ""? parseInt(HREF_PORT) + 800 : 8889
 let APP_URL =`ws://localhost:${APP_PORT}`
 
 
@@ -51,15 +55,15 @@ export async function rsmConnect(signalCallback) {
   // -- CONNECT TO APP -- //
   let env = window.location
   console.log(env)
-  console.log('*** Connected to Snapmail app at : ' + APP_URL)
+  console.log('*** Connecting to Snapmail app at ' + APP_URL + ' ...')
   g_appClient = await AppWebsocket.connect(APP_URL, signalCallback);
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
-  const appInfo = await g_appClient.appInfo({ installed_app_id: 'test-app' }, 1000)
+  const appInfo = await g_appClient.appInfo({ installed_app_id: APP_ID }, 1000)
   console.log({appInfo})
   g_cellId = appInfo.cell_data[0][0];
   console.log({g_cellId})
   await dumpState(g_cellId)
-
+  // Done
   return g_cellId[1];
 }
 
