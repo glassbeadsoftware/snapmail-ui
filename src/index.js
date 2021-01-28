@@ -99,7 +99,7 @@ function callGetAllMails() {
   DNA.getAllMails(handle_getAllMails, update_fileBox);
 }
 
-// -- Signal -- //
+// -- Signal Structure -- //
 // AppSignal {
 //   data: {
 //       cellId: [Uint8Array(39), Uint8Array(39)],
@@ -107,6 +107,7 @@ function callGetAllMails() {
 //     }
 //     type: "Signal"
 // }
+//
 function handleSignal(signalwrapper) {
   console.log('Received signal:')
   console.log({signalwrapper})
@@ -283,8 +284,9 @@ function initNotification() {
  */
 function initDna() {
   console.log('initDna()');
-  DNA.rsmConnect(handleSignal).then((myAgentHash) => {
-    g_myAgentHash = myAgentHash
+  DNA.rsmConnect(handleSignal).then((cellId) => {
+    const dnaId = htos(cellId[0])
+    g_myAgentHash = cellId[1]
     g_myAgentId = htos(g_myAgentHash)
     // let label = document.getElementById('agentIdDisplay');
     // label.textContent = g_myAgentId
@@ -299,8 +301,17 @@ function initDna() {
     // After
     const handleButton = document.getElementById('handleText');
     //DNA.findAgent(handleButton.textContent, handle_findAgent);
+    // -- Update Abbr -- //
     const handleAbbr = document.getElementById('handleAbbr');
     handleAbbr.title = g_myAgentId
+    const titleAbbr = document.getElementById('titleAbbr');
+    titleAbbr.title = dnaId
+
+    const loadingBar = document.querySelector('#loadingBar');
+    loadingBar.style.display = "none";
+
+    const mainPage = document.querySelector('#mainPage');
+    mainPage.style.display = "block";
   })
 }
 
@@ -328,8 +339,8 @@ function initTitleBar() {
     button.addEventListener('click', () =>{
       setState_ChangeHandleBar(true)
     });
-    let label = document.getElementById('agentIdDisplay');
-    label.textContent = '<AgentPubKey>'
+    // let label = document.getElementById('agentIdDisplay');
+    // label.textContent = '<AgentPubKey>'
   });
 }
 
@@ -851,6 +862,7 @@ function setState_ChangeHandleBar(hidden) {
   updateButton.hidden = hidden;
   let cancelButton = document.getElementById('cancelHandleButton');
   cancelButton.hidden = hidden;
+
   if (!hidden && g_myHandle !== '<noname>') {
     handleInput.value = g_myHandle
   } else {
@@ -911,7 +923,7 @@ function showHandle(callResult) {
   } else {
     handleButton.textContent = '' + callResult.Ok;
   }
-  g_myHandle = callResult;
+  g_myHandle = handleButton.textContent;
 }
 
 

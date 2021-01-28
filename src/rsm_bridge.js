@@ -56,7 +56,7 @@ export async function rsmConnect(signalCallback) {
   let env = window.location
   console.log(env)
   console.log('*** Connecting to Snapmail app at ' + APP_URL + ' ...')
-  g_appClient = await AppWebsocket.connect(APP_URL, signalCallback);
+  g_appClient = await AppWebsocket.connect(APP_URL, 5000, signalCallback);
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
   const appInfo = await g_appClient.appInfo({ installed_app_id: APP_ID }, 1000)
   console.log({appInfo})
@@ -64,7 +64,7 @@ export async function rsmConnect(signalCallback) {
   console.log({g_cellId})
   await dumpState(g_cellId)
   // Done
-  return g_cellId[1];
+  return g_cellId;
 }
 
 /**

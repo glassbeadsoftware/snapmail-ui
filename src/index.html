@@ -66,21 +66,27 @@
     <!-- ! DO NOT REMOVE THIS COMMENT, WE NEED ITS CLOSING MARKER -->
 </head>
 
+
 <!-- BODY -->
-<body style="background-color: white">
+<body style="background-color: white;margin:0px 3px 0px 5px;">
+<!-- Loading Spinner -->
+<vaadin-progress-bar indeterminate value="0" id="loadingBar" ></vaadin-progress-bar>
 <!-- Notifications -->
 <vaadin-notification duration="4000" theme="contrast" position="bottom-center" id="notifyMail"></vaadin-notification>
 <vaadin-notification duration="4000" position="bottom-center" id="notifyAck"></vaadin-notification>
 <vaadin-notification duration="4000" position="bottom-center" id="notifyFile"></vaadin-notification>
 
+
 <!-- MAIN VERTICAL LAYOUT -->
-<vaadin-vertical-layout theme="spacing-s" style="">
+<vaadin-vertical-layout theme="spacing-s" style="display:none;" id="mainPage">
 
     <!-- TITLE BAR -->
     <vaadin-horizontal-layout theme="spacing-xs" style="background-color: beige;width: 100%;margin-top:0;">
-        <img src="favicon.ico" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/>
+        <abbr title="dna" id="titleAbbr">
+            <img src="favicon.ico" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/>
+        </abbr>
         <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;">SnapMail v0.0.3 - </span>
-        <abbr title="World Health Organization" id="handleAbbr">
+        <abbr title="handle" id="handleAbbr">
             <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
         </abbr>
         <!-- <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip> -->
@@ -157,7 +163,7 @@
     <!-- <vaadin-list-box id="fileList"></vaadin-list-box>-->
 
     <!-- SEND MENU -->
-    <vaadin-upload nodrop max-file-size="7500000" style="width: 280px;margin-top:0;"></vaadin-upload>
+    <vaadin-upload nodrop max-file-size="8000000" style="width: 280px;margin-top:0;"></vaadin-upload>
     <vaadin-menu-bar theme="primary" id="ActionBar" style="margin-top:0;"></vaadin-menu-bar>
     <vaadin-progress-bar indeterminate value="0" id="sendProgressBar" ></vaadin-progress-bar>
 
