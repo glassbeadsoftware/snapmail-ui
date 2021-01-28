@@ -351,7 +351,9 @@ function initTitleBar() {
 async function resetRecepients() {
   const contactGrid = document.querySelector('#contactGrid');
   let items = [];
+  console.log('resetRecepients:')
   for (const [agentId, username] of g_usernameMap.entries()) {
+    console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
     // Ping Agent, except self
     g_hasPingResult = false;
@@ -361,6 +363,7 @@ async function resetRecepients() {
       g_hasPingResult = true;
     } else {
       DNA.pingAgent(agentHash, handle_pingAgent);
+      // FIXME horrible infinite loop
       while (!g_hasPingResult) {
         await sleep(10)
       }
@@ -1012,14 +1015,16 @@ function handle_getAllHandles(callResult) {
   }
   //const contactGrid = document.querySelector('#contactGrid');
   let handleList = callResult;
-  console.log('handleList: ' + JSON.stringify(handleList))
+  //console.log('handleList: ' + JSON.stringify(handleList))
   g_usernameMap.clear();
   for (let handleItem of handleList) {
     // TODO: exclude self from list when in prod
     let agentId = htos(Object.values(handleItem[1]))
+    console.log('' + handleItem[0] + ': ' + agentId)
     g_usernameMap.set(agentId, handleItem[0])
   }
-  console.log('g_usernameMap = ' + JSON.stringify(g_usernameMap))
+  console.log({g_usernameMap})
+  //console.log('g_usernameMap = ' + JSON.stringify(g_usernameMap))
   resetRecepients().then(() => {
     const contactsMenu = document.querySelector('#ContactsMenu');
     contactsMenu.items[0].disabled = false;

@@ -5,18 +5,20 @@ import { htos } from './utils';
 const TIMEOUT = 6000
 
 const HREF_PORT = window.location.port
-// In Electron HREF PORT is empty, so use different hardcoded ports for Electron
-const ADMIN_PORT = HREF_PORT != ""? 1234 : 1235
-const APP_ID = HREF_PORT != ""? 'test-app' : 'snapmail-app'
+var ADMIN_PORT = 1234
+var APP_ID = 'test-app'
+var APP_PORT = parseInt(HREF_PORT) + 800
 
-//const APP_PORT = 8888
-//let APP_URL = process.env.APP_URL? process.env.APP_URL : `ws://localhost:${APP_PORT}`
-let ADMIN_URL = process.env.CONDUCTOR_URL? process.env.CONDUCTOR_URL : `ws://localhost:${ADMIN_PORT}`
+// No HREF PORT when run by Electron, use different values when in electron
+if (HREF_PORT === "") {
+  APP_ID = 'snapmail-app'
+  ADMIN_PORT = 1235
+  let searchParams = new URLSearchParams(window.location.search);
+  APP_PORT = searchParams.get("APP");
+}
 
-
-const APP_PORT = HREF_PORT != ""? parseInt(HREF_PORT) + 800 : 8889
-let APP_URL =`ws://localhost:${APP_PORT}`
-
+const ADMIN_URL = `ws://localhost:${ADMIN_PORT}`
+const APP_URL =`ws://localhost:${APP_PORT}`
 
 var g_adminWs = undefined
 var g_cellId = undefined
