@@ -280,7 +280,7 @@ function initNotification() {
  */
 function initDna() {
   console.log('initDna()');
-  DNA.rsmConnect(handleSignal).then((cellId) => {
+  DNA.rsmConnectApp(handleSignal).then((cellId) => {
     const dnaId = htos(cellId[0])
     g_myAgentHash = cellId[1]
     g_myAgentId = htos(g_myAgentHash)
@@ -307,7 +307,10 @@ function initDna() {
     loadingBar.style.display = "none";
     const mainPage = document.querySelector('#mainPage');
     mainPage.style.display = "block";
-  })
+  }).catch(error => {
+    console.error(error)
+    alert("Failed to connect to holochain. Holochain conductor service might not be up and running.");
+  });
 }
 
 

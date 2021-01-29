@@ -18,7 +18,7 @@ if (HREF_PORT === "") {
   APP_PORT = searchParams.get("APP");
 }
 
-//const ADMIN_URL = `ws://localhost:${ADMIN_PORT}`
+const ADMIN_URL = `ws://localhost:${ADMIN_PORT}`
 const APP_URL =`ws://localhost:${APP_PORT}`
 
 var g_adminWs = undefined
@@ -27,7 +27,6 @@ var g_appClient = undefined
 
 /**
  * Default signal callback
- * @param signal
  */
 var receiveSignal = (signal/*: AppSignal*/) => {
   // impl...
@@ -40,18 +39,21 @@ var receiveSignal = (signal/*: AppSignal*/) => {
 
 /**
  *
- * @returns {Promise<void>}
  */
-export async function rsmConnect(signalCallback) {
-  // -- CONNECT TO ADMIN -- //
-  //  g_adminWs = await AdminWebsocket.connect(ADMIN_URL, TIMEOUT)
-  // console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
-  // // g_adminWs.generateAgentPubKey().then((newKey) => {
-  // //     g_newKey = newKey
-  // //     console.log({newKey})
-  // //     printAdmin()
-  // // })
-  // -- CONNECT TO APP -- //
+export async function rsmConnectAdmin() {
+  g_adminWs = await AdminWebsocket.connect(ADMIN_URL, DEFAULT_TIMEOUT)
+  console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
+  // g_adminWs.generateAgentPubKey().then((newKey) => {
+  //     g_newKey = newKey
+  //     console.log({newKey})
+  //     printAdmin()
+  // })
+}
+
+/**
+ *
+ */
+export async function rsmConnectApp(signalCallback) {
   let env = window.location
   console.log(env)
   console.log('*** Connecting to Snapmail app at ' + APP_URL + ' ...')
@@ -62,7 +64,6 @@ export async function rsmConnect(signalCallback) {
   g_cellId = appInfo.cell_data[0][0];
   console.log({g_cellId})
   await dumpState(g_cellId)
-  // Done
   return g_cellId;
 }
 
@@ -124,7 +125,8 @@ export async function callDna(functionName, payload, timeout) {
   } catch(err) {
     console.log("*** callDna() => " + functionName + '() failed:')
     console.log({err})
-    return Promise.reject("callZome() failed")
+    alert("Connection to holochain lost. Refresh Page to attempt reconnection");
+    return Promise.reject("callZome() failed. Possibility lost connection to holochain.")
   }
   console.log("*** callDna() => " + functionName + '() result:')
   console.log({result})
