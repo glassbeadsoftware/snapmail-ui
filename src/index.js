@@ -1040,16 +1040,13 @@ function handle_getAllHandles(callResult) {
  *
  */
 function handle_pingAgent(callResult) {
-  if (callResult.Err !== undefined) {
-    const err = callResult.Err;
-    console.error('pingAgent zome call failed');
-    console.error(err);
+    if (callResult === undefined || callResult.Err !== undefined) {
+      console.error('pingAgent zome call failed');
+    } else {
+      g_isAgentOnline = true;
+    }
     g_hasPingResult = true;
-    return;
   }
-  g_isAgentOnline = callResult;
-  g_hasPingResult = true;
-}
 
 /**
  *

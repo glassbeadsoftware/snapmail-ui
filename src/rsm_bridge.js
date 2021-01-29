@@ -2,7 +2,7 @@
 import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
 import { htos } from './utils';
 
-const TIMEOUT = 6000
+const DEFAULT_TIMEOUT = 15000
 
 const HREF_PORT = window.location.port
 var ADMIN_PORT = 1234
@@ -58,7 +58,7 @@ export async function rsmConnect(signalCallback) {
   let env = window.location
   console.log(env)
   console.log('*** Connecting to Snapmail app at ' + APP_URL + ' ...')
-  g_appClient = await AppWebsocket.connect(APP_URL, 5000, signalCallback);
+  g_appClient = await AppWebsocket.connect(APP_URL, DEFAULT_TIMEOUT, signalCallback);
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
   const appInfo = await g_appClient.appInfo({ installed_app_id: APP_ID }, 1000)
   console.log({appInfo})
@@ -109,7 +109,7 @@ export async function callDna(functionName, payload, timeout) {
       console.error("App Client Websocket not connected!")
       return Promise.reject("App Client Websocket not connected!")
     }
-    const t = timeout !== undefined? timeout : 30000; // default timeout to 30 sec
+    const t = timeout !== undefined? timeout : DEFAULT_TIMEOUT;
     console.log("*** callDna() => " + functionName + '() ; ' + t)
   let result = undefined;
   try
@@ -158,9 +158,12 @@ export function findAgent(handle, callback) {
 
 export function pingAgent(agentHash, callback) {
   console.log('*** pingAgent() called!')
-  callDna('ping_agent', agentHash, 2000)
+  callDna('ping_agent', agentHash, 1500)
     .then(result => callback(result))
-    .catch(error => console.log('Ping failed for: ' + htos(agentHash)))
+    .catch(error => {
+      console.log('Ping failed for: ' + htos(agentHash));
+      callback(undefined);
+    });
 }
 
 // -- Mail -- //
