@@ -9,7 +9,8 @@ var ADMIN_PORT = 1234
 var APP_ID = 'test-app'
 var APP_PORT = parseInt(HREF_PORT) + 800
 
-// No HREF PORT when run by Electron, use different values when in electron
+// No HREF PORT when run by Electron
+// Use different values when in electron
 if (HREF_PORT === "") {
   APP_ID = 'snapmail-app'
   ADMIN_PORT = 1235
@@ -17,21 +18,17 @@ if (HREF_PORT === "") {
   APP_PORT = searchParams.get("APP");
 }
 
-const ADMIN_URL = `ws://localhost:${ADMIN_PORT}`
+//const ADMIN_URL = `ws://localhost:${ADMIN_PORT}`
 const APP_URL =`ws://localhost:${APP_PORT}`
 
 var g_adminWs = undefined
 var g_cellId = undefined
 var g_appClient = undefined
-var g_appId = undefined
-var g_newKey = undefined
-var g_cellNick = undefined
 
-// AppSignal {
-//   cellId: [Uint8Array(39), Uint8Array(39)],
-//     payload: any,
-//     type: "Signal"
-// }
+/**
+ * Default signal callback
+ * @param signal
+ */
 var receiveSignal = (signal/*: AppSignal*/) => {
   // impl...
   console.log('Received signal:')
@@ -39,7 +36,7 @@ var receiveSignal = (signal/*: AppSignal*/) => {
   //resolve()
 }
 
-// -- CONNECT TO ADMIN -- //
+// -- micro API -- //
 
 /**
  *

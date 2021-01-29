@@ -28,8 +28,6 @@ import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex, htos, stoh} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
-
-
 //---------------------------------------------------------------------------------------------------------------------
 // DEBUG MODE
 //---------------------------------------------------------------------------------------------------------------------
@@ -190,8 +188,6 @@ function initUpload() {
       const file = event.detail.file;
       const xhr = event.detail.xhr;
       console.log('upload-before event: ');
-      // console.log({file});
-      // console.log({xhr});
 
       event.preventDefault(); // Prevent the upload request
 
@@ -306,10 +302,9 @@ function initDna() {
     handleAbbr.title = g_myAgentId
     const titleAbbr = document.getElementById('titleAbbr');
     titleAbbr.title = dnaId
-
+    // -- Loading Done -- //
     const loadingBar = document.querySelector('#loadingBar');
     loadingBar.style.display = "none";
-
     const mainPage = document.querySelector('#mainPage');
     mainPage.style.display = "block";
   })
@@ -339,8 +334,6 @@ function initTitleBar() {
     button.addEventListener('click', () =>{
       setState_ChangeHandleBar(true)
     });
-    // let label = document.getElementById('agentIdDisplay');
-    // label.textContent = '<AgentPubKey>'
   });
 }
 
@@ -352,10 +345,11 @@ async function resetRecepients() {
   const contactGrid = document.querySelector('#contactGrid');
   let items = [];
   console.log('resetRecepients:')
+  // Add each handle to the contactGRid
   for (const [agentId, username] of g_usernameMap.entries()) {
     console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
-    // Ping Agent, except self
+    // Ping Agent for status, except self
     g_hasPingResult = false;
     g_isAgentOnline = false;
     if (agentId === g_myAgentId) {
@@ -946,7 +940,7 @@ function handle_deleteMail(callResult) {
 
 
 /**
- * Refresh g_mail_map and mailGrid
+ * Refresh mailGrid
  */
 function handle_getAllMails(callResult) {
   if (callResult.Err !== undefined) {
@@ -1004,7 +998,7 @@ function update_fileBox() {
 }
 
 /**
- * Refresh g_username_map and recepients
+ * Refresh g_usernameMap and contactGrid
  */
 function handle_getAllHandles(callResult) {
   if (callResult.Err !== undefined) {
