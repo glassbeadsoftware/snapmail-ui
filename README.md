@@ -1,34 +1,9 @@
 # snapmail-ui
-the user interface for SnapMail app, see [snapmail-dna](https://github.com/ddd-mtl/snapmail-dna) for backend
+the user interface for SnapMail app, see [snapmail-rsm](https://github.com/glassbeadsoftware/snapmail-rsm) for backend.
 
-### UI
+### Building
 
-Developing the UI is simple. You will need to already be running the Holochain Conductor in
-order to also develop the UI, since they are now coupled.
-
-> **Prerequisite** have nodejs installed
-
-Open a terminal to this folder
-
-Run the following command
-```
-npm install
-```
-
-Now run
-```
-npm start
-```
-
-A browser window will open, displaying the UI.
-
-#### Nix option
-
-Use the nix shell to have npm installed and run npm install and start.
-
-```shell
-nix-shell --run snapmail-ui
-```
+Instructions [here](https://github.com/glassbeadsoftware/snapmail-rsm/blob/master/README.md).
 
 ####  UI Dev Resources
 
