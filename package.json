@@ -48,7 +48,7 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "@holochain/conductor-api": "0.0.1-dev.16",
+    "@holochain/conductor-api": "^0.0.1-dev.16",
     "@polymer/polymer": "^3.3.1",
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",

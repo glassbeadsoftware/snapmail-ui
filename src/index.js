@@ -752,6 +752,7 @@ function initActionBar() {
       outMailSubjectArea.value = '';
       outMailContentArea.value = '';
       resetRecepients();
+      return;
     }
     const sendProgressBar = document.querySelector('#sendProgressBar');
     sendProgressBar.style.display = "block";
