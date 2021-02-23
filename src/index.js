@@ -52,6 +52,7 @@ if (process.env.NODE_ENV === 'prod') {
 
 const redDot   = String.fromCodePoint(0x1F534);
 const greenDot = String.fromCodePoint(0x1F7E2);
+const blueDot = String.fromCodePoint(0x1F535);
 
 var g_hasAttachment = 0;
 var g_hasPingResult = false;
@@ -352,22 +353,26 @@ async function resetRecepients() {
   for (const [agentId, username] of g_usernameMap.entries()) {
     console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
-    // Ping Agent for status, except self
-    g_hasPingResult = false;
-    g_isAgentOnline = false;
-    if (agentId === g_myAgentId) {
-      g_isAgentOnline = true;
-      g_hasPingResult = true;
-    } else {
-      DNA.pingAgent(agentHash, handle_pingAgent);
-      // FIXME horrible infinite loop
-      while (!g_hasPingResult) {
-        await sleep(10)
-      }
-    }
+    // FIXME
+    // // Ping Agent for status, except self
+    // g_hasPingResult = false;
+    // g_isAgentOnline = false;
+    // if (agentId === g_myAgentId) {
+    //   g_isAgentOnline = true;
+    //   g_hasPingResult = true;
+    // } else {
+    //   DNA.pingAgent(agentHash, handle_pingAgent);
+    //   // FIXME horrible infinite loop
+    //   while (!g_hasPingResult) {
+    //     await sleep(10)
+    //   }
+    // }
     // Create and add contact grid item
+    //const status = g_isAgentOnline? greenDot : redDot
+    const status = blueDot
+
     let item = {
-      "username": username, "agentId": agentHash, "recepientType": '', status: g_isAgentOnline? greenDot : redDot
+      "username": username, "agentId": agentHash, "recepientType": '', status,
     };
     items.push(item);
   }

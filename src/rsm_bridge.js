@@ -125,7 +125,7 @@ export async function callDna(functionName, payload, timeout) {
   } catch(err) {
     console.log("*** callDna() => " + functionName + '() failed:')
     console.log({err})
-    alert("Connection to holochain lost. Reload App or refresh web page to attempt reconnection");
+    alert("Holochain failed.\n Connection to holochain might be lost. Reload App or refresh web page to attempt reconnection");
     return Promise.reject("callZome() failed. Possibility lost connection to holochain.")
   }
   console.log("*** callDna() => " + functionName + '() result:')
