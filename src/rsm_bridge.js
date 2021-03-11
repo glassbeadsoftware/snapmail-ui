@@ -6,7 +6,7 @@ const DEFAULT_TIMEOUT = 15000
 
 const HREF_PORT = window.location.port
 var ADMIN_PORT = 1234
-var APP_ID = 'test-app'
+var APP_ID = 'snapmail-app'
 var APP_PORT = parseInt(HREF_PORT) + 800
 
 // No HREF PORT when run by Electron
@@ -61,7 +61,10 @@ export async function rsmConnectApp(signalCallback) {
   console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
   const appInfo = await g_appClient.appInfo({ installed_app_id: APP_ID }, 1000)
   console.log({appInfo})
-  g_cellId = appInfo.cell_data[0][0];
+  if (appInfo === null) {
+    alert("happ not installed in conductor: " + APP_ID)
+  }
+  g_cellId = appInfo.cell_data[0].cell_id;
   console.log({g_cellId})
   await dumpState(g_cellId)
   return g_cellId;

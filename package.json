@@ -3,10 +3,11 @@
   "version": "0.0.3",
   "description": "the most wonderful mail app",
   "scripts": {
+    "all-ui": "concurrently --kill-others \"npm:billy-ui\" \"npm:alex-ui\" \"npm:camille-ui\"",
     "all": "concurrently --kill-others \"npm:billy\" \"npm:alex\" \"npm:camille\"",
     "alex": "concurrently --kill-others \"npm:alex-ui\" \"npm:alex-hc\"",
     "alex-ui": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server.config.mjs\"",
-    "alex-hc": "RUST_LOG=warn holochain-run-dna -p 8880 ../snapmail-rsm/snapmail.dna.gz",
+    "alex-hc": "RUST_LOG=warn hc s run -p=8880",
     "billy": "concurrently --kill-others \"npm:billy-ui\" \"npm:billy-hc\"",
     "billy-ui": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server-billy.config.mjs\"",
     "billy-hc": "RUST_LOG=warn holochain-run-dna -p 8881 ../snapmail-rsm/snapmail.dna.gz",
@@ -48,7 +49,7 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "@holochain/conductor-api": "^0.0.1-dev.16",
+    "@holochain/conductor-api": "git+https://github.com/holochain/holochain-conductor-api.git",
     "@polymer/polymer": "^3.3.1",
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",
