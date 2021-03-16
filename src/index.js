@@ -37,13 +37,15 @@ if (process.env.NODE_ENV === 'prod') {
 }
 
 /**
- * Setup recurrent handle and mail fetchs
+ * Setup recurrent pull from DHT
  */
-//var myVar = setInterval(onLoop, 1000);
-// function onLoop() {
-//   getAllHandles(handleHandleList)
-//   getAllMails(handleMails, update_fileBox)
-// }
+var myVar = setInterval(onLoop, 10000);
+function onLoop() {
+  console.log("**** onLoop CALLED ****");
+  if (process.env.NODE_ENV === 'prod') {
+    getAllFromDht();
+  }
+}
 
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -95,7 +97,7 @@ function callGetAllMails() {
     return;
   }
   canGetAllMutex = false;
-  DNA.getAllMails(handle_getAllMails, update_fileBox);
+  DNA.getAllMails(handle_getAllMails, handle_post_getAllMails);
 }
 
 // -- Signal Structure -- //
@@ -276,6 +278,14 @@ function initNotification() {
 }
 
 
+function getAllFromDht() {
+  DNA.getAllHandles(handle_getAllHandles);
+  DNA.checkIncomingAck(logCallResult);
+  DNA.checkIncomingMail(logCallResult);
+  callGetAllMails();
+}
+
+
 /**
  *
  */
@@ -287,17 +297,16 @@ function initDna() {
     g_myAgentId = htos(g_myAgentHash)
     // let label = document.getElementById('agentIdDisplay');
     // label.textContent = g_myAgentId
-    // -- App Bar -- //
     DNA.getMyHandle(showHandle);
-    // -- FileBox -- //
-    DNA.checkIncomingAck(logCallResult);
-    DNA.checkIncomingMail(logCallResult);
-    callGetAllMails();
-    // -- ContactList -- //
-    DNA.getAllHandles(handle_getAllHandles);
-    // After
+    getAllFromDht()
+    // -- findAgent ? -- //
     const handleButton = document.getElementById('handleText');
     //DNA.findAgent(handleButton.textContent, handle_findAgent);
+    // -- Change title color in debug -- //
+    if (process.env.NODE_ENV !== 'prod') {
+      const titleLayout = document.getElementById('titleLayout');
+      titleLayout.style.backgroundColor = "#ec8383d1";
+    }
     // -- Update Abbr -- //
     const handleAbbr = document.getElementById('handleAbbr');
     handleAbbr.title = g_myAgentId
@@ -315,6 +324,15 @@ function initDna() {
 }
 
 
+function setHandle() {
+  let input = document.getElementById('myNewHandleInput');
+  console.log('new handle = ' + input.value);
+  DNA.setHandle(input.value, console.log);
+  showHandle({ Ok: input.value});
+  input.value = '';
+  setState_ChangeHandleBar(true);
+}
+
 /**
  *
  */
@@ -323,20 +341,21 @@ function initTitleBar() {
   customElements.whenDefined('vaadin-button').then(function() {
     let button = document.querySelector('#setMyHandleButton');
     button.addEventListener('click', () => {
-      let input = document.getElementById('myNewHandleInput');
-      console.log('new handle = ' + input.value);
-      DNA.setHandle(input.value, console.log);
-      showHandle({ Ok: input.value});
-      input.value = '';
-      setState_ChangeHandleBar(true);
+      setHandle();
+    });
+    let handleInput = document.querySelector('#myNewHandleInput');
+    handleInput.addEventListener("keyup", (event) => {
+      if (event.keyCode == 13) {
+        setHandle();
+      }
     });
     button = document.querySelector('#handleDisplay');
     button.addEventListener('click', () => {
-      setState_ChangeHandleBar(false)
+      setState_ChangeHandleBar(false);
     });
     button = document.querySelector('#cancelHandleButton');
     button.addEventListener('click', () =>{
-      setState_ChangeHandleBar(true)
+      setState_ChangeHandleBar(true);
     });
   });
 }
@@ -401,10 +420,8 @@ function initMenuBar() {
       setState_DeleteButton(true)
     }
     if (e.detail.value.text === 'Refresh') {
-      console.log('Refresh called');
-      DNA.checkIncomingAck(logCallResult);
-      DNA.checkIncomingMail(logCallResult);
-      callGetAllMails();
+      //console.log('Refresh called');
+      getAllFromDht();
     }
   });
 }
@@ -503,7 +520,7 @@ function initFileBox() {
     const item = event.detail.value;
     mailGrid.selectedItems = item ? [item] : [];
     if (item === null) {
-      //getAllMails(handleMails, update_fileBox)
+      //getAllMails(handleMails, handle_getAllMails)
       return;
     }
     g_currentMailItem = item;
@@ -986,13 +1003,14 @@ function handle_getAllMails(callResult) {
 /**
  * Post callback for getAllMails()
  */
-function update_fileBox() {
+function handle_post_getAllMails() {
+   // Update mailGrid
+  const folder = document.querySelector('#fileboxFolder');
+  update_mailGrid(folder.value);
+  // Update active Item
   const mailGrid = document.querySelector('#mailGrid');
   const activeItem = mailGrid.activeItem;
-  console.log('update_fileBox ; activeItem = ' + JSON.stringify(activeItem))
-  const folderBoxAll = document.querySelector('#fileboxFolder');
-  update_mailGrid(folderBoxAll.value);
-
+  console.log('handle_getAllMails ; activeItem = ' + JSON.stringify(activeItem))
   if (activeItem) {
     let newActiveItem = null;
     for (let mailItem of mailGrid.items) {
