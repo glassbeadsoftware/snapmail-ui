@@ -883,6 +883,9 @@ function setState_ChangeHandleBar(hidden) {
   handleButton.hidden = !hidden;
   let handleInput = document.getElementById('myNewHandleInput');
   handleInput.hidden = hidden;
+  if (!hidden) {
+    handleInput.focus();
+  }
   let updateButton = document.getElementById('setMyHandleButton');
   updateButton.hidden = hidden;
   let cancelButton = document.getElementById('cancelHandleButton');

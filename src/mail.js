@@ -3,7 +3,8 @@
  */
 
 import {htos} from './utils'
-import { default as DNA, getHandle } from "./rsm_bridge";
+//import { default as DNA } from "./rsm_bridge";
+import * as DNA from './rsm_bridge'
 
 /**
  * All Folders for fileBox
@@ -149,7 +150,7 @@ function handle_getHandle(callResult) {
 
 /**
  *
- * @returns {{date: string, subject: Certificate, id: string | (() => AddressInfo) | (() => (AddressInfo | string)) | (() => (AddressInfo | string | null)) | app.address, username: string, status: string}}
+ * @returns grid item
  */
 export function into_gridItem(usernameMap, mailItem) {
   // username
