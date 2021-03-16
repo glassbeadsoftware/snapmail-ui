@@ -143,8 +143,8 @@ export function getMyHandle(callback) {
   callDna('get_my_handle', null).then(result => callback(result));
 }
 
-export function getHandle(myAgentId, callback) {
-  callDna('get_handle', {agentId: myAgentId}).then(result => callback(result));
+export function getHandle(agentId, callback) {
+  callDna('get_handle', {agentId: agentId}).then(result => callback(result));
 }
 
 export function setHandle(username, callback) {

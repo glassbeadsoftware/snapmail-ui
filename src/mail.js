@@ -3,6 +3,7 @@
  */
 
 import {htos} from './utils'
+import { default as DNA, getHandle } from "./rsm_bridge";
 
 /**
  * All Folders for fileBox
@@ -112,15 +113,9 @@ function customDateString(dateItem) {
 }
 
 
-/**
- *
- * @returns {{date: string, subject: Certificate, id: string | (() => AddressInfo) | (() => (AddressInfo | string)) | (() => (AddressInfo | string | null)) | app.address, username: string, status: string}}
- */
-export function into_gridItem(usernameMap, mailItem) {
+function getUsername(usernameMap, mailItem) {
   let authorId = htos(mailItem.author);
   let username = usernameMap.get(authorId)
-  console.log('into_gridItem: ' + authorId + ' -> ' + username)
-  let dateStr = customDateString(mailItem.date)
   if (mailItem.state.hasOwnProperty('Out')) {
     if (mailItem.mail.hasOwnProperty('to')) {
       const recepient = htos(mailItem.mail.to[0])
@@ -133,8 +128,47 @@ export function into_gridItem(usernameMap, mailItem) {
       username = 'To: ' + usernameMap.get(recepient)
     }
   }
+  return username;
+}
+
+
+/**
+ * Dirty hack for getting username JIT
+ */
+var g_username = undefined;
+function handle_getHandle(callResult) {
+  if (callResult.Err !== undefined) {
+    const err = callResult.Err;
+    console.error('GetHandle zome call failed');
+    console.error(err);
+    return;
+  }
+  g_username = callResult;
+  console.log({g_username});
+}
+
+/**
+ *
+ * @returns {{date: string, subject: Certificate, id: string | (() => AddressInfo) | (() => (AddressInfo | string)) | (() => (AddressInfo | string | null)) | app.address, username: string, status: string}}
+ */
+export function into_gridItem(usernameMap, mailItem) {
+  // username
+  g_username = undefined;
+  // console.log('into_gridItem: ' + htos(mailItem.author) + ' username: ' + username);
+  while (g_username === undefined) {
+    g_username = getUsername(usernameMap, mailItem);
+    if (g_username === undefined) {
+      DNA.getHandle(handle_getHandle);
+    }
+  }
+  let username = g_username;
+  g_username = undefined;
+  // Date
+  let dateStr = customDateString(mailItem.date)
+  // Status
   let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
   //let status = '';
+  // Done
   let item = {
     "id": mailItem.address, "username": username, "subject": mailItem.mail.subject, "date": dateStr, "status": status
   };

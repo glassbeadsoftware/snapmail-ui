@@ -27,6 +27,7 @@ import '@vaadin/vaadin-notification';
 import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex, htos, stoh} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
+import { getAllHandles } from "./rsm_bridge";
 
 //---------------------------------------------------------------------------------------------------------------------
 // DEBUG MODE
@@ -97,6 +98,7 @@ function callGetAllMails() {
     return;
   }
   canGetAllMutex = false;
+  DNA.getAllHandles(handle_getAllHandles);
   DNA.getAllMails(handle_getAllMails, handle_post_getAllMails);
 }
 
@@ -1055,6 +1057,10 @@ function handle_getAllHandles(callResult) {
   const contactsMenu = document.querySelector('#ContactsMenu');
   contactsMenu.items[0].disabled = false;
   contactsMenu.render();
+
+  // Update mailGrid
+  const folder = document.querySelector('#fileboxFolder');
+  update_mailGrid(folder.value);
 }
 
 /**
