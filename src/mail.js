@@ -99,8 +99,8 @@ export function determineMailClass(mailItem) {
  *
  * @returns {string}
  */
-function customDateString(dateItem) {
-  let date = new Date(dateItem);
+function customDateString(unixTimestamp) {
+  let date = new Date(unixTimestamp * 1000);
   let hours = date.getHours();
   let minutes = date.getMinutes();
   if (minutes < 10) {
