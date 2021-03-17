@@ -66,6 +66,10 @@ var g_fileList = [];
 // Map of (agentId -> username)
 // agentId is base64 string of a hash
 var g_usernameMap = new Map();
+// Map of (agentId -> timestamp of last ping)
+var g_pingMap = new Map();
+// Map of (agentId -> bool)
+var g_responseMap = new Map();
 // Map of (mailId -> mailItem)
 var g_mailMap = new Map();
 
@@ -370,28 +374,13 @@ async function resetRecepients() {
   const contactGrid = document.querySelector('#contactGrid');
   let items = [];
   console.log('resetRecepients:')
-  // Add each handle to the contactGRid
+  pingNextAgent();
+  // Add each handle to the contactGrid
   for (const [agentId, username] of g_usernameMap.entries()) {
     console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
-    // FIXME
-    // // Ping Agent for status, except self
-    // g_hasPingResult = false;
-    // g_isAgentOnline = false;
-    // if (agentId === g_myAgentId) {
-    //   g_isAgentOnline = true;
-    //   g_hasPingResult = true;
-    // } else {
-    //   DNA.pingAgent(agentHash, handle_pingAgent);
-    //   // FIXME horrible infinite loop
-    //   while (!g_hasPingResult) {
-    //     await sleep(10)
-    //   }
-    // }
-    // Create and add contact grid item
-    //const status = g_isAgentOnline? greenDot : redDot
-    const status = blueDot
-
+    const status = g_pingMap.get(agentId)? (g_responseMap.get(agentId)? greenDot : redDot) : blueDot;
+    //const status = blueDot
     let item = {
       "username": username, "agentId": agentHash, "recepientType": '', status,
     };
@@ -1029,28 +1018,65 @@ function handle_post_getAllMails() {
   canGetAllMutex = true;
 }
 
+
+/**
+ * Ping oldest pinged agent
+ */
+var pingedAgent = undefined;
+function pingNextAgent() {
+  console.log("pingNextAgent: " + JSON.stringify(g_pingMap));
+  // Skip if already waiting for a pong or empty map
+  if (pingedAgent !== undefined || g_pingMap.size === 0) {
+    return;
+  }
+  // Sort g_pingMap by value
+  const nextMap = new Map([...g_pingMap.entries()].sort((a, b) => a[1] - b[1]));
+  // Ping first agent
+  //console.log({nextMap})
+  pingedAgent = stoh(nextMap.keys().next().value);
+  console.log({pingedAgent});
+  if (htos(pingedAgent) !== g_myAgentId) {
+    DNA.pingAgent(pingedAgent, handle_pingNextAgent);
+  } else {
+    handle_pingNextAgent(true);
+  }
+}
+
+function handle_pingNextAgent(callResult) {
+  let agentB64 = htos(pingedAgent);
+  if (callResult === undefined || callResult.Err !== undefined || callResult === false) {
+    g_responseMap.set(agentB64, false);
+  } else {
+    g_responseMap.set(agentB64, true);
+  }
+  g_pingMap.set(agentB64, Date.now());
+  pingedAgent = undefined;
+}
+
 /**
  * Refresh g_usernameMap and contactGrid
  */
 function handle_getAllHandles(callResult) {
-  if (callResult.Err !== undefined) {
-    const err = callResult.Err;
+  if (callResult === undefined || callResult.Err !== undefined) {
     console.error('getAllHandles zome call failed');
-    console.error(err);
-    return;
+  } else {
+    //const contactGrid = document.querySelector('#contactGrid');
+    let handleList = callResult;
+    //console.log('handleList: ' + JSON.stringify(handleList))
+    g_usernameMap.clear();
+    for(let handleItem of handleList) {
+      // TODO: exclude self from list when in prod?
+      let agentId = htos(Object.values(handleItem[1]));
+      console.log('' + handleItem[0] + ': ' + agentId);
+      g_usernameMap.set(agentId, handleItem[0]);
+      if(g_pingMap.get(agentId) === undefined) {
+        //console.log("ADDING TO g_pingMap: " + agentId);
+        g_pingMap.set(agentId, 0);
+        g_responseMap.set(agentId, false);
+      }
+    }
   }
-  //const contactGrid = document.querySelector('#contactGrid');
-  let handleList = callResult;
-  //console.log('handleList: ' + JSON.stringify(handleList))
-  g_usernameMap.clear();
-  for (let handleItem of handleList) {
-    // TODO: exclude self from list when in prod
-    let agentId = htos(Object.values(handleItem[1]))
-    console.log('' + handleItem[0] + ': ' + agentId)
-    g_usernameMap.set(agentId, handleItem[0])
-  }
-  console.log({g_usernameMap})
-  //console.log('g_usernameMap = ' + JSON.stringify(g_usernameMap))
+
   resetRecepients().then(() => {
     const contactsMenu = document.querySelector('#ContactsMenu');
     contactsMenu.items[0].disabled = false;
@@ -1069,29 +1095,17 @@ function handle_getAllHandles(callResult) {
 /**
  *
  */
-function handle_pingAgent(callResult) {
-    if (callResult === undefined || callResult.Err !== undefined) {
-      console.error('pingAgent zome call failed');
-    } else {
-      g_isAgentOnline = true;
-    }
-    g_hasPingResult = true;
-  }
-
-/**
- *
- */
-function handle_findAgent(callResult) {
-  let button = document.querySelector('#handleDisplay');
-  if (callResult.Err !== undefined) {
-    const err = callResult.Err;
-    console.error('findAgent dna call failed');
-    console.error(err);
-    button.title = "";
-    return;
-  }
-  button.title = callResult[0];
-}
+// function handle_findAgent(callResult) {
+//   let button = document.querySelector('#handleDisplay');
+//   if (callResult.Err !== undefined) {
+//     const err = callResult.Err;
+//     console.error('findAgent dna call failed');
+//     console.error(err);
+//     button.title = "";
+//     return;
+//   }
+//   button.title = callResult[0];
+// }
 
 
 /**

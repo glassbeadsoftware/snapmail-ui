@@ -2,7 +2,7 @@
 import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
 import { htos } from './utils';
 
-const DEFAULT_TIMEOUT = 15000
+const DEFAULT_TIMEOUT = 5000
 
 const HREF_PORT = window.location.port
 var ADMIN_PORT = 1234
@@ -126,8 +126,8 @@ export async function callDna(functionName, payload, timeout) {
       t
     )
   } catch(err) {
-    console.log("*** callDna() => " + functionName + '() failed:')
-    console.log({err})
+    console.error("*** callDna() => " + functionName + '() failed:')
+    console.error({err})
     // FIXME: Put back when Holochain connection problems are resolved
     // alert("Holochain failed.\n Connection to holochain might be lost. Reload App or refresh web page to attempt reconnection");
     return Promise.reject("callZome() failed. Possibility lost connection to holochain.")
@@ -152,7 +152,11 @@ export function setHandle(username, callback) {
 }
 
 export function getAllHandles(callback) {
-  callDna('get_all_handles', null).then(result => callback(result));
+  callDna('get_all_handles', null)
+    .then(result => callback(result))
+    .catch(error => {
+      callback(undefined);
+    });
 }
 
 export function findAgent(handle, callback) {
@@ -160,8 +164,8 @@ export function findAgent(handle, callback) {
 }
 
 export function pingAgent(agentHash, callback) {
-  console.log('*** pingAgent() called!')
-  callDna('ping_agent', agentHash, 1500)
+  console.log('*** pingAgent() called for: ' + htos(agentHash));
+  callDna('ping_agent', agentHash, 2000)
     .then(result => callback(result))
     .catch(error => {
       console.log('Ping failed for: ' + htos(agentHash));
