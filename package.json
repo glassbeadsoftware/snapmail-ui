@@ -26,10 +26,6 @@
     "release": "webpack --config webpack.release.js",
     "prod": "webpack --config webpack.prod.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ddd-mtl/snapmail.git"
-  },
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -47,7 +43,7 @@
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
-    "@holochain/conductor-api": "0.0.1",
+    "@holochain/conductor-api": "=0.0.3",
     "@polymer/polymer": "^3.3.1",
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",
