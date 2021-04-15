@@ -2,7 +2,7 @@
 import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
 import { htos } from './utils';
 
-const DEFAULT_TIMEOUT = 5000
+const DEFAULT_TIMEOUT = 9999
 
 const HREF_PORT = window.location.port
 var ADMIN_PORT = 1234
