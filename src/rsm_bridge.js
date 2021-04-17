@@ -8,6 +8,7 @@ const HREF_PORT = window.location.port
 var ADMIN_PORT = 1234
 var APP_ID = 'snapmail-app'
 var APP_PORT = parseInt(HREF_PORT) + 800
+export var NETWORK_ID = "slot-1" // must match whatever we use at slot name for testing with app bundle
 
 // No HREF PORT when run by Electron
 // Use different values when in electron
@@ -16,6 +17,11 @@ if (HREF_PORT === "") {
   ADMIN_PORT = 1235
   let searchParams = new URLSearchParams(window.location.search);
   APP_PORT = searchParams.get("APP");
+  NETWORK_ID = searchParams.get("UID");
+  if (NETWORK_ID !== undefined && NETWORK_ID !== null) {
+    APP_ID = APP_ID + '-' + NETWORK_ID;
+  }
+  console.log({APP_ID})
 }
 
 const ADMIN_URL = `ws://localhost:${ADMIN_PORT}`
@@ -64,7 +70,16 @@ export async function rsmConnectApp(signalCallback) {
   if (appInfo === null) {
     alert("happ not installed in conductor: " + APP_ID)
   }
-  g_cellId = appInfo.cell_data[0].cell_id;
+  for (const cell of appInfo.cell_data) {
+    console.log({cell})
+    if (cell.cell_nick === NETWORK_ID) {
+      g_cellId = cell.cell_id;
+    }
+  }
+  if (g_cellId === undefined) {
+    console.error('Failed to find cell with NETWORK_ID = ' + NETWORK_ID);
+    throw 'Failed to find cell with NETWORK_ID';
+  }
   console.log({g_cellId})
   await dumpState(g_cellId)
   return g_cellId;

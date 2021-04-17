@@ -297,7 +297,7 @@ function getAllFromDht() {
  */
 function initDna() {
   console.log('initDna()');
-  DNA.rsmConnectApp(handleSignal).then((cellId) => {
+  DNA.rsmConnectApp(handleSignal).then( async (cellId) => {
     const dnaId = htos(cellId[0])
     g_myAgentHash = cellId[1]
     g_myAgentId = htos(g_myAgentHash)
@@ -305,6 +305,9 @@ function initDna() {
     // label.textContent = g_myAgentId
     DNA.getMyHandle(showHandle);
     getAllFromDht()
+    while (!canGetAllMutex) {
+      await sleep(10)
+    }
     // -- findAgent ? -- //
     const handleButton = document.getElementById('handleText');
     //DNA.findAgent(handleButton.textContent, handle_findAgent);
@@ -364,6 +367,9 @@ function initTitleBar() {
       setState_ChangeHandleBar(true);
     });
   });
+  const span = document.querySelector('#networkIdDisplay');
+  console.assert(span);
+  span.textContent = DNA.NETWORK_ID;
 }
 
 /**

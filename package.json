@@ -12,7 +12,7 @@
     "alex-hc": "WASM_LOG=debug RUST_LOG=warn hc s run -p=8880",
     "camille-perm": "concurrently --kill-others \"npm:camille-ui\" \"npm:camille-hc-perm\"",
     "camille-hc-perm": "RUST_LOG=warn holochain-run-dna -p 8882 -r ./tmp/camille ../snapmail-rsm/snapmail.dna",
-    "sandbox-create": "rm -rf ./tmp && mkdir ./tmp && hc s clean && hc s create --root ./tmp/ -n 3 network -b https://bootstrap-staging.holo.host/ quic && hc s call 0 1 2 install-app-bundle ../snapmail-rsm/snapmail.happ",
+    "sandbox-create": "rm -rf ~/tmp && mkdir ~/tmp && hc s clean && hc s create --root ~/tmp/ -n 3 network -b https://bootstrap-staging.holo.host/ quic && hc s call 0 1 2 install-app-bundle ../snapmail-rsm/snapmail.happ",
     "sandbox-run": "WASM_LOG=debug RUST_LOG=warn hc s run --all -p 8880 8881 8882",
     "build-watch": "rollup -c rollup.config.js -w",
     "build-rollup": "rimraf dist && rollup -c rollup.config.js",
