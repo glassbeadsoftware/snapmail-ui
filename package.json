@@ -1,6 +1,6 @@
 {
   "name": "snapmail",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "the most wonderful mail app",
   "scripts": {
     "all": "npm run sandbox-create && concurrently \"npm:sandbox-run\" \"npm:billy-ui\" \"npm:alex-ui\" \"npm:camille-ui\"",
