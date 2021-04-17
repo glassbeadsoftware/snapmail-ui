@@ -8,7 +8,7 @@ const HREF_PORT = window.location.port
 var ADMIN_PORT = 1234
 var APP_ID = 'snapmail-app'
 var APP_PORT = parseInt(HREF_PORT) + 800
-export var NETWORK_ID = "slot-1" // must match whatever we use at slot name for testing with app bundle
+export var NETWORK_ID = ''
 
 // No HREF PORT when run by Electron
 // Use different values when in electron
@@ -58,7 +58,7 @@ export async function rsmConnectAdmin() {
  */
 export async function rsmConnectApp(signalCallback) {
   let env = window.location;
-  const installed_app_id = APP_ID + '-' + NETWORK_ID;
+  const installed_app_id = NETWORK_ID !== '' ? APP_ID + '-' + NETWORK_ID : APP_ID;
   console.log(env);
   console.log('*** Connecting to Snapmail app at ' + APP_URL + ' ...')
   g_appClient = await AppWebsocket.connect(APP_URL, DEFAULT_TIMEOUT, signalCallback);
