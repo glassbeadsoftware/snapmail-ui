@@ -57,22 +57,24 @@ export async function rsmConnectAdmin() {
  *
  */
 export async function rsmConnectApp(signalCallback) {
-  let env = window.location
-  console.log(env)
+  let env = window.location;
+  const installed_app_id = APP_ID + '-' + NETWORK_ID;
+  console.log(env);
   console.log('*** Connecting to Snapmail app at ' + APP_URL + ' ...')
   g_appClient = await AppWebsocket.connect(APP_URL, DEFAULT_TIMEOUT, signalCallback);
-  console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient))
-  const appInfo = await g_appClient.appInfo({ installed_app_id: APP_ID }, 1000)
+  console.log('*** Connected to Snapmail app: ' + JSON.stringify(g_appClient));
+  const appInfo = await g_appClient.appInfo({ installed_app_id }, 1000);
   console.log({appInfo})
   if (appInfo === null) {
-    alert("happ not installed in conductor: " + APP_ID)
+    alert("happ not installed in conductor: " + installed_app_id)
   }
-  for (const cell of appInfo.cell_data) {
-    console.log({cell})
-    if (cell.cell_nick === NETWORK_ID) {
-      g_cellId = cell.cell_id;
-    }
-  }
+  g_cellId = appInfo.cell_data[0].cell_id;
+  // for (const cell of appInfo.cell_data) {
+  //   console.log({cell})
+  //   if (cell.cell_nick === NETWORK_ID) {
+  //     g_cellId = cell.cell_id;
+  //   }
+  // }
   if (g_cellId === undefined) {
     console.error('Failed to find cell with NETWORK_ID = ' + NETWORK_ID);
     throw 'Failed to find cell with NETWORK_ID';
