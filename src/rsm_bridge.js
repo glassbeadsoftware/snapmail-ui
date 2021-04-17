@@ -18,9 +18,6 @@ if (HREF_PORT === "") {
   let searchParams = new URLSearchParams(window.location.search);
   APP_PORT = searchParams.get("APP");
   NETWORK_ID = searchParams.get("UID");
-  if (NETWORK_ID !== undefined && NETWORK_ID !== null) {
-    APP_ID = APP_ID + '-' + NETWORK_ID;
-  }
   console.log({APP_ID})
 }
 
