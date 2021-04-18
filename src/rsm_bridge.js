@@ -206,7 +206,13 @@ export function getAllArrivedMail(callback) {
 }
 
 export function getAllMails(callback, afterCallback) {
-  callDna('get_all_mails', undefined).then(result => {callback(result); afterCallback();});
+  callDna('get_all_mails', undefined)
+    .then(result => {callback(result); afterCallback();})
+    .catch(error => {
+      console.log('getAllMails failed: ' + error);
+      callback(undefined);
+      afterCallback();
+    });
 }
 
 export function checkIncomingMail(callback) {
