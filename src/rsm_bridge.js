@@ -125,7 +125,7 @@ export async function callDna(functionName, payload, timeout) {
       return Promise.reject("App Client Websocket not connected!")
     }
     const t = timeout !== undefined? timeout : DEFAULT_TIMEOUT;
-    console.log("*** callDna() => " + functionName + '() ; ' + t)
+    console.log("*** callDna() => " + functionName + '() ; timeout = ' + t)
   let result = undefined;
   try
   {

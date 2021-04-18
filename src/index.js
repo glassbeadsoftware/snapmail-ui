@@ -27,7 +27,6 @@ import '@vaadin/vaadin-notification';
 import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex, htos, stoh} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
-import { getAllHandles } from "./rsm_bridge";
 
 //---------------------------------------------------------------------------------------------------------------------
 // DEBUG MODE
@@ -38,9 +37,9 @@ if (process.env.NODE_ENV === 'prod') {
 }
 
 /**
- * Setup recurrent pull from DHT
+ * Setup recurrent pull from DHT ever 10 seconds
  */
-var myVar = setInterval(onLoop, 10000);
+var myVar = setInterval(onLoop, 10 * 1000);
 function onLoop() {
   console.log("**** onLoop CALLED ****");
   if (process.env.NODE_ENV === 'prod') {
@@ -55,11 +54,9 @@ function onLoop() {
 
 const redDot   = String.fromCodePoint(0x1F534);
 const greenDot = String.fromCodePoint(0x1F7E2);
-const blueDot = String.fromCodePoint(0x1F535);
+const blueDot  = String.fromCodePoint(0x1F535);
 
 var g_hasAttachment = 0;
-var g_hasPingResult = false;
-var g_isAgentOnline = false;
 var g_chunkList = [];
 var g_fileList = [];
 
@@ -128,7 +125,8 @@ function handleSignal(signalwrapper) {
 
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedMail')) {
       let item = signalwrapper.data.payload.ReceivedMail;
-      console.log("received_mail: " + JSON.stringify(item));
+      console.log("received_mail:");
+      console.log({item});
       const notification = document.querySelector('#notifyMail');
       notification.open();
       callGetAllMails();
@@ -136,7 +134,8 @@ function handleSignal(signalwrapper) {
   }
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedAck')) {
       let item = signalwrapper.data.payload.ReceivedAck;
-      console.log("received_ack: " + JSON.stringify(item))
+      console.log("received_ack:");
+      console.log({item});
       const notification = document.querySelector('#notifyAck');
       notification.open();
       callGetAllMails();
@@ -144,7 +143,8 @@ function handleSignal(signalwrapper) {
   }
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedFile')) {
       let item = signalwrapper.data.payload.ReceivedFile;
-      console.log("received_file: " + JSON.stringify(item))
+      console.log("received_file:");
+      console.log({item});
       const notification = document.querySelector('#notifyFile');
       notification.open();
       return
@@ -167,6 +167,7 @@ function initUi() {
   initUpload();
   //getMyAgentId(logResult)
   initNotification();
+  // init DNA at the end because the callbacks will populate the UI
   initDna();
   // -- init progress bar -- //
   const sendProgressBar = document.querySelector('#sendProgressBar');
@@ -309,8 +310,9 @@ function initDna() {
       await sleep(10)
     }
     // -- findAgent ? -- //
-    const handleButton = document.getElementById('handleText');
+    //const handleButton = document.getElementById('handleText');
     //DNA.findAgent(handleButton.textContent, handle_findAgent);
+
     // -- Change title color in debug -- //
     if (process.env.NODE_ENV !== 'prod') {
       const titleLayout = document.getElementById('titleLayout');
@@ -377,9 +379,15 @@ function initTitleBar() {
  * @returns {Promise<void>}
  */
 async function resetRecepients() {
-  const contactGrid = document.querySelector('#contactGrid');
-  let items = [];
   console.log('resetRecepients:')
+  const contactGrid = document.querySelector('#contactGrid');
+  // Get currently selected hashs
+  let prevSelected = [];
+  for (const item of contactGrid.selectedItems) {
+    prevSelected.push(item.agentId);
+  }
+  let selected = [];
+  let items = [];
   pingNextAgent();
   // Add each handle to the contactGrid
   for (const [agentId, username] of g_usernameMap.entries()) {
@@ -390,10 +398,13 @@ async function resetRecepients() {
     let item = {
       "username": username, "agentId": agentHash, "recepientType": '', status,
     };
+    if (prevSelected.includes(agentHash)) {
+      selected.push(item);
+    }
     items.push(item);
   }
   contactGrid.items = items;
-  contactGrid.selectedItems = [];
+  contactGrid.selectedItems = selected;
   contactGrid.activeItem = null;
   contactGrid.render();
 }
@@ -430,7 +441,9 @@ function initMenuBar() {
 function update_mailGrid(folder) {
   const grid = document.querySelector('#mailGrid');
   let folderItems = [];
+  const activeItem = mailGrid.activeItem;
   console.log('update_mailGrid: ' + folder);
+
   switch(folder) {
     case systemFolders.ALL:
       for (let mailItem of g_mailMap.values()) {
@@ -472,6 +485,17 @@ function update_mailGrid(folder) {
   console.log('folderItems count: ' + folderItems.length);
   // console.log('folderItems: ' + JSON.stringify(folderItems))
   grid.items = folderItems;
+  if (activeItem !== undefined && activeItem !== null) {
+    for(const item of Object.values(grid.items)) {
+      //console.log('Item id = ' + item.id);
+      if(activeItem.id === item.id) {
+        //console.log('activeItem match found');
+        grid.activeItem = item;
+        grid.selectedItems = [item];
+        break;
+      }
+    }
+  }
   grid.render();
 }
 
@@ -514,6 +538,7 @@ function initFileBox() {
 
   // On item select: Display in inMailArea
   mailGrid.addEventListener('active-item-changed', function(event) {
+    console.log('mailgrid Event: active-item-changed');
     const item = event.detail.value;
     mailGrid.selectedItems = item ? [item] : [];
     if (item === null) {
@@ -521,10 +546,10 @@ function initFileBox() {
       return;
     }
     g_currentMailItem = item;
-    console.log('mail grid item: ' + JSON.stringify(item));
+    //console.log('mail grid item: ' + JSON.stringify(item));
     var span = document.getElementById('inMailArea');
     let mailItem = g_mailMap.get(htos(item.id));
-    console.log('mail item: ' + JSON.stringify(mailItem));
+    //console.log('mail item: ' + JSON.stringify(mailItem));
     span.value = into_mailText(g_usernameMap, mailItem);
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
@@ -977,6 +1002,14 @@ function handle_getAllMails(callResult) {
   }
   let mailGrid = document.querySelector('#mailGrid');
   let mailList = callResult;
+
+  // Get currently selected hashs
+  let prevSelected = [];
+  for (const item of mailGrid.selectedItems) {
+    prevSelected.push(htos(item.id));
+  }
+
+  let selected = [];
   let items = [];
   g_mailMap.clear();
   const folderBox = document.querySelector('#fileboxFolder');
@@ -993,11 +1026,18 @@ function handle_getAllMails(callResult) {
     if (!is_OutMail(mailItem) && selectedBox === systemFolders.SENT) {
       continue;
     }
-    items.push(into_gridItem(g_usernameMap, mailItem));
+    //items.push(into_gridItem(g_usernameMap, mailItem));
+    let gridItem = into_gridItem(g_usernameMap, mailItem);
+    //console.log('gridItem.id = ' + gridItem.id);
+    items.push(gridItem);
+    if (prevSelected.includes(htos(gridItem.id))) {
+      selected.push(gridItem);
+    }
   }
-
-  console.log('mailCount = ' + items.length);
+  console.log('mailCount = ' + items.length + ' (' + selected.length + ')');
   mailGrid.items = items;
+  mailGrid.selectedItems = selected;
+  mailGrid.activeItem = selected[0];
 }
 
 /**
