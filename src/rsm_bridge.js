@@ -1,5 +1,6 @@
 
 import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
+//import { AdminWebsocket, AppWebsocket } from '../../holochain-conductor-api/lib';
 import { htos } from './utils';
 
 const DEFAULT_TIMEOUT = 9999

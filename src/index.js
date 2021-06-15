@@ -425,6 +425,9 @@ function initMenuBar() {
     console.log(JSON.stringify(e.detail.value));
     if (e.detail.value.text === 'Trash') {
       DNA.deleteMail(g_currentMailItem.id, handle_deleteMail);
+      const mailGrid = document.querySelector('#mailGrid');
+      mailGrid.selectedItems = [];
+      mailGrid.activeItem = null;
       setState_DeleteButton(true)
     }
     if (e.detail.value.text === 'Refresh') {
@@ -541,7 +544,7 @@ function initFileBox() {
     console.log('mailgrid Event: active-item-changed');
     const item = event.detail.value;
     mailGrid.selectedItems = item ? [item] : [];
-    if (item === null) {
+    if (item === null || item === undefined) {
       //getAllMails(handleMails, handle_getAllMails)
       return;
     }
