@@ -136,7 +136,7 @@ export async function callDna(functionName, payload, timeout) {
         zome_name: "snapmail",
         fn_name: functionName,
         provenance: g_cellId[1],
-        payload: payload
+        payload,
       },
       t
     )
@@ -169,7 +169,7 @@ export function setHandle(username, callback) {
 export function getAllHandles(callback) {
   callDna('get_all_handles', null)
     .then(result => callback(result))
-    .catch(error => {
+    .catch(null_error => {
       callback(undefined);
     });
 }
@@ -183,7 +183,7 @@ export function pingAgent(agentHash, callback) {
   callDna('ping_agent', agentHash, 2000)
     .then(result => callback(result))
     .catch(error => {
-      console.log('Ping failed for: ' + htos(agentHash));
+      console.error('Ping failed for: ' + htos(agentHash));
       callback(undefined);
     });
 }

@@ -1115,9 +1115,9 @@ function handle_getAllHandles(callResult) {
     g_usernameMap.clear();
     for(let handleItem of handleList) {
       // TODO: exclude self from list when in prod?
-      let agentId = htos(Object.values(handleItem[1]));
-      console.log('' + handleItem[0] + ': ' + agentId);
-      g_usernameMap.set(agentId, handleItem[0]);
+      let agentId = htos(Object.values(handleItem.agentId));
+      console.log('' + handleItem.name + ': ' + agentId);
+      g_usernameMap.set(agentId, handleItem.name);
       if(g_pingMap.get(agentId) === undefined) {
         //console.log("ADDING TO g_pingMap: " + agentId);
         g_pingMap.set(agentId, 0);
