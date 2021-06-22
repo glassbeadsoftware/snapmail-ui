@@ -28,6 +28,8 @@ import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex, htos, stoh} from './utils'
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
+import {version} from '../package.json';
+
 //---------------------------------------------------------------------------------------------------------------------
 // DEBUG MODE
 //---------------------------------------------------------------------------------------------------------------------
@@ -372,6 +374,10 @@ function initTitleBar() {
   const span = document.querySelector('#networkIdDisplay');
   console.assert(span);
   span.textContent = DNA.NETWORK_ID;
+
+  const title = document.querySelector('#snapTitle');
+  console.assert(title);
+  title.textContent = "SnapMail v" + version + "  - ";
 }
 
 /**
