@@ -712,7 +712,7 @@ async function getFile(fileId) {
       await sleep(10)
     }
   }
-  while (g_getChunks.length !=  g_manifest.chunks.length) {
+  while (g_getChunks.length != g_manifest.chunks.length) {
     await sleep(10)
   }
   // concat chunks
@@ -778,7 +778,6 @@ function initOutMailArea() {
       item.recepientType = nextType;
       // --
       console.log('selectedItems size = ' + contactGrid.selectedItems.length);
-      contactGrid.removeHeaderRow;
       contactGrid.render();
     }
   });

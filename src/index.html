@@ -7,12 +7,32 @@
     <template>
         <style>
             /* Background needs a stronger selector to not be overridden */
-            [part~="cell"].female {
-                background: rgb(255, 240, 240);
+            [part~="cell"].male {
+                background: rgb(255, 240, 0);
             }
 
-            [part~="cell"].male {
-                background: rgb(245, 245, 255);
+/*
+            [part~="header-cell"] {
+                background: rgb(255, 0, 200);
+            }
+*/
+            :host(#contactGrid) #header {
+                display: none;
+            }
+
+            /*
+            :host th {
+                height: 15px;
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+            }
+            */
+
+            :host(#attachmentGrid) #header {
+                /*padding: 0px 0px 0px 0px;*/
+                /*margin: 0px 0px 0px 0px;*/
+                /*background: rgb(0, 100, 200);*/
+                /*height: 15px;*/
             }
 
             .newmail {
@@ -87,18 +107,7 @@
         </abbr>
         <span id="snapTitle" style="text-align: center; font-size: larger; padding: 10px 0px 10px 5px;">SnapMail</span>
         <span id="networkIdDisplay" style="text-align: center; font-size: small; padding: 15px 2px 0px 5px;">NETWORK-ID</span>
-        <span style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;"> - </span>
-        <abbr title="handle" id="handleAbbr">
-            <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
-        </abbr>
-        <!-- <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip> -->
-        <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"> </vaadin-text-field>
-            <vaadin-button theme="icon" id="setMyHandleButton" title="unknown">
-                <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
-            </vaadin-button>
-        <vaadin-button theme="icon" id="cancelHandleButton">
-            <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
-        </vaadin-button>
+<!--        <span style="text-align: center; font-size: larger; padding: 10px 10px 10px 5px;"> - </span>-->
     </vaadin-horizontal-layout>
 
     <!-- FILEBOX MENU -->
@@ -144,15 +153,26 @@
         <!-- CONTACTS AREA -->
         <vaadin-vertical-layout theme="spacing-xs" style="min-width: 20px; width: 30%;">
             <!-- CONTACTS MENU -->
-<!--            <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">-->
-                <vaadin-horizontal-layout theme="spacing-xs">
-                <!-- <h4 style="text-align: center; font-size: larger; padding: 10px 10px 10px 10px;">Contacts</h4>-->
+            <!-- <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">-->
+            <vaadin-horizontal-layout theme="spacing-xs">
+                <h4 style="text-align: center; font-size: large; padding: 10px 10px 10px 10px; margin: 0px 0px 0px 5px;">Contacts:</h4>
+                <abbr title="handle" id="handleAbbr">
+                    <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
+                </abbr>
+                <!-- <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip> -->
+                <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"></vaadin-text-field>
+                <vaadin-button theme="icon" id="setMyHandleButton" title="unknown">
+                    <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
+                </vaadin-button>
+                <vaadin-button theme="icon" id="cancelHandleButton">
+                    <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
+                </vaadin-button>
                 <vaadin-menu-bar open-on-hover id="ContactsMenu"></vaadin-menu-bar>
             </vaadin-horizontal-layout>
             <!-- CONTACTS GRID -->
             <vaadin-grid theme="no-row-borders" id="contactGrid" >
                 <vaadin-grid-column path="status" header=" " width="30px" flex-grow="0"></vaadin-grid-column>
-                <vaadin-grid-column auto-width path="username" header="Contacts"></vaadin-grid-column>
+                <vaadin-grid-column auto-width path="username" header=" "></vaadin-grid-column>
                 <vaadin-grid-column auto-width path="recepientType" header=" "></vaadin-grid-column>
                 <vaadin-grid-column path="agentId" hidden></vaadin-grid-column>
             </vaadin-grid>
