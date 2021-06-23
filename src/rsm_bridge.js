@@ -11,9 +11,10 @@ var APP_ID = 'snapmail-app'
 var APP_PORT = parseInt(HREF_PORT) + 800
 export var NETWORK_ID = ''
 
-// No HREF PORT when run by Electron
+export const IS_ELECTRON = (HREF_PORT === ""); // No HREF PORT when run by Electron
+
 // Use different values when in electron
-if (HREF_PORT === "") {
+if (IS_ELECTRON) {
   APP_ID = 'snapmail-app'
   ADMIN_PORT = 1235
   let searchParams = new URLSearchParams(window.location.search);

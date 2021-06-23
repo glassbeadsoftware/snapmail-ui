@@ -29,6 +29,7 @@ import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
 
 import {version} from '../package.json';
+import { IS_ELECTRON, NETWORK_ID } from "./rsm_bridge";
 
 //---------------------------------------------------------------------------------------------------------------------
 // DEBUG MODE
@@ -316,10 +317,14 @@ function initDna() {
     //DNA.findAgent(handleButton.textContent, handle_findAgent);
 
     // -- Change title color in debug -- //
+    const titleLayout = document.getElementById('titleLayout');
     if (process.env.NODE_ENV !== 'prod') {
-      const titleLayout = document.getElementById('titleLayout');
       titleLayout.style.backgroundColor = "#ec8383d1";
     }
+    if (DNA.IS_ELECTRON) {
+      titleLayout.style.display = "none";
+    }
+
     // -- Update Abbr -- //
     const handleAbbr = document.getElementById('handleAbbr');
     handleAbbr.title = g_myAgentId
@@ -378,6 +383,11 @@ function initTitleBar() {
   const title = document.querySelector('#snapTitle');
   console.assert(title);
   title.textContent = "SnapMail v" + version + "  - ";
+
+  const rootTitle = document.querySelector('#rootTitle');
+  console.assert(rootTitle);
+  rootTitle.textContent = "SnapMail v" + version + "  - " + DNA.NETWORK_ID;
+
 }
 
 /**
@@ -513,6 +523,10 @@ function update_mailGrid(folder) {
  *
  */
 function initFileBox() {
+  const fileboxBar = document.querySelector('#fileboxBar');
+  if (process.env.NODE_ENV !== 'prod') {
+    fileboxBar.style.backgroundColor = "rgba(241,154,154,0.82)";
+  }
   // Combobox -- vaadin-combo-box
   const systemFoldersVec = [systemFolders.ALL, systemFolders.INBOX, systemFolders.SENT, systemFolders.TRASH];
   const folderBoxAll = document.querySelector('#fileboxFolder');
@@ -556,10 +570,10 @@ function initFileBox() {
     }
     g_currentMailItem = item;
     //console.log('mail grid item: ' + JSON.stringify(item));
-    var span = document.getElementById('inMailArea');
+    var inMailArea = document.getElementById('inMailArea');
     let mailItem = g_mailMap.get(htos(item.id));
     //console.log('mail item: ' + JSON.stringify(mailItem));
-    span.value = into_mailText(g_usernameMap, mailItem);
+    inMailArea.value = into_mailText(g_usernameMap, mailItem);
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
@@ -572,6 +586,9 @@ function initFileBox() {
       }
     });
   });
+  var inMailArea = document.getElementById('inMailArea');
+  inMailArea.style.backgroundColor = "#dfe7efd1";
+
 }
 
 
@@ -746,11 +763,14 @@ function initOutMailArea() {
   const contactGrid = document.querySelector('#contactGrid');
   contactGrid.items = [];
   contactGrid.cellClassNameGenerator = function(column, rowData) {
-    //console.log({rowData})
+    console.log(rowData)
     let classes = rowData.item.status;
     if (column.path === 'status') {
       classes += ' statusColumn';
     }
+    if (rowData.item.recepientType !== '') { classes += ' newmail' }
+    if (rowData.item.recepientType === 'cc') { classes += ' myCc' }
+    if (rowData.item.recepientType === 'bcc') { classes += ' myBcc' }
     return classes;
   };
   // ON SELECT
