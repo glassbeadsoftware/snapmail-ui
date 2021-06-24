@@ -188,13 +188,17 @@ function initUpload() {
       window.alert(event.detail.file.name + ' error: ' + event.detail.error);
     });
 
-    // DEBUG
+    // // DEBUG
     // upload.addEventListener('files-changed', function(event) {
     //   //console.log('files-changed event: ', JSON.stringify(event.detail));
     //   console.log('files-changed event: ');
-    //   const detail = event.detail;
-    //   console.log({detail});
+    //   //const detail = event.detail;
+    //   //console.log({detail});
     // });
+    // upload.addEventListener('upload-success', function(event) {
+    //   console.log('upload-success event');
+    //   //console.log(event);
+    // })
 
     upload.addEventListener('upload-before', function(event) {
       //console.log('upload-before event: ', JSON.stringify(event.detail.file));
@@ -208,10 +212,13 @@ function initUpload() {
       reader.onload = function(e) {
         console.log('FileReader onload event: ');
         const content = arrayBufferToBase64(e.target.result); // reader.result
-        if (!base64regex.test(content)) {
-          const invalid_hash = sha256(content);
-          console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
-        }
+
+        // Disabled regex test because it causes error on big files: "RangeError: Maximum call stack size exceeded"
+        // if (!base64regex.test(content)) {
+        //   const invalid_hash = sha256(content);
+        //   console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
+        // }
+
         console.log({e});
         console.log('file: ' + file.name + ' ; size: ' + Math.ceil(content.length / 1024) + ' KiB ; type: ' + file.type);
 
@@ -222,18 +229,19 @@ function initUpload() {
       reader.readAsArrayBuffer(event.detail.file);
     });
 
-    // upload.addEventListener('upload-request', function(event) {
-    //   //console.log('upload-request event: ', JSON.stringify(event.detail));
-    //   const files = upload.files;
-    //   console.log('upload-request event: ');
-    //   console.log({event});
-    //   //console.log({files});
-    //   event.preventDefault();
-    //   let xhr = event.detail.xhr;
-    //   console.log({xhr});
-    //   let file = event.detail.file;
-    //   xhr.send(file);
+    //  upload.addEventListener('upload-request', function(event) {
+    //    console.log('upload-request event: ', JSON.stringify(event.detail));
+    // //   const files = upload.files;
+    // //   console.log('upload-request event: ');
+    // //   console.log({event});
+    // //   //console.log({files});
+    // //   event.preventDefault();
+    // //   let xhr = event.detail.xhr;
+    // //   console.log({xhr});
+    // //   let file = event.detail.file;
+    // //   xhr.send(file);
     // });
+
   });
 }
 
@@ -334,7 +342,7 @@ function initDna() {
     const loadingBar = document.querySelector('#loadingBar');
     loadingBar.style.display = "none";
     const mainPage = document.querySelector('#mainPage');
-    mainPage.style.display = "block";
+    mainPage.style.display = "flex";
   }).catch(error => {
     console.error(error)
     alert("Failed to connect to holochain. Holochain conductor service might not be up and running.");
@@ -683,10 +691,10 @@ function initAttachmentGrid() {
        item.status = String.fromCodePoint(0x2714);
        //attachmentGrid.deselectItem(item);
        // DEBUG - check if content is valid base64
-       if (!base64regex.test(manifest.content)) {
-         const invalid_hash = sha256(manifest.content);
-         console.error("File '" + manifest.filename + "' is invalid base64. hash is: " + invalid_hash);
-       }
+       // if (!base64regex.test(manifest.content)) {
+       //   const invalid_hash = sha256(manifest.content);
+       //   console.error("File '" + manifest.filename + "' is invalid base64. hash is: " + invalid_hash);
+       // }
        let filetype = manifest.filetype;
        const fields = manifest.filetype.split(':');
        if (fields.length > 1) {
@@ -763,7 +771,7 @@ function initOutMailArea() {
   const contactGrid = document.querySelector('#contactGrid');
   contactGrid.items = [];
   contactGrid.cellClassNameGenerator = function(column, rowData) {
-    console.log(rowData)
+    //console.log(rowData)
     let classes = rowData.item.status;
     if (column.path === 'status') {
       classes += ' statusColumn';
@@ -820,22 +828,31 @@ function initActionBar() {
     console.log('actionMenu: ' + JSON.stringify(e.detail.value.text))
     const outMailSubjectArea = document.querySelector('#outMailSubjectArea');
     const outMailContentArea = document.querySelector('#outMailContentArea');
+    const upload = document.querySelector('vaadin-upload');
+    // Clear clicked
     if (e.detail.value.text === 'Clear') {
       outMailSubjectArea.value = '';
       outMailContentArea.value = '';
+      /// clear each attachment
+      upload.files = [];
       resetRecepients();
       return;
     }
-    const sendProgressBar = document.querySelector('#sendProgressBar');
-    sendProgressBar.style.display = "block";
-    actionMenu.style.display = "none";
-    const upload = document.querySelector('vaadin-upload');
-    upload.style.display = "none";
+    // Send clicked
     if (e.detail.value.text === 'Send') {
+      const sendProgressBar = document.querySelector('#sendProgressBar');
+      const sendingTitle = document.querySelector('#sendingTitle');
+      sendProgressBar.style.display = "block";
+      sendingTitle.style.display = "block";
+      actionMenu.style.display = "none";
+      //upload.style.display = "none";
+      upload.maxFiles = 0;
       sendAction().then(function() {
         sendProgressBar.style.display = "none";
+        sendingTitle.style.display = "none";
         actionMenu.style.display = "block";
-        upload.style.display = "block";
+        //upload.style.display = "block";
+        upload.maxFiles = 42;
       });
     }
   });
@@ -851,10 +868,11 @@ async function sendAction() {
   console.log({files})
   g_fileList = [];
   for (let file of files) {
-    if (!base64regex.test(file.content)) {
-      const invalid_hash = sha256(file.content);
-      console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
-    }
+    // // Causes stack error on big files
+    // if (!base64regex.test(file.content)) {
+    //   const invalid_hash = sha256(file.content);
+    //   console.error("File '" + file.name + "' is invalid base64. hash is: " + invalid_hash);
+    // }
     const parts = file.content.split(',');
     console.log("parts.length: " + parts.length)
     console.log({parts})
