@@ -357,6 +357,7 @@ function setHandle() {
   showHandle({ Ok: input.value});
   input.value = '';
   setState_ChangeHandleBar(true);
+  DNA.getAllHandles(handle_getAllHandles);
 }
 
 /**
@@ -436,24 +437,41 @@ async function resetRecepients() {
 function initMenuBar() {
   // Menu -- vaadin-menu-bar
   const menu = document.querySelector('#MenuBar');
-  menu.items =
+  let items =
     [ { text: 'Move', disabled: true }
-    , { text: 'Reply', disabled: true, children: [{ text: 'One' }, { text: 'All' }, { text: 'Fwd' }] }
+    , { text: 'Reply', disabled: true, children: [{ text: 'Sender' }, { text: 'All' }, { text: 'Fwd' }] }
     , { text: 'Trash', disabled: true }
     , { text: 'Print', disabled: true }
     , { text: 'Find', disabled: true }
-    , { text: 'Refresh' }
     ];
+  if (process.env.NODE_ENV !== 'prod') {
+    items.push({ text: 'Refresh' });
+  }
+  menu.items = items;
 
+  // On button click
   menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value));
+    // Handle 'Trash'
     if (e.detail.value.text === 'Trash') {
       DNA.deleteMail(g_currentMailItem.id, handle_deleteMail);
       const mailGrid = document.querySelector('#mailGrid');
       mailGrid.selectedItems = [];
       mailGrid.activeItem = null;
       setState_DeleteButton(true)
+      setState_ReplyButton(true)
     }
+    // Handle 'Reply'
+    if (e.detail.value.text === 'Sender') {
+      window.alert('Not implemented Sender yet');
+    }
+    if (e.detail.value.text === 'All') {
+      window.alert('Not implemented All yet');
+    }
+    if (e.detail.value.text === 'Fwd') {
+      window.alert('Not implemented Fwd yet');
+    }
+    // Handle 'Refresh'
     if (e.detail.value.text === 'Refresh') {
       //console.log('Refresh called');
       getAllFromDht();
@@ -547,6 +565,7 @@ function initFileBox() {
     update_mailGrid(event.target.value)
     g_currentFolder = event.target.value;
     setState_DeleteButton(true)
+    setState_ReplyButton(true)
   });
 
   // Filebox -- vaadin-grid
@@ -591,6 +610,7 @@ function initFileBox() {
       // Allow delete button
       if (g_currentFolder !== systemFolders.TRASH) {
         setState_DeleteButton(false)
+        setState_ReplyButton(false)
       }
     });
   });
@@ -756,17 +776,18 @@ async function getFile(fileId) {
  */
 function initOutMailArea() {
   // -- ContactsMenu -- vaadin-menu-bar
-  const contactsMenu = document.querySelector('#ContactsMenu');
-  contactsMenu.items = [{ text: 'Refresh' }];
-  contactsMenu.addEventListener('item-selected', function(e) {
-    console.log(JSON.stringify(e.detail.value));
-    if (e.detail.value.text === 'Refresh') {
-      contactsMenu.items[0].disabled = true;
-      contactsMenu.render();
-      DNA.getAllHandles(handle_getAllHandles);
-    }
-  });
-
+  if (process.env.NODE_ENV !== 'prod') {
+    const contactsMenu = document.querySelector('#ContactsMenu');
+    contactsMenu.items = [{ text: 'Refresh' }];
+    contactsMenu.addEventListener('item-selected', function(e) {
+      console.log(JSON.stringify(e.detail.value));
+      if(e.detail.value.text === 'Refresh') {
+        contactsMenu.items[0].disabled = true;
+        contactsMenu.render();
+        DNA.getAllHandles(handle_getAllHandles);
+      }
+    });
+  }
   // -- contactGrid -- vaadin-grid
   const contactGrid = document.querySelector('#contactGrid');
   contactGrid.items = [];
@@ -978,6 +999,13 @@ function setState_DeleteButton(isDisabled) {
   let menu = document.querySelector('#MenuBar');
   //console.log('menu.items = ' + JSON.stringify(menu.items))
   menu.items[2].disabled = isDisabled;
+  menu.render();
+}
+
+function setState_ReplyButton(isDisabled) {
+  let menu = document.querySelector('#MenuBar');
+  //console.log('menu.items = ' + JSON.stringify(menu.items))
+  menu.items[1].disabled = isDisabled;
   menu.render();
 }
 

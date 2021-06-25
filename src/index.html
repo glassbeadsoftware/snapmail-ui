@@ -121,7 +121,9 @@
 
     <!-- FILEBOX MENU -->
     <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar" style="margin-top:0; width:100%;">
-        <vaadin-combo-box id="fileboxFolder"></vaadin-combo-box>
+        <vaadin-combo-box id="fileboxFolder" style="user-select: none;
+	        -khtml-user-select: none;
+	        -webkit-user-select: none;"></vaadin-combo-box>
         <vaadin-menu-bar open-on-hover id="MenuBar" style="margin-top:2px"></vaadin-menu-bar>
         <span style="padding:12px 0px 0px 5px;">Messages: <span id="messageCount">0</span></span>
     </vaadin-horizontal-layout>
