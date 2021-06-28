@@ -99,7 +99,7 @@ export function determineMailClass(mailItem) {
  *
  * @returns {string}
  */
-function customDateString(unixTimestamp) {
+export function customDateString(unixTimestamp) {
   let date = new Date(unixTimestamp * 1000);
   let hours = date.getHours();
   let minutes = date.getMinutes();
@@ -139,7 +139,7 @@ function getUsername(usernameMap, mailItem) {
       username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.mail.to)
     } else if (mailItem.mail.hasOwnProperty('cc') && mailItem.mail.cc.length > 0) {
       username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.mail.cc)
-    } else if (mailItem.mail.hasOwnProperty('bcc') && mailItem.mail.bcc.length > 0) {
+    } else if (mailItem.mail.hasOwnProperty('bcc') && mailItem.bcc.length > 0) {
       username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.bcc)
     }
   }

@@ -26,7 +26,7 @@ import '@vaadin/vaadin-notification';
 
 import * as DNA from './rsm_bridge'
 import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base64regex, htos, stoh} from './utils'
-import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail} from './mail'
+import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail, customDateString} from './mail'
 
 import {version} from '../package.json';
 import { IS_ELECTRON, NETWORK_ID } from "./rsm_bridge";
@@ -452,7 +452,7 @@ function initMenuBar() {
   // On button click
   menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value));
-    // Handle 'Trash'
+    // -- Handle 'Trash' -- //
     if (e.detail.value.text === 'Trash') {
       DNA.deleteMail(g_currentMailItem.id, handle_deleteMail);
       const mailGrid = document.querySelector('#mailGrid');
@@ -461,17 +461,61 @@ function initMenuBar() {
       setState_DeleteButton(true)
       setState_ReplyButton(true)
     }
-    // Handle 'Reply'
+    // -- Handle 'Reply' -- //
+    const outMailSubjectArea = document.querySelector('#outMailSubjectArea');
+    const contactGrid = document.querySelector('#contactGrid');
+
     if (e.detail.value.text === 'Sender') {
-      window.alert('Not implemented Sender yet');
+      outMailSubjectArea.value = 'Re: ' + g_currentMailItem.subject;
+      resetContactGrid(contactGrid);
+      for (let contactItem of contactGrid.items) {
+        if (contactItem.username === g_currentMailItem.username) {
+          contactGrid.selectedItems = [contactItem];
+          contactGrid.activeItem = contactItem;
+          toggleContact(contactItem);
+          contactGrid.render();
+          break;
+        }
+      }
     }
     if (e.detail.value.text === 'All') {
-      window.alert('Not implemented All yet');
+      let mailItem = g_mailMap.get(htos(g_currentMailItem.id));
+      if (mailItem) {
+        outMailSubjectArea.value = 'Re: ' + g_currentMailItem.subject;
+        resetContactGrid(contactGrid);
+        // TO
+        for(let agentId of mailItem.mail.to) {
+          let to_username = g_usernameMap.get(htos(agentId));
+          selectUsername(contactGrid, to_username, 1);
+        }
+        // CC
+        for(let agentId of mailItem.mail.cc) {
+          let cc_username = g_usernameMap.get(htos(agentId));
+          selectUsername(contactGrid, cc_username, 2);
+        }
+        // BCC
+        for(let agentId of mailItem.bcc) {
+          let bcc_username = g_usernameMap.get(htos(agentId));
+          selectUsername(contactGrid, bcc_username, 3);
+        }
+        // Done
+        contactGrid.render();
+      }
     }
     if (e.detail.value.text === 'Fwd') {
-      window.alert('Not implemented Fwd yet');
+      outMailSubjectArea.value = 'Fwd: ' + g_currentMailItem.subject;
+      resetContactGrid(contactGrid);
+      const outMailContentArea = document.querySelector('#outMailContentArea');
+      let mailItem = g_mailMap.get(htos(g_currentMailItem.id));
+      let fwd = '\n\n';
+      fwd += '> ' + 'Mail from: ' + g_usernameMap.get(htos(mailItem.author)) + ' at ' + customDateString(mailItem.date) + '\n';
+      let arrayOfLines = mailItem.mail.payload.match(/[^\r\n]+/g);
+      for (let line of arrayOfLines) {
+        fwd += '> ' + line + '\n';
+      }
+      outMailContentArea.value = fwd;
     }
-    // Handle 'Refresh'
+    // -- Handle 'Refresh' -- //
     if (e.detail.value.text === 'Refresh') {
       //console.log('Refresh called');
       getAllFromDht();
@@ -480,6 +524,19 @@ function initMenuBar() {
 }
 
 
+function selectUsername(contactGrid, candidat, count) {
+  for(let contactItem of contactGrid.items) {
+    if(contactItem.username === candidat) {
+      for (let i = 0; i < count; i++) {
+        toggleContact(contactItem);
+      }
+      contactGrid.selectedItems.push(contactItem);
+      contactGrid.activeItem = contactItem;
+      break;
+    }
+  }
+
+}
 /**
  *
  */
@@ -814,23 +871,43 @@ function initOutMailArea() {
   contactGrid.addEventListener('click', function(e) {
     const item = contactGrid.getEventContext(e).item;
     //contactGrid.selectedItems = item ? [item] : [];
-    if (item) {
-      // toggleRecepientType
-      let nextType = '';
-      switch(item.recepientType) {
-        case '': nextType = 'to'; break;
-        case 'to': nextType = 'cc'; break;
-        case 'cc': nextType = 'bcc'; break;
-        case 'bcc': nextType = ''; break;
-        default: console.err('unknown recepientType');
-      }
-      item.recepientType = nextType;
-      // --
-      console.log('selectedItems size = ' + contactGrid.selectedItems.length);
-      contactGrid.render();
-    }
+    toggleContact(item);
+    contactGrid.render();
   });
 }
+
+
+/**
+ *
+ */
+function toggleContact(contactItem) {
+  if (!contactItem) {
+    return;
+  }
+  let nextType = '';
+  switch(contactItem.recepientType) {
+    case '': nextType = 'to'; break;
+    case 'to': nextType = 'cc'; break;
+    case 'cc': nextType = 'bcc'; break;
+    case 'bcc': nextType = ''; break;
+    default: console.err('unknown recepientType');
+  }
+  contactItem.recepientType = nextType;
+}
+
+
+/**
+ *
+ */
+function resetContactGrid(contactGrid) {
+  for (let contactItem of contactGrid.items) {
+    contactItem.recepientType = '';
+  }
+  contactGrid.selectedItems = [];
+  contactGrid.activeItem = null;
+  contactGrid.render();
+}
+
 
 /**
  *
