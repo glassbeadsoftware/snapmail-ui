@@ -1017,7 +1017,7 @@ function setState_ReplyButton(isDisabled) {
  * Generic callback: log response
  */
 function logCallResult(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('Zome call failed:');
     console.error(err);
@@ -1031,7 +1031,7 @@ function logCallResult(callResult) {
  * Generic callback: Refresh my handle
  */
 function showHandle(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('getMyHandle zome call failed');
     console.error(err);
@@ -1053,7 +1053,7 @@ function showHandle(callResult) {
  * On delete, refresh filebox
  */
 function handle_deleteMail(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('deleteMail zome call failed');
     console.error(err);
@@ -1068,7 +1068,7 @@ function handle_deleteMail(callResult) {
  * Refresh mailGrid
  */
 function handle_getAllMails(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('getAllMails zome call failed');
     console.error(err);
@@ -1232,7 +1232,7 @@ function handle_getAllHandles(callResult) {
  * Add chunk to chunkList
  */
 function handle_writeChunk(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('writeChunk zome call failed');
     console.error(err);
@@ -1247,7 +1247,7 @@ function handle_writeChunk(callResult) {
  */
 function handle_writeManifest(callResult) {
   //console.log('writeManifestResult: ' + JSON.stringify(callResult));
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('writeManifest zome call failed');
     console.error(err);
@@ -1261,7 +1261,7 @@ function handle_writeManifest(callResult) {
  *
  */
 function handle_getManifest(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('GetManifest zome call failed');
     console.error(err);
@@ -1275,7 +1275,7 @@ function handle_getManifest(callResult) {
  *
  */
 function handle_missingAttachments(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('MissingAttachments zome call failed');
     console.error(err);
@@ -1289,7 +1289,7 @@ function handle_missingAttachments(callResult) {
  *
  */
 function handle_acknowledgeMail(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('AcknowledgeMail zome call failed');
     console.error(err);
@@ -1302,7 +1302,7 @@ function handle_acknowledgeMail(callResult) {
  *
  */
 function handle_getChunk(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('GetChunk zome call failed');
     console.error(err);
@@ -1317,7 +1317,7 @@ function handle_getChunk(callResult) {
  *
  */
 function handle_findManifest(callResult) {
-  if (callResult.Err !== undefined) {
+  if (callResult === undefined || callResult.Err !== undefined) {
     const err = callResult.Err;
     console.error('FindManifest zome call failed');
     console.error(err);

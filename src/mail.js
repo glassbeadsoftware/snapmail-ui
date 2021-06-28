@@ -113,20 +113,34 @@ function customDateString(unixTimestamp) {
   return dday
 }
 
+function vecToStrUsernames(usernameMap, itemVec) {
+  let line = '';
+  for (let item of itemVec) {
+    if (line.length > 0) {
+      line += ',';
+    }
+    line += ' ' + usernameMap.get(htos(item));
+  }
+  return line;
+}
 
+
+/**
+ * Determine which Username to display (recepient or author)
+ * @param usernameMap
+ * @param mailItem
+ * @returns {string}
+ */
 function getUsername(usernameMap, mailItem) {
   let authorId = htos(mailItem.author);
   let username = usernameMap.get(authorId)
   if (mailItem.state.hasOwnProperty('Out')) {
-    if (mailItem.mail.hasOwnProperty('to')) {
-      const recepient = htos(mailItem.mail.to[0])
-      username = 'To: ' + usernameMap.get(recepient)
-    } else if (mailItem.mail.hasOwnProperty('cc')) {
-      const recepient = htos(mailItem.mail.cc[0])
-      username = 'To: ' + usernameMap.get(recepient)
-    } else if (mailItem.mail.hasOwnProperty('bcc')) {
-      const recepient = htos(mailItem.mail.bcc[0])
-      username = 'To: ' + usernameMap.get(recepient)
+    if (mailItem.mail.hasOwnProperty('to') && mailItem.mail.to.length > 0) {
+      username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.mail.to)
+    } else if (mailItem.mail.hasOwnProperty('cc') && mailItem.mail.cc.length > 0) {
+      username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.mail.cc)
+    } else if (mailItem.mail.hasOwnProperty('bcc') && mailItem.mail.bcc.length > 0) {
+      username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.bcc)
     }
   }
   return username;
@@ -185,22 +199,15 @@ export function into_mailText(usernameMap, mailItem) {
   let intext = 'Subject: ' + mailItem.mail.subject + '\n\n'
     + mailItem.mail.payload + '\n\n'
     + 'Mail from: ' + usernameMap.get(htos(mailItem.author)) + ' at ' + customDateString(mailItem.date);
-  let to_line = '';
-  for (let item of mailItem.mail.to) {
-    to_line += ' ' + usernameMap.get(htos(item));
-  }
-  let cc_line = '';
-  let can_cc = false;
-  for (let item of mailItem.mail.cc) {
-    cc_line += ' ' + usernameMap.get(htos(item));
-    can_cc = true;
-  }
-  let bcc_line = '';
-  let can_bcc = false;
-  for (let item of mailItem.bcc) {
-    bcc_line += ' ' + usernameMap.get(htos(item));
-    can_bcc = true;
-  }
+
+  let to_line = vecToStrUsernames(usernameMap, mailItem.mail.to);
+
+  let can_cc = mailItem.mail.cc.length > 0;
+  let cc_line = vecToStrUsernames(usernameMap, mailItem.mail.cc);
+
+  let can_bcc = mailItem.bcc.length > 0;
+  let bcc_line = vecToStrUsernames(usernameMap, mailItem.bcc);
+
   intext += '\nTo: ' + to_line;
   if (can_cc) {
     intext += '\nCC: ' + cc_line;
