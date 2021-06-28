@@ -184,6 +184,13 @@ function initUpload() {
   customElements.whenDefined('vaadin-upload').then(function() {
     const upload = document.querySelector('vaadin-upload');
 
+    upload.onclick = function changeContent() {
+      const sendProgressBar = document.querySelector('#sendProgressBar');
+      const actionMenu = document.querySelector('#ActionBar');
+      sendProgressBar.style.display = "block";
+      actionMenu.style.display = "none";
+    }
+
     upload.addEventListener('file-reject', function(event) {
       window.alert(event.detail.file.name + ' error: ' + event.detail.error);
     });
@@ -199,9 +206,19 @@ function initUpload() {
     //   console.log('upload-success event');
     //   //console.log(event);
     // })
+    // upload.addEventListener('upload-abort', function(event) {
+    //   window.alert('upload aborted');
+    // });
 
+    // -- On upload file selected -- //
     upload.addEventListener('upload-before', function(event) {
-      //console.log('upload-before event: ', JSON.stringify(event.detail.file));
+      console.log('upload-before event: ', JSON.stringify(event.detail.file));
+
+      const sendProgressBar = document.querySelector('#sendProgressBar');
+      const actionMenu = document.querySelector('#ActionBar');
+      sendProgressBar.style.display = "none";
+      actionMenu.style.display = "block";
+
       const file = event.detail.file;
       const xhr = event.detail.xhr;
       console.log('upload-before event: ');
@@ -764,14 +781,16 @@ function initAttachmentGrid() {
 
     /// Get File on source chain
      getFile(item.fileId).then(function(manifest) {
-       console.log({ manifest })
+       //console.log({ manifest })
        item.status = String.fromCodePoint(0x2714);
        //attachmentGrid.deselectItem(item);
+
        // DEBUG - check if content is valid base64
        // if (!base64regex.test(manifest.content)) {
        //   const invalid_hash = sha256(manifest.content);
        //   console.error("File '" + manifest.filename + "' is invalid base64. hash is: " + invalid_hash);
        // }
+
        let filetype = manifest.filetype;
        const fields = manifest.filetype.split(':');
        if (fields.length > 1) {
@@ -794,7 +813,7 @@ function initAttachmentGrid() {
 }
 
 /**
- *
+ * Return manifest with added content field
  */
 async function getFile(fileId) {
   g_manifest = null;
