@@ -14,13 +14,14 @@ module.exports = {
       new HtmlWebpackPlugin({
         template: './src/index.html'
       }),
-      new CopyWebpackPlugin([
-        {
-          context: 'node_modules/@webcomponents/webcomponentsjs',
-          from: '**/*.js',
-          to: 'webcomponents'
-        },
-      ])
+      new CopyWebpackPlugin({
+        patterns:[
+          {
+            context: 'node_modules/@webcomponents/webcomponentsjs',
+            from: '**/*.js',
+            to: 'webcomponents'
+          }]
+      })
     ],
   output: {
     filename: 'index.js',
@@ -34,4 +35,10 @@ module.exports = {
     rules: [
     ],
   },
+  resolve: {
+    fallback: {
+      "fs": false,
+      "path": require.resolve("path-browserify")
+    },
+  }
 }

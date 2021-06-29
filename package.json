@@ -34,13 +34,13 @@
   "homepage": "https://github.com/ddd-mtl/snapmail#readme",
   "devDependencies": {
     "@webcomponents/webcomponentsjs": "^2.4.3",
-    "copy-webpack-plugin": "^5.1.1",
-    "html-webpack-plugin": "^4.2.0",
-    "style-loader": "^1.0.0",
-    "webpack": "^4.41.3",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3",
-    "webpack-merge": "^4.2.2"
+    "copy-webpack-plugin": "^9.0.1",
+    "html-webpack-plugin": "^5.3.2",
+    "style-loader": "^3.0.0",
+    "webpack": "^5.41.1",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-merge": "^5.8.0"
   },
   "dependencies": {
     "@holochain/conductor-api": "=0.0.4",
@@ -55,8 +55,10 @@
     "@web/dev-server": "0.0.13",
     "byte-base64": "^1.1.0",
     "concurrently": "^5.1.0",
+    "electron": "^13.1.4",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
+    "path-browserify": "^1.0.1",
     "prop-types": "^15.7.2",
     "rollup": "^2.32.0",
     "rollup-plugin-node-builtins": "^2.1.2",

@@ -126,6 +126,13 @@ function handleSignal(signalwrapper) {
   //   return;
   // }
 
+  if (IS_ELECTRON && window.require) {
+    //console.log("handleSignal for ELECTRON");
+    const ipc = window.require('electron').ipcRenderer;
+    let reply = ipc.sendSync('helloSync', 'hi_world', signalwrapper.data.payload);
+    //console.log(reply);
+  }
+
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedMail')) {
       let item = signalwrapper.data.payload.ReceivedMail;
       console.log("received_mail:");
