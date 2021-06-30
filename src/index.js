@@ -126,19 +126,32 @@ function handleSignal(signalwrapper) {
   //   return;
   // }
 
-  if (IS_ELECTRON && window.require) {
-    //console.log("handleSignal for ELECTRON");
-    const ipc = window.require('electron').ipcRenderer;
-    let reply = ipc.sendSync('helloSync', 'hi_world', signalwrapper.data.payload);
-    //console.log(reply);
-  }
-
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedMail')) {
       let item = signalwrapper.data.payload.ReceivedMail;
       console.log("received_mail:");
       console.log({item});
       const notification = document.querySelector('#notifyMail');
       notification.open();
+
+      if (IS_ELECTRON && window.require) {
+        //console.log("handleSignal for ELECTRON");
+
+        let mail = signalwrapper.data.payload.ReceivedMail;
+        console.log(mail);
+        let author_name = g_usernameMap.get(htos(mail.author)) || 'unknown user';
+
+        // ELECTRON NOTIFICATION
+        const NOTIFICATION_TITLE = 'New mail received from ' + author_name;
+        const NOTIFICATION_BODY = signalwrapper.data.payload.ReceivedMail.mail.subject;
+        const CLICK_MESSAGE = 'Notification clicked'
+        new Notification(NOTIFICATION_TITLE, { body: NOTIFICATION_BODY })
+          .onclick = () => console.log(CLICK_MESSAGE)
+
+       // const ipc = window.require('electron').ipcRenderer;
+       //let reply = ipc.sendSync('helloSync', NOTIFICATION_TITLE, signalwrapper.data.payload.ReceivedMail.mail.subject);
+       //console.log(reply);
+      }
+
       callGetAllMails();
       return
   }
