@@ -477,7 +477,7 @@ function initMenuBar() {
   const menu = document.querySelector('#MenuBar');
   let items =
     [ { text: 'Move', disabled: true }
-    , { text: 'Reply', disabled: true, children: [{ text: 'Sender' }, { text: 'All' }, { text: 'Fwd' }] }
+    , { text: 'Reply', disabled: true, children: [{ text: 'Reply to sender' }, { text: 'Reply to all' }, { text: 'Forward' }] }
     , { text: 'Trash', disabled: true }
     , { text: 'Print', disabled: true }
     , { text: 'Find', disabled: true }
@@ -503,7 +503,7 @@ function initMenuBar() {
     const outMailSubjectArea = document.querySelector('#outMailSubjectArea');
     const contactGrid = document.querySelector('#contactGrid');
 
-    if (e.detail.value.text === 'Sender') {
+    if (e.detail.value.text === 'Reply to sender') {
       outMailSubjectArea.value = 'Re: ' + g_currentMailItem.subject;
       resetContactGrid(contactGrid);
       for (let contactItem of contactGrid.items) {
@@ -516,7 +516,7 @@ function initMenuBar() {
         }
       }
     }
-    if (e.detail.value.text === 'All') {
+    if (e.detail.value.text === 'Reply to all') {
       let mailItem = g_mailMap.get(htos(g_currentMailItem.id));
       if (mailItem) {
         outMailSubjectArea.value = 'Re: ' + g_currentMailItem.subject;
@@ -540,7 +540,7 @@ function initMenuBar() {
         contactGrid.render();
       }
     }
-    if (e.detail.value.text === 'Fwd') {
+    if (e.detail.value.text === 'Forward') {
       outMailSubjectArea.value = 'Fwd: ' + g_currentMailItem.subject;
       resetContactGrid(contactGrid);
       const outMailContentArea = document.querySelector('#outMailContentArea');
