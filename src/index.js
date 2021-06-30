@@ -50,6 +50,7 @@ function onLoop() {
   }
 }
 
+window.Buffer = require('buffer/').Buffer;
 
 //---------------------------------------------------------------------------------------------------------------------
 // Globals
@@ -1134,7 +1135,7 @@ function setState_ReplyButton(isDisabled) {
  */
 function logCallResult(callResult) {
   if (callResult === undefined || callResult.Err !== undefined) {
-    const err = callResult.Err;
+    const err = callResult.Err || 'unknown error';
     console.error('Zome call failed:');
     console.error(err);
     return;
@@ -1148,9 +1149,9 @@ function logCallResult(callResult) {
  */
 function showHandle(callResult) {
   if (callResult === undefined || callResult.Err !== undefined) {
-    const err = callResult.Err;
+    //const err = callResult.Err;
     console.error('getMyHandle zome call failed');
-    console.error(err);
+    //console.error(err);
     return;
   }
   //console.log('showHandle call result = ' + JSON.stringify(callResult))
@@ -1170,9 +1171,9 @@ function showHandle(callResult) {
  */
 function handle_deleteMail(callResult) {
   if (callResult === undefined || callResult.Err !== undefined) {
-    const err = callResult.Err;
+    //const err = callResult.Err;
     console.error('deleteMail zome call failed');
-    console.error(err);
+    //console.error(err);
     return;
   }
   // TODO check if call result succeeded
@@ -1185,9 +1186,9 @@ function handle_deleteMail(callResult) {
  */
 function handle_getAllMails(callResult) {
   if (callResult === undefined || callResult.Err !== undefined) {
-    const err = callResult.Err;
+    //const err = callResult.Err;
     console.error('getAllMails zome call failed');
-    console.error(err);
+    //console.error(err);
     return;
   }
   let mailGrid = document.querySelector('#mailGrid');
