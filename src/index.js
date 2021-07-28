@@ -490,6 +490,20 @@ function initMenuBar() {
   // On button click
   menu.addEventListener('item-selected', function(e) {
     console.log(JSON.stringify(e.detail.value));
+    // -- Handle 'Print' -- //
+    if (e.detail.value.text === 'Print') {
+      console.log({g_currentMailItem})
+      let mailItem = g_mailMap.get(htos(g_currentMailItem.id));
+      let mailText = into_mailText(g_usernameMap, mailItem)
+      // Save to disk
+      const blob = new Blob([mailText], { type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = mailItem.mail.subject;
+      a.addEventListener('click', {}, false);
+      a.click();
+    }
     // -- Handle 'Trash' -- //
     if (e.detail.value.text === 'Trash') {
       DNA.deleteMail(g_currentMailItem.id, handle_deleteMail);
@@ -1116,6 +1130,7 @@ function setState_DeleteButton(isDisabled) {
   let menu = document.querySelector('#MenuBar');
   //console.log('menu.items = ' + JSON.stringify(menu.items))
   menu.items[2].disabled = isDisabled;
+  menu.items[3].disabled = isDisabled;
   menu.render();
 }
 
