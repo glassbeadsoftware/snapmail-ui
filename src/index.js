@@ -82,6 +82,10 @@ var g_currentMailItem = {};
 var g_manifest = null;
 var g_getChunks = [];
 
+var g_items = [];
+var g_filteredItems = [];
+
+
 //---------------------------------------------------------------------------------------------------------------------
 // App
 //---------------------------------------------------------------------------------------------------------------------
@@ -480,7 +484,7 @@ function initMenuBar() {
     , { text: 'Reply', disabled: true, children: [{ text: 'Reply to sender' }, { text: 'Reply to all' }, { text: 'Forward' }] }
     , { text: 'Trash', disabled: true }
     , { text: 'Print', disabled: true }
-    , { text: 'Find', disabled: true }
+    //, { text: 'Find', disabled: true }
     ];
   if (process.env.NODE_ENV !== 'prod') {
     items.push({ text: 'Refresh' });
@@ -633,12 +637,15 @@ function update_mailGrid(folder) {
     default:
       console.error('Unknown folder')
   }
-  const span = document.querySelector('#messageCount');
-  console.assert(span);
-  span.textContent = folderItems.length;
+
+  // const span = document.querySelector('#messageCount');
+  // console.assert(span);
+  // span.textContent = folderItems.length;
+
   console.log('folderItems count: ' + folderItems.length);
   // console.log('folderItems: ' + JSON.stringify(folderItems))
-  grid.items = folderItems;
+  //grid.items = folderItems;
+  grid.items = g_items = folderItems;
   if (activeItem !== undefined && activeItem !== null) {
     for(const item of Object.values(grid.items)) {
       //console.log('Item id = ' + item.id);
@@ -650,6 +657,12 @@ function update_mailGrid(folder) {
       }
     }
   }
+
+  // Reset filter?
+  const mailSearch = document.querySelector('#mailSearch');
+  mailSearch.value = ''
+
+  //
   grid.render();
 }
 
@@ -726,6 +739,23 @@ function initFileBox() {
   var inMailArea = document.getElementById('inMailArea');
   inMailArea.style.backgroundColor = "#dfe7efd1";
 
+  var mailSearch = document.getElementById('mailSearch');
+  mailSearch.addEventListener('value-changed', function(e/*: TextFieldValueChangedEvent*/) {
+    const searchTerm = ((e.detail.value/* as string*/) || '').trim();
+    const matchesTerm = (value/*: string*/) => {
+      return value.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
+    };
+    mailGrid.items = g_items.filter(({ username, subject }) => {
+      console.log({subject});
+      return (
+        !searchTerm
+        || matchesTerm(username)
+        || matchesTerm(subject)
+        //|| matchesTerm(content)
+      );
+      mailGrid.render();
+    });
+  });
 }
 
 
@@ -1241,6 +1271,7 @@ function handle_getAllMails(callResult) {
     }
   }
   console.log('mailCount = ' + items.length + ' (' + selected.length + ')');
+  g_items = g_filteredItems = items;
   mailGrid.items = items;
   mailGrid.selectedItems = selected;
   mailGrid.activeItem = selected[0];
