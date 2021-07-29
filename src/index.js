@@ -351,13 +351,13 @@ function getAllFromDht() {
 function initDna() {
   console.log('initDna()');
   DNA.rsmConnectApp(handleSignal).then( async (cellId) => {
-    const dnaId = htos(cellId[0])
-    g_myAgentHash = cellId[1]
-    g_myAgentId = htos(g_myAgentHash)
+    const dnaId = htos(cellId[0]);
+    g_myAgentHash = cellId[1];
+    g_myAgentId = htos(g_myAgentHash);
     // let label = document.getElementById('agentIdDisplay');
     // label.textContent = g_myAgentId
     DNA.getMyHandle(showHandle);
-    getAllFromDht()
+    getAllFromDht();
     while (!canGetAllMutex) {
       await sleep(10)
     }
@@ -372,6 +372,13 @@ function initDna() {
     }
     if (DNA.IS_ELECTRON) {
       titleLayout.style.display = "none";
+      if (process.env.NODE_ENV !== 'prod') {
+        // -- Update Title with DNA ID
+        const rootTitle = document.querySelector('#rootTitle');
+        console.assert(rootTitle);
+        //rootTitle.textContent = "SnapMail v" + version + "  - " + DNA.NETWORK_ID;
+        rootTitle.textContent = rootTitle.textContent + " (" + dnaId + ")";
+      }
     }
 
     // -- Update Abbr -- //
@@ -446,7 +453,6 @@ function initTitleBar() {
   const rootTitle = document.querySelector('#rootTitle');
   console.assert(rootTitle);
   rootTitle.textContent = "SnapMail v" + version + "  - " + DNA.NETWORK_ID;
-
 }
 
 /**
