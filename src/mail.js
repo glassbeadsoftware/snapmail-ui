@@ -185,7 +185,12 @@ export function into_gridItem(usernameMap, mailItem) {
   //let status = '';
   // Done
   let item = {
-    "id": mailItem.address, "username": username, "subject": mailItem.mail.subject, "date": dateStr, "status": status
+    "id": mailItem.address,
+    "username": username,
+    "subject": mailItem.mail.subject,
+    "date": dateStr,
+    "status": status,
+    "content": mailItem.mail.payload
   };
   return item;
 }

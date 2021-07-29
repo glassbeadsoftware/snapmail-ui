@@ -82,9 +82,8 @@ var g_currentMailItem = {};
 var g_manifest = null;
 var g_getChunks = [];
 
-var g_items = [];
-var g_filteredItems = [];
-
+var g_contactItems = [];
+var g_mailItems = [];
 
 //---------------------------------------------------------------------------------------------------------------------
 // App
@@ -470,6 +469,11 @@ async function resetRecepients() {
     }
     items.push(item);
   }
+
+  const contactSearch = document.querySelector('#contactSearch');
+  contactSearch.value ='';
+  
+  g_contactItems = items;
   contactGrid.items = items;
   contactGrid.selectedItems = selected;
   contactGrid.activeItem = null;
@@ -645,7 +649,7 @@ function update_mailGrid(folder) {
   console.log('folderItems count: ' + folderItems.length);
   // console.log('folderItems: ' + JSON.stringify(folderItems))
   //grid.items = folderItems;
-  grid.items = g_items = folderItems;
+  grid.items = g_mailItems = folderItems;
   if (activeItem !== undefined && activeItem !== null) {
     for(const item of Object.values(grid.items)) {
       //console.log('Item id = ' + item.id);
@@ -745,13 +749,13 @@ function initFileBox() {
     const matchesTerm = (value/*: string*/) => {
       return value.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
     };
-    mailGrid.items = g_items.filter(({ username, subject }) => {
-      console.log({subject});
+    mailGrid.items = g_mailItems.filter((item) => {
+      console.log({item});
       return (
         !searchTerm
-        || matchesTerm(username)
-        || matchesTerm(subject)
-        //|| matchesTerm(content)
+        || matchesTerm(item.username)
+        || matchesTerm(item.subject)
+        || matchesTerm(item.content)
       );
       mailGrid.render();
     });
@@ -957,6 +961,22 @@ function initOutMailArea() {
     //contactGrid.selectedItems = item ? [item] : [];
     toggleContact(item);
     contactGrid.render();
+  });
+  // -- Contacts search bar -- //
+  var contactSearch = document.getElementById('contactSearch');
+  contactSearch.addEventListener('value-changed', function(e/*: TextFieldValueChangedEvent*/) {
+    const searchTerm = ((e.detail.value/* as string*/) || '').trim();
+    const matchesTerm = (value/*: string*/) => {
+      return value.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
+    };
+    contactGrid.items = g_contactItems.filter((item) => {
+      console.log({item});
+      return (
+        !searchTerm
+        || matchesTerm(item.username)
+      );
+      contactGrid.render();
+    });
   });
 }
 
@@ -1271,7 +1291,7 @@ function handle_getAllMails(callResult) {
     }
   }
   console.log('mailCount = ' + items.length + ' (' + selected.length + ')');
-  g_items = g_filteredItems = items;
+  g_mailItems = items;
   mailGrid.items = items;
   mailGrid.selectedItems = selected;
   mailGrid.activeItem = selected[0];

@@ -125,10 +125,10 @@
             -khtml-user-select: none;
             -webkit-user-select: none;"></vaadin-combo-box>
         <vaadin-menu-bar open-on-hover id="MenuBar" style="margin-top:2px"></vaadin-menu-bar>
+        <span style="padding:12px 0px 0px 5px;margin-left: auto;margin-right: 10px;">messages: <span id="messageCount">0</span></span>
         <vaadin-text-field id="mailSearch" clear-button-visible placeholder="Search" style="width: 25%; margin-left: auto;margin-right: 5px;">
             <iron-icon slot="prefix" icon="lumo:search"></iron-icon>
         </vaadin-text-field>
-<!--        <span style="padding:12px 0px 0px 5px;margin-left: auto;margin-right: 10px;">messages: <span id="messageCount">0</span></span>-->
     </vaadin-horizontal-layout>
 
     <!-- Split between InArea and the rest -->
@@ -180,19 +180,11 @@
                     <!-- CONTACTS MENU -->
                     <!-- <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">-->
                     <vaadin-horizontal-layout theme="spacing-xs" style="background-color: #f7f7f1; width: 100%;">
-                        <h4 style="text-align: center; font-size: large; padding: 10px 10px 10px 10px; margin: 0px 0px 0px 5px;">📇 Contacts -</h4>
-                        <abbr title="handle" id="handleAbbr" style="margin-left:0px;">
-                            <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
-                        </abbr>
-                        <!-- <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip> -->
-                        <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"></vaadin-text-field>
-                        <vaadin-button theme="icon" id="setMyHandleButton" title="unknown">
-                            <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
-                        </vaadin-button>
-                        <vaadin-button theme="icon" id="cancelHandleButton">
-                            <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
-                        </vaadin-button>
+                        <h4 style="text-align: center; font-size: large; padding: 10px 10px 10px 10px; margin: 0px 0px 0px 5px;">📇 Contacts</h4>
                         <vaadin-menu-bar open-on-hover id="ContactsMenu" style="margin-top:2px;"></vaadin-menu-bar>
+                        <vaadin-text-field id="contactSearch" clear-button-visible placeholder="Search" style="width: 45%; margin-left: auto;margin-right: 3px;">
+                            <iron-icon slot="prefix" icon="lumo:search"></iron-icon>
+                        </vaadin-text-field>
                     </vaadin-horizontal-layout>
                     <!-- CONTACTS GRID -->
                     <vaadin-grid theme="no-row-borders" id="contactGrid" style="height: 100%; min-width: 50px;">
@@ -208,14 +200,35 @@
             <!-- </div>-->
             <!-- <vaadin-list-box id="fileList"></vaadin-list-box>-->
 
-            <!-- SEND MENU -->
+
+            <!-- Upload | Handle MENU -->
+            <vaadin-horizontal-layout theme="spacing-xs" style="background-color: #f7f7f1; width: 100%;">
+
             <vaadin-upload nodrop max-file-size="8000000" style="width:280px; margin-top:0;">
                 <span slot="drop-label">Maximum file size: 8 MB</span>
             </vaadin-upload>
+                <div style="margin-left: auto;display: flex;">
+                    <h4 style="margin: 14px 10px 0px 0px;">Username:</h4>
+                    <abbr title="handle" id="handleAbbr" style="margin-left:0px;">
+                        <vaadin-button id="handleDisplay" style="min-width: 100px;"><span id="handleText"></span><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
+                    </abbr>
+                    <!-- <vcf-tooltip id="handleDisplayTT" for="handleDisplay" position="bottom">fucking tooltip</vcf-tooltip> -->
+                    <vaadin-text-field clear-button-visible id="myNewHandleInput" placeholder="username"></vaadin-text-field>
+                    <vaadin-button theme="icon" id="setMyHandleButton" title="unknown">
+                        <iron-icon icon="lumo:checkmark" slot="prefix"></iron-icon>
+                    </vaadin-button>
+                    <vaadin-button theme="icon" id="cancelHandleButton">
+                        <iron-icon icon="lumo:cross" slot="prefix"></iron-icon>
+                    </vaadin-button>
+                </div>
+            </vaadin-horizontal-layout>
+
+
+            <!-- SEND MENU -->
             <vaadin-menu-bar theme="primary" id="ActionBar" style="height:40px; margin-top:5px; margin-bottom:10px;"></vaadin-menu-bar>
+            <!-- Progress Bar -->
             <h3 style="margin:10px 0 5px 0;display:none;" id="sendingTitle">Sending</h3>
             <vaadin-progress-bar indeterminate value="0" id="sendProgressBar" style="margin-bottom:20px;"></vaadin-progress-bar>
-
         </vaadin-vertical-layout>
 
     </vaadin-split-layout>
