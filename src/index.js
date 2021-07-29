@@ -160,7 +160,7 @@ function handleSignal(signalwrapper) {
       }
 
       callGetAllMails();
-      return
+      return;
   }
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedAck')) {
       let item = signalwrapper.data.payload.ReceivedAck;
@@ -169,7 +169,7 @@ function handleSignal(signalwrapper) {
       const notification = document.querySelector('#notifyAck');
       notification.open();
       callGetAllMails();
-      return
+      return;
   }
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedFile')) {
       let item = signalwrapper.data.payload.ReceivedFile;
@@ -630,33 +630,34 @@ function update_mailGrid(folder) {
   const mailGrid = document.querySelector('#mailGrid');
   let folderItems = [];
   const activeItem = mailGrid.activeItem;
-  console.log('update_mailGrid: ' + folder);
+  let codePoint = folder.codePointAt(0);
+  console.log('update_mailGrid: ' + folder + ' (' + codePoint + ')');
 
-  switch(folder) {
-    case systemFolders.ALL:
+  switch(codePoint) {
+    case systemFolders.ALL.codePointAt(0):
       for (let mailItem of g_mailMap.values()) {
         //folderItems = Array.from(g_mail_map.values());
         folderItems.push(into_gridItem(g_usernameMap, mailItem));
       }
       break;
-    case systemFolders.INBOX:
-    case systemFolders.SENT:
+    case systemFolders.INBOX.codePointAt(0):
+    case systemFolders.SENT.codePointAt(0):
       for (let mailItem of g_mailMap.values()) {
         //console.log('mailItem: ' + JSON.stringify(mailItem))
         let is_out = is_OutMail(mailItem);
         if (isMailDeleted(mailItem)) {
           continue;
         }
-        if (is_out && folder == systemFolders.SENT) {
+        if (is_out && codePoint == systemFolders.SENT.codePointAt(0)) {
           folderItems.push(into_gridItem(g_usernameMap, mailItem));
           continue;
         }
-        if (!is_out && folder == systemFolders.INBOX) {
+        if (!is_out && codePoint == systemFolders.INBOX.codePointAt(0)) {
           folderItems.push(into_gridItem(g_usernameMap, mailItem));
         }
       }
       break;
-    case systemFolders.TRASH: {
+    case systemFolders.TRASH.codePointAt(0): {
       for (let mailItem of g_mailMap.values()) {
         if(isMailDeleted(mailItem)) {
           folderItems.push(into_gridItem(g_usernameMap, mailItem));
@@ -668,9 +669,9 @@ function update_mailGrid(folder) {
       console.error('Unknown folder')
   }
 
-  // const span = document.querySelector('#messageCount');
-  // console.assert(span);
-  // span.textContent = folderItems.length;
+  const span = document.querySelector('#messageCount');
+  console.assert(span);
+  span.textContent = folderItems.length;
 
   console.log('folderItems count: ' + folderItems.length);
   // console.log('folderItems: ' + JSON.stringify(folderItems))
@@ -762,7 +763,7 @@ function initFileBox() {
       }
       DNA.acknowledgeMail(item.id, handle_acknowledgeMail);
       // Allow delete button
-      if (g_currentFolder !== systemFolders.TRASH) {
+      if (g_currentFolder.codePointAt(0) !== systemFolders.TRASH.codePointAt(0)) {
         setState_DeleteButton(false)
         setState_ReplyButton(false)
       }
@@ -1312,21 +1313,46 @@ function handle_getAllMails(callResult) {
     prevSelected.push(htos(item.id));
   }
 
+  let allCount = mailList.length;
+  let trashCount = 0;
+  let inboxCount = 0;
+  let sentCount = 0;
+  let newCount = 0;
+
   let selected = [];
   let items = [];
   g_mailMap.clear();
   const folderBox = document.querySelector('#fileboxFolder');
-  let selectedBox = folderBox.value;
+  let selectedBox = folderBox.value.codePointAt(0);
   for (let mailItem of mailList) {
     g_mailMap.set(htos(mailItem.address), mailItem);
-    // Determine if should add to grid
-    if (isMailDeleted(mailItem) && selectedBox !== systemFolders.TRASH) {
+    //
+    let isDeleted = isMailDeleted(mailItem);
+    let isOutMail = is_OutMail(mailItem);
+
+    // Counters
+    if (isOutMail) {
+      sentCount = sentCount + 1;
+    }
+    if (isDeleted) {
+      trashCount = trashCount + 1;
+    }
+    if (!isDeleted && !isOutMail) {
+      inboxCount = inboxCount + 1;
+    }
+    if (determineMailClass(mailItem) === 'newmail') {
+      newCount = newCount + 1;
+    }
+
+
+    // Determine if should add to grid depending on current folder
+    if (isDeleted && selectedBox !== systemFolders.TRASH.codePointAt(0)) {
       continue;
     }
-    if (is_OutMail(mailItem) && selectedBox === systemFolders.INBOX) {
+    if (isOutMail && selectedBox === systemFolders.INBOX.codePointAt(0)) {
       continue;
     }
-    if (!is_OutMail(mailItem) && selectedBox === systemFolders.SENT) {
+    if (!isOutMail && selectedBox === systemFolders.SENT.codePointAt(0)) {
       continue;
     }
     //items.push(into_gridItem(g_usernameMap, mailItem));
@@ -1337,6 +1363,25 @@ function handle_getAllMails(callResult) {
       selected.push(gridItem);
     }
   }
+  console.log('Counters: ' + newCount + ' / ' + inboxCount + ' / ' + sentCount + ' / ' + trashCount + ' / '+ allCount);
+
+  updateTray(newCount);
+
+  const systemFoldersVec = [
+    systemFolders.ALL // + ' ('+ allCount +')'
+    , newCount === 0 ? systemFolders.INBOX : systemFolders.INBOX + ' ('+ newCount + ')' //+ inboxCount +')'
+    , systemFolders.SENT // + ' ('+ sentCount +')'
+    , systemFolders.TRASH // + ' ('+ trashCount +')'
+  ];
+  const folderBoxAll = document.querySelector('#fileboxFolder');
+  folderBoxAll.items = systemFoldersVec;
+  for (const systemFolder of systemFoldersVec) {
+    //console.log("systemFolder.codePointAt(0) = " + systemFolder.codePointAt(0));
+    if (selectedBox == systemFolder.codePointAt(0)) {
+      folderBoxAll.value = systemFolder;
+      break;
+    }
+  }
 
   const mailSearch = document.getElementById('mailSearch');
   console.log('mailCount = ' + items.length + ' (' + selected.length + ')');
@@ -1344,6 +1389,16 @@ function handle_getAllMails(callResult) {
   mailGrid.items = filterMails(mailSearch.value);
   mailGrid.selectedItems = selected;
   mailGrid.activeItem = selected[0];
+}
+
+
+function updateTray(newCount) {
+  if (IS_ELECTRON && window.require) {
+    //console.log("handleSignal for ELECTRON");
+    const ipc = window.require('electron').ipcRenderer;
+    let reply = ipc.send('newCountAsync', newCount);
+    console.log(reply);
+  }
 }
 
 /**
