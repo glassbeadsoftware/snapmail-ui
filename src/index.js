@@ -393,12 +393,21 @@ function initDna() {
 
 function setHandle() {
   let input = document.getElementById('myNewHandleInput');
-  console.log('new handle = ' + input.value);
-  DNA.setHandle(input.value, console.log);
-  showHandle({ Ok: input.value});
-  input.value = '';
-  setState_ChangeHandleBar(true);
-  DNA.getAllHandles(handle_getAllHandles);
+  const newHandle = input.value;
+  console.log('new handle = ' + newHandle);
+  DNA.setHandle(newHandle, function() {
+    showHandle({ Ok: newHandle});
+    input.value = '';
+    setState_ChangeHandleBar(true);
+    // - Update my Handle in the contacts grid
+    const contactGrid = document.querySelector('#contactGrid');
+    for (const item of contactGrid.items) {
+      if (htos(item.agentId) === g_myAgentId) {
+        item.username = newHandle;
+      }
+    }
+    contactGrid.render();
+  });
 }
 
 /**
@@ -447,11 +456,15 @@ function initTitleBar() {
 async function resetRecepients() {
   console.log('resetRecepients:')
   const contactGrid = document.querySelector('#contactGrid');
-  // Get currently selected hashs
+  // - Get currently selected items' hash
   let prevSelected = [];
+  let typeMap = new Map();
   for (const item of contactGrid.selectedItems) {
-    prevSelected.push(item.agentId);
+    let agentHash = stoh(item.agentId)
+    prevSelected.push(agentHash);
+    typeMap.set(agentHash, item.recepientType);
   }
+  console.log(typeMap);
   let selected = [];
   let items = [];
   pingNextAgent();
@@ -464,17 +477,21 @@ async function resetRecepients() {
     let item = {
       "username": username, "agentId": agentHash, "recepientType": '', status,
     };
+    // Retrieve selected
     if (prevSelected.includes(agentHash)) {
+      console.log("keep selected: " + item.username);
+      item.recepientType = typeMap.get(agentHash);
       selected.push(item);
     }
     items.push(item);
   }
 
+  // - Reset search filter
   const contactSearch = document.querySelector('#contactSearch');
-  contactSearch.value ='';
-  
+  // contactSearch.value = '';
+
   g_contactItems = items;
-  contactGrid.items = items;
+  contactGrid.items = filterContacts([], contactSearch.value);
   contactGrid.selectedItems = selected;
   contactGrid.activeItem = null;
   contactGrid.render();
@@ -965,20 +982,31 @@ function initOutMailArea() {
   // -- Contacts search bar -- //
   var contactSearch = document.getElementById('contactSearch');
   contactSearch.addEventListener('value-changed', function(e/*: TextFieldValueChangedEvent*/) {
-    const searchTerm = ((e.detail.value/* as string*/) || '').trim();
-    const matchesTerm = (value/*: string*/) => {
-      return value.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
-    };
-    contactGrid.items = g_contactItems.filter((item) => {
-      console.log({item});
-      return (
-        !searchTerm
-        || matchesTerm(item.username)
-      );
-      contactGrid.render();
-    });
+    contactGrid.items = filterContacts(contactGrid.selectedItems, e.detail.value);
+    contactGrid.render();
   });
 }
+
+
+/**
+ *
+ */
+function filterContacts(selectedItems, searchValue) {
+  const searchTerm = ((searchValue /* as string*/) || '').trim();
+  const matchesTerm = (value/*: string*/) => {
+    return value.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
+  };
+  let filteredItems = g_contactItems.filter((item) => {
+    console.log({item});
+    return (
+      !searchTerm
+      || matchesTerm(item.username)
+    );
+  });
+  // Unique values by going through a Set
+  return [...new Set(selectedItems.concat(filteredItems))];
+}
+
 
 
 /**
@@ -1363,6 +1391,7 @@ function handle_getAllHandles(callResult) {
   if (callResult === undefined || callResult.Err !== undefined) {
     console.error('getAllHandles zome call failed');
   } else {
+    // - Update global state
     //const contactGrid = document.querySelector('#contactGrid');
     let handleList = callResult;
     //console.log('handleList: ' + JSON.stringify(handleList))
@@ -1379,18 +1408,21 @@ function handle_getAllHandles(callResult) {
       }
     }
   }
-
+  // - Reset contactGrid
   resetRecepients().then(() => {
     const contactsMenu = document.querySelector('#ContactsMenu');
+    if (contactsMenu.items.length > 0) {
+      contactsMenu.items[0].disabled = false;
+      contactsMenu.render();
+    }
+  });
+  // - Allow button anyway
+  const contactsMenu = document.querySelector('#ContactsMenu');
+  if (contactsMenu.items.length > 0) {
     contactsMenu.items[0].disabled = false;
     contactsMenu.render();
-  });
-  // Allow button anyway
-  const contactsMenu = document.querySelector('#ContactsMenu');
-  contactsMenu.items[0].disabled = false;
-  contactsMenu.render();
-
-  // Update mailGrid
+  }
+  // - Update mailGrid
   const folder = document.querySelector('#fileboxFolder');
   update_mailGrid(folder.value);
 }
