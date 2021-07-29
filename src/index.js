@@ -147,13 +147,16 @@ function handleSignal(signalwrapper) {
         // ELECTRON NOTIFICATION
         const NOTIFICATION_TITLE = 'New mail received from ' + author_name;
         const NOTIFICATION_BODY = signalwrapper.data.payload.ReceivedMail.mail.subject;
-        const CLICK_MESSAGE = 'Notification clicked'
-        new Notification(NOTIFICATION_TITLE, { body: NOTIFICATION_BODY })
-          .onclick = () => console.log(CLICK_MESSAGE)
+        const CLICK_MESSAGE = 'Notification clicked';
 
-       // const ipc = window.require('electron').ipcRenderer;
-       //let reply = ipc.sendSync('helloSync', NOTIFICATION_TITLE, signalwrapper.data.payload.ReceivedMail.mail.subject);
-       //console.log(reply);
+        // - Do Notification directly from web UI
+        //new Notification(NOTIFICATION_TITLE, { body: NOTIFICATION_BODY })
+        //  .onclick = () => console.log(CLICK_MESSAGE)
+
+        // - Notify Electron main
+       const ipc = window.require('electron').ipcRenderer;
+       let reply = ipc.sendSync('newMailSync', NOTIFICATION_TITLE, NOTIFICATION_BODY);
+       console.log(reply);
       }
 
       callGetAllMails();
