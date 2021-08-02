@@ -462,16 +462,15 @@ function initTitleBar() {
  *
  * @returns {Promise<void>}
  */
-async function resetRecepients() {
+async function updateRecepients(canReset) {
   console.log('resetRecepients:')
   const contactGrid = document.querySelector('#contactGrid');
   // - Get currently selected items' hash
   let prevSelected = [];
   let typeMap = new Map();
   for (const item of contactGrid.selectedItems) {
-    let agentHash = stoh(item.agentId)
-    prevSelected.push(agentHash);
-    typeMap.set(agentHash, item.recepientType);
+    prevSelected.push(item.agentId);
+    typeMap.set(item.agentId, item.recepientType);
   }
   console.log(typeMap);
   let selected = [];
@@ -487,7 +486,7 @@ async function resetRecepients() {
       "username": username, "agentId": agentHash, "recepientType": '', status,
     };
     // Retrieve selected
-    if (prevSelected.includes(agentHash)) {
+    if (!canReset && prevSelected.includes(agentHash)) {
       console.log("keep selected: " + item.username);
       item.recepientType = typeMap.get(agentHash);
       selected.push(item);
@@ -497,7 +496,9 @@ async function resetRecepients() {
 
   // - Reset search filter
   const contactSearch = document.querySelector('#contactSearch');
-  // contactSearch.value = '';
+  if (canReset) {
+    contactSearch.value = '';
+  }
 
   g_contactItems = items;
   contactGrid.items = filterContacts([], contactSearch.value);
@@ -1085,7 +1086,7 @@ function initActionBar() {
       outMailContentArea.value = '';
       /// clear each attachment
       upload.files = [];
-      resetRecepients();
+      updateRecepients(true);
       return;
     }
     // Send clicked
@@ -1154,7 +1155,7 @@ async function sendAction() {
     let toList = [];
     let ccList = [];
     let bccList = [];
-    // // Get recepients from contactGrid
+    // // Get recipients from contactGrid
     for (let contactItem of selection) {
       console.log('recepientType: ' + contactItem.recepientType);
       switch (contactItem.recepientType) {
@@ -1181,7 +1182,7 @@ async function sendAction() {
     outMailContentArea.value = '';
     contactGrid.selectedItems = [];
     contactGrid.activeItem = null;
-    resetRecepients();
+    updateRecepients(false);
     console.log('sendMail -> getAllMails');
     callGetAllMails();
     upload.files = [];
@@ -1485,7 +1486,7 @@ function handle_getAllHandles(callResult) {
     }
   }
   // - Reset contactGrid
-  resetRecepients().then(() => {
+  updateRecepients(false).then(() => {
     const contactsMenu = document.querySelector('#ContactsMenu');
     if (contactsMenu.items.length > 0) {
       contactsMenu.items[0].disabled = false;
