@@ -469,14 +469,15 @@ async function updateRecepients(canReset) {
   let prevSelected = [];
   let typeMap = new Map();
   for (const item of contactGrid.selectedItems) {
-    prevSelected.push(item.agentId);
-    typeMap.set(item.agentId, item.recepientType);
+    let agentId = htos(item.agentId);
+    prevSelected.push(agentId);
+    typeMap.set(agentId, item.recepientType);
   }
   console.log(typeMap);
   let selected = [];
   let items = [];
   pingNextAgent();
-  // Add each handle to the contactGrid
+  // - Add each handle to the contactGrid
   for (const [agentId, username] of g_usernameMap.entries()) {
     console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
@@ -485,10 +486,10 @@ async function updateRecepients(canReset) {
     let item = {
       "username": username, "agentId": agentHash, "recepientType": '', status,
     };
-    // Retrieve selected
-    if (!canReset && prevSelected.includes(agentHash)) {
+    // - Retrieve selected
+    if (!canReset && prevSelected.includes(agentId)) {
       console.log("keep selected: " + item.username);
-      item.recepientType = typeMap.get(agentHash);
+      item.recepientType = typeMap.get(agentId);
       selected.push(item);
     }
     items.push(item);
