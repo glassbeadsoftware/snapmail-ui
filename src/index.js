@@ -22,6 +22,7 @@ import '@vaadin/vaadin-icons/vaadin-icons';
 import '@vaadin/vaadin-lumo-styles';
 import '@vaadin/vaadin-lumo-styles/icons';
 import '@vaadin/vaadin-notification';
+import '@vaadin/vaadin-dialog';
 //import '@vaadin-component-factory/vcf-tooltip';
 
 import * as DNA from './rsm_bridge'
@@ -78,12 +79,18 @@ var g_myAgentHash = null;
 var g_myAgentId = null;
 var g_myHandle = '<unknown>';
 var g_currentFolder = '';
+var g_currentGroup = '';
 var g_currentMailItem = {};
 var g_manifest = null;
 var g_getChunks = [];
 
 var g_contactItems = [];
 var g_mailItems = [];
+
+// Map of (name -> [agentId])
+var g_groupList = new Map();
+g_groupList.set('All', []);
+//g_groupList.set('new...', []);
 
 //---------------------------------------------------------------------------------------------------------------------
 // App
@@ -183,6 +190,110 @@ function handleSignal(signalwrapper) {
 
 // -- INIT -- //
 
+
+function initGroupsDialog() {
+  console.log("init Groups");
+
+  // -- New Group Dialog
+  const newDialog = document.querySelector('#newGroupDlg');
+  console.log("New Group dialog: " + newDialog);
+
+  newDialog.renderer = function(root, dialog) {
+    console.log("New Group dialog called");
+    // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
+    if(root.firstElementChild) {
+      return;
+    }
+    // Title
+    const div = window.document.createElement('div');
+    div.textContent = 'Create new group: ';
+    const br = window.document.createElement('br');
+    // Text Field <vaadin-text-field placeholder="Placeholder"></vaadin-text-field>
+    const vaadin = window.document.createElement('vaadin-text-field');
+    vaadin.placeholder = "name";
+    // Confirm Button
+    const okButton = window.document.createElement('vaadin-button');
+    okButton.setAttribute('theme', 'primary');
+    okButton.textContent = 'OK';
+    okButton.setAttribute('style', 'margin-right: 1em');
+    okButton.addEventListener('click', function() {
+      g_groupList.set(vaadin.value, []);
+      //console.log('g_groupList: ' + JSON.stringify(g_groupList.keys()));
+      const groupCombo = document.querySelector('#groupCombo');
+      let keys = Array.from(g_groupList.keys());
+      keys.push('new...');
+      console.log('keys: ' + JSON.stringify(keys));
+      groupCombo.items = keys;
+      groupCombo.value = vaadin.value;
+      g_currentGroup = vaadin.value;
+      vaadin.value = '';
+      dialog.opened = false;
+    });
+    // Cancel Button
+    const cancelButton = window.document.createElement('vaadin-button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', function() {
+      vaadin.value = '';
+      groupCombo.value = g_currentGroup;
+      dialog.opened = false;
+    });
+    // Add all elements
+    root.appendChild(div);
+    root.appendChild(br);
+    root.appendChild(vaadin);
+    root.appendChild(br);
+    root.appendChild(okButton);
+    root.appendChild(cancelButton);
+  };
+
+  // -- Edit Group Dialog
+  const dialog = document.querySelector('#editGroupDlg');
+  console.log("Edit Group dialog: " + dialog);
+
+  dialog.renderer = function(root, dialog) {
+    console.log("Groups dialog called");
+    // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
+    if(root.firstElementChild) {
+      return;
+    }
+    // Title
+    const div = window.document.createElement('div');
+    div.textContent = 'Group: ' + g_currentGroup;
+    const br = window.document.createElement('br');
+    // List box
+    // FIXME
+    // <vaadin-list-box multiple>
+    // Confirm Button
+    const okButton = window.document.createElement('vaadin-button');
+    okButton.setAttribute('theme', 'primary');
+    okButton.textContent = 'OK';
+    okButton.setAttribute('style', 'margin-right: 1em');
+    okButton.addEventListener('click', function() {
+      dialog.opened = false;
+    });
+    // Cancel Button
+    const cancelButton = window.document.createElement('vaadin-button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.addEventListener('click', function() {
+      dialog.opened = false;
+    });
+
+    // Add all elements
+    root.appendChild(div);
+    root.appendChild(br);
+    root.appendChild(okButton);
+    root.appendChild(cancelButton);
+  };
+
+  // -- Edit Group Button
+  let button = document.querySelector('#groupsBtn');
+  console.log("Groups button: " + button);
+  button.addEventListener('click', () => {
+    console.log("Groups clicked: " + dialog);
+    dialog.opened = true;
+  });
+}
+
 /**
  *
  */
@@ -197,6 +308,7 @@ function initUi() {
   initUpload();
   //getMyAgentId(logResult)
   initNotification();
+  initGroupsDialog();
   // init DNA at the end because the callbacks will populate the UI
   initDna();
   // -- init progress bar -- //
@@ -709,13 +821,12 @@ function initFileBox() {
   }
   // Combobox -- vaadin-combo-box
   const systemFoldersVec = [systemFolders.ALL, systemFolders.INBOX, systemFolders.SENT, systemFolders.TRASH];
-  const folderBoxAll = document.querySelector('#fileboxFolder');
-  folderBoxAll.items = systemFoldersVec;
-  folderBoxAll.value = systemFoldersVec[1];
-  g_currentFolder = folderBoxAll.value;
-  const folderBox = document.querySelector('#fileboxFolder');
+  const folderCombo = document.querySelector('#fileboxFolder');
+  folderCombo.items = systemFoldersVec;
+  folderCombo.value = systemFoldersVec[1];
+  g_currentFolder = folderCombo.value;
   // On value change
-  folderBox.addEventListener('change', function(event) {
+  folderCombo.addEventListener('change', function(event) {
     const mailGrid = document.querySelector('#mailGrid');
     mailGrid.selectedItems = [];
     mailGrid.activeItem = null;
@@ -972,6 +1083,38 @@ function initContactsArea() {
       }
     });
   }
+
+  // Groups Combo box -- vaadin-combo-box
+  const systemGroupList = ['All', 'new...'];
+  const groupCombo = document.querySelector('#groupCombo');
+  groupCombo.items = systemGroupList;
+  groupCombo.value = systemGroupList[0];
+  g_currentGroup = groupCombo.value;
+  // On value change
+  groupCombo.addEventListener('change', function(event) {
+    const groupName = event.target.value;
+    console.log('groupCombo value change:' + event.target.value);
+    if (groupName === 'new...') {
+      const newDialog = document.querySelector('#newGroupDlg');
+      newDialog.opened = true;
+      return;
+    }
+    if (groupName === 'All') {
+
+    }
+    const group = g_groupList.get(groupName);
+    console.log('group:' + JSON.stringify(group));
+
+    const contactGrid = document.querySelector('#contactGrid');
+    contactGrid.selectedItems = [];
+    contactGrid.activeItem = null;
+    //update_mailGrid(event.target.value)
+    g_currentGroup = event.target.value;
+    setState_DeleteButton(true)
+    setState_ReplyButton(true)
+  });
+
+
   // -- contactGrid -- vaadin-grid
   const contactGrid = document.querySelector('#contactGrid');
   contactGrid.items = [];

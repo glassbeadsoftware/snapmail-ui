@@ -1,6 +1,6 @@
 {
   "name": "snapmail",
-  "version": "0.0.5",
+  "version": "0.1.2",
   "description": "A minimalist web interface for Snapmail Holochain app",
   "scripts": {
     "all": "npm run sandbox-create && concurrently \"npm:sandbox-run\" \"npm:billy-ui\" \"npm:alex-ui\" \"npm:camille-ui\"",
@@ -59,6 +59,7 @@
     "@rollup/plugin-replace": "^2.3.3",
     "@vaadin-component-factory/vcf-tooltip": "^1.2.2",
     "@vaadin/vaadin": "^15.0.5",
+    "@vaadin/vaadin-dialog": "^2.5.2",
     "@vaadin/vaadin-icons": "^4.3.1",
     "@vaadin/vaadin-text-field": "^2.5.5",
     "@web/dev-server": "0.0.13",
