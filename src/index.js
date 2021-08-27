@@ -202,6 +202,9 @@ function initGroupsDialog() {
     console.log("New Group dialog called");
     // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
     if(root.firstElementChild) {
+      //console.log({root});
+      let vaadin = root.children[1];
+      vaadin.autofocus = true;
       return;
     }
     // Title
@@ -211,6 +214,7 @@ function initGroupsDialog() {
     // Text Field <vaadin-text-field placeholder="Placeholder"></vaadin-text-field>
     const vaadin = window.document.createElement('vaadin-text-field');
     vaadin.placeholder = "name";
+    vaadin.autofocus = true;
     // Confirm Button
     const okButton = window.document.createElement('vaadin-button');
     okButton.setAttribute('theme', 'primary');
@@ -247,50 +251,100 @@ function initGroupsDialog() {
   };
 
   // -- Edit Group Dialog
-  const dialog = document.querySelector('#editGroupDlg');
-  console.log("Edit Group dialog: " + dialog);
+  const editDialog = document.querySelector('#editGroupDlg');
+  console.log("Edit Group dialog: " + editDialog);
 
-  dialog.renderer = function(root, dialog) {
-    console.log("Groups dialog called");
-    // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
-    if(root.firstElementChild) {
-      return;
-    }
-    // Title
-    const div = window.document.createElement('div');
-    div.textContent = 'Group: ' + g_currentGroup;
-    const br = window.document.createElement('br');
-    // List box
-    // FIXME
-    // <vaadin-list-box multiple>
-    // Confirm Button
-    const okButton = window.document.createElement('vaadin-button');
-    okButton.setAttribute('theme', 'primary');
-    okButton.textContent = 'OK';
-    okButton.setAttribute('style', 'margin-right: 1em');
+  //
+  // dialog.renderer = function(root, dialog) {
+  //   console.log("Edit Groups dialog called");
+  //   // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
+  //   if(root.firstElementChild) {
+  //     return;
+  //   }
+  //   // Title
+  //   const div = window.document.createElement('div');
+  //   div.textContent = 'Group: ' + g_currentGroup;
+  //   const br = window.document.createElement('br');
+  //   // List box <vaadin-list-box multiple>
+  //   const column = window.document.createElement('vaadin-grid-colum');
+  //   column.path = 'name';
+  //   const vaadin = window.document.createElement('vaadin-grid');
+  //   //vaadin.children = [column];
+  //   //vaadin.multiple = true;
+  //   console.log({vaadin});
+  //   let items = Array.from(g_usernameMap.values());
+  //   console.log('vaadin items: ' + JSON.stringify(items));
+  //   // vaadin.items = items;
+  //   vaadin.items = [{'name': 'John', 'surname': 'Lennon', 'role': 'singer'},
+  //     {'name': 'Ringo', 'surname': 'Starr', 'role': 'drums'}];
+  //
+  //   // Confirm Button
+  //   const okButton = window.document.createElement('vaadin-button');
+  //   okButton.setAttribute('theme', 'primary');
+  //   okButton.textContent = 'OK';
+  //   okButton.setAttribute('style', 'margin-right: 1em');
+  //   okButton.addEventListener('click', function() {
+  //     dialog.opened = false;
+  //   });
+  //   // Cancel Button
+  //   const cancelButton = window.document.createElement('vaadin-button');
+  //   cancelButton.textContent = 'Cancel';
+  //   cancelButton.addEventListener('click', function() {
+  //     dialog.opened = false;
+  //   });
+  //
+  //   // Add all elements
+  //   root.appendChild(div);
+  //   root.appendChild(br);
+  //   root.appendChild(vaadin);
+  //   root.appendChild(br);
+  //   root.appendChild(okButton);
+  //   root.appendChild(cancelButton);
+  // };
+
+    const tmpl = document.querySelector('#editGroupTmpl');
+    console.log("tmpl: " + tmpl);
+
+    const tmplItem = tmpl.content.querySelector('#groupItemTmpl');
+    console.log("tmplItem: " + tmplItem);
+
+    let listBox = tmpl.content.querySelector('#groupList');
+    var clone = document.importNode(tmplItem.content, true);
+    var td = clone.querySelector("vaadin-item");
+    console.log("td: " + td);
+    td.textContent = 'toto';
+
+    listBox.appendChild(clone);
+
+    // let groupGrid = tmpl.content.querySelector('#groupGrid');
+    // console.log({groupGrid});
+    // groupGrid.items = [{'name': 'Bob'}, {'name': 'Alice'}];
+    // groupGrid.selectedItems = null;
+    // groupGrid.activeItem = null;
+
+    let okButton = tmpl.content.getElementById('editGroupOK');
     okButton.addEventListener('click', function() {
-      dialog.opened = false;
-    });
-    // Cancel Button
-    const cancelButton = window.document.createElement('vaadin-button');
-    cancelButton.textContent = 'Cancel';
-    cancelButton.addEventListener('click', function() {
-      dialog.opened = false;
+      console.log("Edit Group Confirmed");
+      editDialog.opened = false;
     });
 
-    // Add all elements
-    root.appendChild(div);
-    root.appendChild(br);
-    root.appendChild(okButton);
-    root.appendChild(cancelButton);
-  };
+    let cancelButton = tmpl.content.querySelector('#editGroupCancel');
+    console.log({cancelButton})
+    cancelButton.addEventListener('click', function() {
+      console.log("Edit Group Canceled");
+      editDialog.opened = false;
+    });
 
   // -- Edit Group Button
   let button = document.querySelector('#groupsBtn');
-  console.log("Groups button: " + button);
+  //console.log("Groups button: " + button);
   button.addEventListener('click', () => {
-    console.log("Groups clicked: " + dialog);
-    dialog.opened = true;
+    console.log("Edit Group clicked: " + editDialog);
+    const tmpl = document.querySelector('#editGroupTmpl');
+    let span = tmpl.content.querySelector('#groupNameSpan');
+    //let span = document.querySelector('#groupNameSpan');
+    span.textContent = g_currentGroup;
+    editDialog.opened = true;
   });
 }
 
@@ -618,6 +672,7 @@ async function updateRecepients(canReset) {
   contactGrid.selectedItems = selected;
   contactGrid.activeItem = null;
   contactGrid.render();
+  console.log({contactGrid});
 }
 
 function initMenuBar() {

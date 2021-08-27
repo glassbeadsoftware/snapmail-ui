@@ -106,8 +106,25 @@
 <vaadin-notification duration="4000" position="bottom-center" id="notifyFile"></vaadin-notification>
 
 <!-- Groups dialog -->
-<vaadin-dialog no-close-on-esc no-close-on-outside-click id="editGroupDlg"></vaadin-dialog>
 <vaadin-dialog no-close-on-esc no-close-on-outside-click id="newGroupDlg"></vaadin-dialog>
+<vaadin-dialog no-close-on-esc no-close-on-outside-click id="editGroupDlg">
+    <template id="editGroupTmpl">
+        <div>Group: <span id="groupNameSpan"></span></div>
+        <br/>
+        <vaadin-list-box multiple id="groupList">
+            <template id="groupItemTmpl">
+                <vaadin-item>Option one</vaadin-item>
+            </template>
+        </vaadin-list-box>
+
+<!--        <vaadin-grid theme="no-row-borders" id="groupGrid">-->
+<!--            <vaadin-grid-column path="name" header=" "></vaadin-grid-column>-->
+<!--        </vaadin-grid>-->
+        <br/>
+        <vaadin-button id="editGroupOK" theme="primary" style="margin-right: 1em;">OK</vaadin-button>
+        <vaadin-button id="editGroupCancel">Cancel</vaadin-button>
+    </template>
+</vaadin-dialog>
 
 <!-- MAIN VERTICAL LAYOUT -->
 <vaadin-vertical-layout theme="spacing-s" style="display:none; height:100%;" id="mainPage">
