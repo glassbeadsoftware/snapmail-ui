@@ -253,97 +253,65 @@ function initGroupsDialog() {
   // -- Edit Group Dialog
   const editDialog = document.querySelector('#editGroupDlg');
   console.log("Edit Group dialog: " + editDialog);
+  editDialog.renderer = function(root, dialog) {
+    console.log("Edit Groups dialog called");
 
-  //
-  // dialog.renderer = function(root, dialog) {
-  //   console.log("Edit Groups dialog called");
-  //   // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
-  //   if(root.firstElementChild) {
-  //     return;
-  //   }
-  //   // Title
-  //   const div = window.document.createElement('div');
-  //   div.textContent = 'Group: ' + g_currentGroup;
-  //   const br = window.document.createElement('br');
-  //   // List box <vaadin-list-box multiple>
-  //   const column = window.document.createElement('vaadin-grid-colum');
-  //   column.path = 'name';
-  //   const vaadin = window.document.createElement('vaadin-grid');
-  //   //vaadin.children = [column];
-  //   //vaadin.multiple = true;
-  //   console.log({vaadin});
-  //   let items = Array.from(g_usernameMap.values());
-  //   console.log('vaadin items: ' + JSON.stringify(items));
-  //   // vaadin.items = items;
-  //   vaadin.items = [{'name': 'John', 'surname': 'Lennon', 'role': 'singer'},
-  //     {'name': 'Ringo', 'surname': 'Starr', 'role': 'drums'}];
-  //
-  //   // Confirm Button
-  //   const okButton = window.document.createElement('vaadin-button');
-  //   okButton.setAttribute('theme', 'primary');
-  //   okButton.textContent = 'OK';
-  //   okButton.setAttribute('style', 'margin-right: 1em');
-  //   okButton.addEventListener('click', function() {
-  //     dialog.opened = false;
-  //   });
-  //   // Cancel Button
-  //   const cancelButton = window.document.createElement('vaadin-button');
-  //   cancelButton.textContent = 'Cancel';
-  //   cancelButton.addEventListener('click', function() {
-  //     dialog.opened = false;
-  //   });
-  //
-  //   // Add all elements
-  //   root.appendChild(div);
-  //   root.appendChild(br);
-  //   root.appendChild(vaadin);
-  //   root.appendChild(br);
-  //   root.appendChild(okButton);
-  //   root.appendChild(cancelButton);
-  // };
+    // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
+    if(root.firstElementChild) {
+      let title = root.children[0];
+      title.textContent = 'Edit Group: ' + g_currentGroup;
+      let grid = root.children[2];
+      return;
+    }
 
-    const tmpl = document.querySelector('#editGroupTmpl');
-    console.log("tmpl: " + tmpl);
-
-    const tmplItem = tmpl.content.querySelector('#groupItemTmpl');
-    console.log("tmplItem: " + tmplItem);
-
-    let listBox = tmpl.content.querySelector('#groupList');
-    var clone = document.importNode(tmplItem.content, true);
-    var td = clone.querySelector("vaadin-item");
-    console.log("td: " + td);
-    td.textContent = 'toto';
-
-    listBox.appendChild(clone);
-
-    // let groupGrid = tmpl.content.querySelector('#groupGrid');
-    // console.log({groupGrid});
-    // groupGrid.items = [{'name': 'Bob'}, {'name': 'Alice'}];
-    // groupGrid.selectedItems = null;
-    // groupGrid.activeItem = null;
-
-    let okButton = tmpl.content.getElementById('editGroupOK');
+    // Title
+    const div = window.document.createElement('h3');
+    div.textContent = 'Edit Group: ' + g_currentGroup;
+    div.setAttribute('style', 'margin-bottom: 10px; margin-top: 0px;');
+    const br = window.document.createElement('br');
+    // Grid <vaadin-grid>
+    const selectColumn = window.document.createElement('vaadin-grid-selection-column');
+    selectColumn.autoSelect = true;
+    const column = window.document.createElement('vaadin-grid-column');
+    column.path = 'name';
+    column.header =  " ";
+    column.flexGrow = 0;
+    column.width = "300px";
+    const vaadin = window.document.createElement('vaadin-grid');
+    vaadin.appendChild(selectColumn);
+    vaadin.appendChild(column);
+    vaadin.id = "groupGrid";
+    vaadin.heightByRows = true;
+    vaadin.setAttribute('style', 'width: 360px;');
+    vaadin.items = [{'name': 'Bofsdkjlhfsdjlk;fhsdjkl;sdfjlh;sdfb'}, {'name': 'Alice'}];
+    console.log({vaadin});
+    // Confirm Button
+    const okButton = window.document.createElement('vaadin-button');
+    okButton.setAttribute('theme', 'primary');
+    okButton.textContent = 'OK';
+    okButton.setAttribute('style', 'margin-right: 1em');
     okButton.addEventListener('click', function() {
-      console.log("Edit Group Confirmed");
-      editDialog.opened = false;
+      dialog.opened = false;
     });
-
-    let cancelButton = tmpl.content.querySelector('#editGroupCancel');
-    console.log({cancelButton})
+    // Cancel Button
+    const cancelButton = window.document.createElement('vaadin-button');
+    cancelButton.textContent = 'Cancel';
     cancelButton.addEventListener('click', function() {
-      console.log("Edit Group Canceled");
-      editDialog.opened = false;
+      dialog.opened = false;
     });
+    // Add all elements
+    root.appendChild(div);
+    root.appendChild(br);
+    root.appendChild(vaadin);
+    root.appendChild(br);
+    root.appendChild(okButton);
+    root.appendChild(cancelButton);
+  };
 
   // -- Edit Group Button
   let button = document.querySelector('#groupsBtn');
-  //console.log("Groups button: " + button);
   button.addEventListener('click', () => {
-    console.log("Edit Group clicked: " + editDialog);
-    const tmpl = document.querySelector('#editGroupTmpl');
-    let span = tmpl.content.querySelector('#groupNameSpan');
-    //let span = document.querySelector('#groupNameSpan');
-    span.textContent = g_currentGroup;
+    //console.log("Edit Group clicked: " + editDialog);
     editDialog.opened = true;
   });
 }
