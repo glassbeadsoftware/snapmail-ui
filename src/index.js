@@ -209,20 +209,24 @@ function isValidGroupName(name) {
 }
 
 
-function setGroup(dialog, vaadin) {
+function createNewGroup(dialog, vaadin) {
   if (!isValidGroupName(vaadin.value)) {
     vaadin.invalid = true;
     vaadin.errorMessage = 'Name already taken';
-    return;
   }
   g_groupList.set(vaadin.value, []);
   //console.log('g_groupList: ' + JSON.stringify(g_groupList.keys()));
   regenerateGroupList(vaadin.value);
-  g_currentGroup = vaadin.value;
+  // g_currentGroup = vaadin.value;
+  setCurrentGroup(vaadin.value);
   vaadin.value = '';
   dialog.opened = false;
 }
 
+
+/**
+ *
+ */
 function initGroupsDialog() {
   console.log("init Groups");
 
@@ -252,7 +256,7 @@ function initGroupsDialog() {
     vaadin.pattern = "[a-zA-Z0-9_.]{0,20}";
     vaadin.addEventListener("keyup", (event) => {
       if (event.keyCode == 13) {
-        setGroup(dialog, vaadin);
+        createNewGroup(dialog, vaadin);
       }
     });
 
@@ -262,7 +266,7 @@ function initGroupsDialog() {
     okButton.textContent = 'OK';
     okButton.setAttribute('style', 'margin-right: 1em');
     okButton.addEventListener('click', function() {
-      setGroup(dialog, vaadin);
+      createNewGroup(dialog, vaadin);
     });
     // Cancel Button
     const cancelButton = window.document.createElement('vaadin-button');
@@ -286,15 +290,14 @@ function initGroupsDialog() {
   const editDialog = document.querySelector('#editGroupDlg');
   console.log("Edit Group dialog: " + editDialog);
   editDialog.renderer = function(root, dialog) {
-    console.log("Edit Groups dialog called");
-
+    // console.log("Edit Groups dialog called");
     // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
     if(root.firstElementChild) {
       let title = root.children[0];
       title.textContent = 'Edit Group: ' + g_currentGroup;
-      let grid = root.children[2];
-      const contactGrid = document.querySelector('#contactGrid');
-      grid.items = contactGrid.items;
+      let grid = root.children[1];
+      grid.items = g_contactItems;
+      grid.selectedItems = g_groupList.get(g_currentGroup);
       return;
     }
 
@@ -311,22 +314,24 @@ function initGroupsDialog() {
     column.header =  " ";
     column.flexGrow = 0;
     column.width = "300px";
-    const vaadin = window.document.createElement('vaadin-grid');
-    vaadin.appendChild(selectColumn);
-    vaadin.appendChild(column);
-    vaadin.id = "groupGrid";
-    vaadin.heightByRows = true;
-    vaadin.setAttribute('style', 'width: 360px;');
+    const grid = window.document.createElement('vaadin-grid');
+    grid.appendChild(selectColumn);
+    grid.appendChild(column);
+    grid.id = "groupGrid";
+    grid.heightByRows = true;
+    grid.setAttribute('style', 'width: 360px;');
     //vaadin.items = [{'username': 'Bofsdkjlhfsdjlk;fhsdjkl;sdfjlh;sdfb'}, {'username': 'Alice'}];
-    const contactGrid = document.querySelector('#contactGrid');
-    vaadin.items = contactGrid.items;
-
+    grid.items = g_contactItems;
+    grid.selectedItems = g_groupList.get(g_currentGroup);
     // Confirm Button
     const okButton = window.document.createElement('vaadin-button');
     okButton.setAttribute('theme', 'primary');
     okButton.textContent = 'OK';
     okButton.setAttribute('style', 'margin-right: 1em');
     okButton.addEventListener('click', function() {
+      g_groupList.set(g_currentGroup, grid.selectedItems);
+      grid.selectedItems = [];
+      setCurrentGroup(g_currentGroup);
       dialog.opened = false;
     });
     // Delete Button
@@ -337,18 +342,21 @@ function initGroupsDialog() {
     delButton.addEventListener('click', function() {
       g_groupList.delete(g_currentGroup);
       regenerateGroupList('All');
+      setCurrentGroup(SYSTEM_GROUP_LIST[0]);
+      grid.selectedItems = [];
       dialog.opened = false;
     });
     // Cancel Button
     const cancelButton = window.document.createElement('vaadin-button');
     cancelButton.textContent = 'Cancel';
     cancelButton.addEventListener('click', function() {
+      grid.selectedItems = [];
       dialog.opened = false;
     });
     // Add all elements
     root.appendChild(div);
     root.appendChild(br);
-    root.appendChild(vaadin);
+    root.appendChild(grid);
     root.appendChild(br);
     root.appendChild(okButton);
     root.appendChild(delButton);
@@ -358,8 +366,10 @@ function initGroupsDialog() {
   // -- Edit Group Button
   let button = document.querySelector('#groupsBtn');
   button.addEventListener('click', () => {
-    //console.log("Edit Group clicked: " + editDialog);
-    editDialog.opened = true;
+    // open if not 'All' group selected
+    if (g_currentGroup !== SYSTEM_GROUP_LIST[0]) {
+      editDialog.opened = true;
+    }
   });
 }
 
@@ -678,11 +688,11 @@ async function updateRecepients(canReset) {
 
   // Test Content
   items = [
-    { "username": "Bob", "agentId": 11, "recepientType": '', greenDot },
-    { "username": "Alice", "agentId": 222, "recepientType": '', greenDot },
-    { "username": "Camille", "agentId": 333, "recepientType": '', greenDot },
-    { "username": "Daniel", "agentId": 444, "recepientType": '', greenDot },
-    { "username": "Eve", "agentId": 555, "recepientType": '', greenDot },
+    { "username": "Bob", "agentId": 11, "recepientType": '', "status": blueDot },
+    { "username": "Alice", "agentId": 222, "recepientType": '', "status": blueDot },
+    { "username": "Camille", "agentId": 333, "recepientType": '', "status": blueDot },
+    { "username": "Daniel", "agentId": 444, "recepientType": '', "status": blueDot },
+    { "username": "Eve", "agentId": 555, "recepientType": '', "status": blueDot },
   ];
 
   // - Reset search filter
@@ -1148,6 +1158,30 @@ async function getFile(fileId) {
 /**
  *
  */
+function setCurrentGroup(groupName) {
+  console.log('Current Group changed: ' + groupName);
+  if(groupName === 'new...') {
+    const newDialog = document.querySelector('#newGroupDlg');
+    newDialog.opened = true;
+    return;
+  }
+  const group = g_groupList.get(groupName);
+  console.log('group:' + JSON.stringify(group));
+  const contactGrid = document.querySelector('#contactGrid');
+  g_currentGroup = groupName;
+  const contactSearch = document.querySelector('#contactSearch');
+  contactGrid.items = filterContacts([], contactSearch.value);
+  resetContactGrid(contactGrid);
+  setState_DeleteButton(true);
+  setState_ReplyButton(true);
+  console.log({contactGrid});
+  contactGrid.render();
+}
+
+
+/**
+ *
+ */
 function initContactsArea() {
   // -- ContactsMenu -- vaadin-menu-bar
   if (process.env.NODE_ENV !== 'prod') {
@@ -1170,26 +1204,7 @@ function initContactsArea() {
   g_currentGroup = groupCombo.value;
   // On value change
   groupCombo.addEventListener('change', function(event) {
-    const groupName = event.target.value;
-    console.log('groupCombo value change:' + event.target.value);
-    if (groupName === 'new...') {
-      const newDialog = document.querySelector('#newGroupDlg');
-      newDialog.opened = true;
-      return;
-    }
-    if (groupName === 'All') {
-
-    }
-    const group = g_groupList.get(groupName);
-    console.log('group:' + JSON.stringify(group));
-
-    const contactGrid = document.querySelector('#contactGrid');
-    contactGrid.selectedItems = [];
-    contactGrid.activeItem = null;
-    //update_mailGrid(event.target.value)
-    g_currentGroup = event.target.value;
-    setState_DeleteButton(true)
-    setState_ReplyButton(true)
+    setCurrentGroup(event.target.value);
   });
 
 
@@ -1235,12 +1250,19 @@ function initContactsArea() {
  *
  */
 function filterContacts(selectedItems, searchValue) {
+  // Get contacts from group only
+  let items = g_groupList.get(g_currentGroup);
+  if (g_currentGroup === SYSTEM_GROUP_LIST[0]) {
+    items = g_contactItems;
+  }
+  // Set filter
   const searchTerm = ((searchValue /* as string*/) || '').trim();
   const matchesTerm = (value/*: string*/) => {
     return value.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
   };
-  let filteredItems = g_contactItems.filter((item) => {
-    console.log({item});
+  // Apply filter
+  let filteredItems = items.filter((item) => {
+    //console.log({item});
     return (
       !searchTerm
       || matchesTerm(item.username)
@@ -1275,12 +1297,14 @@ function toggleContact(contactItem) {
  *
  */
 function resetContactGrid(contactGrid) {
-  for (let contactItem of contactGrid.items) {
-    contactItem.recepientType = '';
+  if (contactGrid.items.length > 0) {
+    for(let contactItem of contactGrid.items) {
+      contactItem.recepientType = '';
+    }
   }
   contactGrid.selectedItems = [];
   contactGrid.activeItem = null;
-  contactGrid.render();
+  //contactGrid.render();
 }
 
 
