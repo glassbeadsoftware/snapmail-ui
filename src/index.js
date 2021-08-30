@@ -88,9 +88,9 @@ var g_contactItems = [];
 var g_mailItems = [];
 
 // Map of (name -> [agentId])
+const SYSTEM_GROUP_LIST = ['All', 'new...'];
 var g_groupList = new Map();
 g_groupList.set('All', []);
-//g_groupList.set('new...', []);
 
 //---------------------------------------------------------------------------------------------------------------------
 // App
@@ -190,6 +190,38 @@ function handleSignal(signalwrapper) {
 
 // -- INIT -- //
 
+function regenerateGroupList(current) {
+  const groupCombo = document.querySelector('#groupCombo');
+  let keys = Array.from(g_groupList.keys());
+  keys.push('new...');
+  groupCombo.items = keys;
+  groupCombo.value = current;
+}
+
+function isValidGroupName(name) {
+  let keys = Array.from(g_groupList.keys());
+  for (let takenName of keys) {
+    if (name === takenName) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+function setGroup(dialog, vaadin) {
+  if (!isValidGroupName(vaadin.value)) {
+    vaadin.invalid = true;
+    vaadin.errorMessage = 'Name already taken';
+    return;
+  }
+  g_groupList.set(vaadin.value, []);
+  //console.log('g_groupList: ' + JSON.stringify(g_groupList.keys()));
+  regenerateGroupList(vaadin.value);
+  g_currentGroup = vaadin.value;
+  vaadin.value = '';
+  dialog.opened = false;
+}
 
 function initGroupsDialog() {
   console.log("init Groups");
@@ -205,6 +237,7 @@ function initGroupsDialog() {
       //console.log({root});
       let vaadin = root.children[1];
       vaadin.autofocus = true;
+      vaadin.focus();
       return;
     }
     // Title
@@ -215,23 +248,21 @@ function initGroupsDialog() {
     const vaadin = window.document.createElement('vaadin-text-field');
     vaadin.placeholder = "name";
     vaadin.autofocus = true;
+    vaadin.preventInvalidInput = true;
+    vaadin.pattern = "[a-zA-Z0-9_.]{0,20}";
+    vaadin.addEventListener("keyup", (event) => {
+      if (event.keyCode == 13) {
+        setGroup(dialog, vaadin);
+      }
+    });
+
     // Confirm Button
     const okButton = window.document.createElement('vaadin-button');
     okButton.setAttribute('theme', 'primary');
     okButton.textContent = 'OK';
     okButton.setAttribute('style', 'margin-right: 1em');
     okButton.addEventListener('click', function() {
-      g_groupList.set(vaadin.value, []);
-      //console.log('g_groupList: ' + JSON.stringify(g_groupList.keys()));
-      const groupCombo = document.querySelector('#groupCombo');
-      let keys = Array.from(g_groupList.keys());
-      keys.push('new...');
-      console.log('keys: ' + JSON.stringify(keys));
-      groupCombo.items = keys;
-      groupCombo.value = vaadin.value;
-      g_currentGroup = vaadin.value;
-      vaadin.value = '';
-      dialog.opened = false;
+      setGroup(dialog, vaadin);
     });
     // Cancel Button
     const cancelButton = window.document.createElement('vaadin-button');
@@ -250,6 +281,7 @@ function initGroupsDialog() {
     root.appendChild(cancelButton);
   };
 
+
   // -- Edit Group Dialog
   const editDialog = document.querySelector('#editGroupDlg');
   console.log("Edit Group dialog: " + editDialog);
@@ -261,6 +293,8 @@ function initGroupsDialog() {
       let title = root.children[0];
       title.textContent = 'Edit Group: ' + g_currentGroup;
       let grid = root.children[2];
+      const contactGrid = document.querySelector('#contactGrid');
+      grid.items = contactGrid.items;
       return;
     }
 
@@ -273,7 +307,7 @@ function initGroupsDialog() {
     const selectColumn = window.document.createElement('vaadin-grid-selection-column');
     selectColumn.autoSelect = true;
     const column = window.document.createElement('vaadin-grid-column');
-    column.path = 'name';
+    column.path = 'username';
     column.header =  " ";
     column.flexGrow = 0;
     column.width = "300px";
@@ -283,14 +317,26 @@ function initGroupsDialog() {
     vaadin.id = "groupGrid";
     vaadin.heightByRows = true;
     vaadin.setAttribute('style', 'width: 360px;');
-    vaadin.items = [{'name': 'Bofsdkjlhfsdjlk;fhsdjkl;sdfjlh;sdfb'}, {'name': 'Alice'}];
-    console.log({vaadin});
+    //vaadin.items = [{'username': 'Bofsdkjlhfsdjlk;fhsdjkl;sdfjlh;sdfb'}, {'username': 'Alice'}];
+    const contactGrid = document.querySelector('#contactGrid');
+    vaadin.items = contactGrid.items;
+
     // Confirm Button
     const okButton = window.document.createElement('vaadin-button');
     okButton.setAttribute('theme', 'primary');
     okButton.textContent = 'OK';
     okButton.setAttribute('style', 'margin-right: 1em');
     okButton.addEventListener('click', function() {
+      dialog.opened = false;
+    });
+    // Delete Button
+    const delButton = window.document.createElement('vaadin-button');
+    delButton.setAttribute('theme', 'error');
+    delButton.textContent = 'Delete';
+    delButton.setAttribute('style', 'margin-right: 1em');
+    delButton.addEventListener('click', function() {
+      g_groupList.delete(g_currentGroup);
+      regenerateGroupList('All');
       dialog.opened = false;
     });
     // Cancel Button
@@ -305,6 +351,7 @@ function initGroupsDialog() {
     root.appendChild(vaadin);
     root.appendChild(br);
     root.appendChild(okButton);
+    root.appendChild(delButton);
     root.appendChild(cancelButton);
   };
 
@@ -628,6 +675,15 @@ async function updateRecepients(canReset) {
     }
     items.push(item);
   }
+
+  // Test Content
+  items = [
+    { "username": "Bob", "agentId": 11, "recepientType": '', greenDot },
+    { "username": "Alice", "agentId": 222, "recepientType": '', greenDot },
+    { "username": "Camille", "agentId": 333, "recepientType": '', greenDot },
+    { "username": "Daniel", "agentId": 444, "recepientType": '', greenDot },
+    { "username": "Eve", "agentId": 555, "recepientType": '', greenDot },
+  ];
 
   // - Reset search filter
   const contactSearch = document.querySelector('#contactSearch');
@@ -1108,10 +1164,9 @@ function initContactsArea() {
   }
 
   // Groups Combo box -- vaadin-combo-box
-  const systemGroupList = ['All', 'new...'];
   const groupCombo = document.querySelector('#groupCombo');
-  groupCombo.items = systemGroupList;
-  groupCombo.value = systemGroupList[0];
+  groupCombo.items = SYSTEM_GROUP_LIST;
+  groupCombo.value = SYSTEM_GROUP_LIST[0];
   g_currentGroup = groupCombo.value;
   // On value change
   groupCombo.addEventListener('change', function(event) {
