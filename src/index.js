@@ -89,8 +89,15 @@ var g_mailItems = [];
 
 // Map of (name -> [agentId])
 const SYSTEM_GROUP_LIST = ['All', 'new...'];
-var g_groupList = new Map();
-g_groupList.set('All', []);
+var g_groupList = undefined;
+try {
+  g_groupList = new Map(JSON.parse(window.localStorage.groupMap));
+} catch (err) {
+  console.error("localStorage parse failed for groupMap: " + err);
+  g_groupList = new Map();
+  g_groupList.set('All', []);
+}
+console.log({g_groupList});
 
 //---------------------------------------------------------------------------------------------------------------------
 // App
@@ -190,7 +197,7 @@ function handleSignal(signalwrapper) {
 
 // -- INIT -- //
 
-function regenerateGroupList(current) {
+function regenerateGroupComboBox(current) {
   const groupCombo = document.querySelector('#groupCombo');
   let keys = Array.from(g_groupList.keys());
   keys.push('new...');
@@ -216,11 +223,26 @@ function createNewGroup(dialog, vaadin) {
   }
   g_groupList.set(vaadin.value, []);
   //console.log('g_groupList: ' + JSON.stringify(g_groupList.keys()));
-  regenerateGroupList(vaadin.value);
-  // g_currentGroup = vaadin.value;
+  regenerateGroupComboBox(vaadin.value);
   setCurrentGroup(vaadin.value);
   vaadin.value = '';
   dialog.opened = false;
+}
+
+/**
+ * Find and collect grid items that have the given agentIds
+ */
+function ids_to_items(ids, items) {
+  let filtered = [];
+  for (let id of ids) {
+    for (let item of items) {
+      if (item.agentId === id) {
+        filtered.push(item);
+        break;
+      }
+    }
+  }
+  return filtered;
 }
 
 
@@ -232,10 +254,7 @@ function initGroupsDialog() {
 
   // -- New Group Dialog
   const newDialog = document.querySelector('#newGroupDlg');
-  console.log("New Group dialog: " + newDialog);
-
   newDialog.renderer = function(root, dialog) {
-    console.log("New Group dialog called");
     // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
     if(root.firstElementChild) {
       //console.log({root});
@@ -285,22 +304,20 @@ function initGroupsDialog() {
     root.appendChild(cancelButton);
   };
 
-
   // -- Edit Group Dialog
   const editDialog = document.querySelector('#editGroupDlg');
-  console.log("Edit Group dialog: " + editDialog);
   editDialog.renderer = function(root, dialog) {
-    // console.log("Edit Groups dialog called");
+    console.log("Edit Groups dialog called: " + g_currentGroup);
     // Check if there is a DOM generated with the previous renderer call to update its content instead of recreation
     if(root.firstElementChild) {
       let title = root.children[0];
       title.textContent = 'Edit Group: ' + g_currentGroup;
       let grid = root.children[1];
       grid.items = g_contactItems;
-      grid.selectedItems = g_groupList.get(g_currentGroup);
+      const groupIds = g_groupList.get(g_currentGroup);
+      grid.selectedItems = ids_to_items(groupIds, grid.items);
       return;
     }
-
     // Title
     const div = window.document.createElement('h3');
     div.textContent = 'Edit Group: ' + g_currentGroup;
@@ -311,7 +328,7 @@ function initGroupsDialog() {
     selectColumn.autoSelect = true;
     const column = window.document.createElement('vaadin-grid-column');
     column.path = 'username';
-    column.header =  " ";
+    column.header = " ";
     column.flexGrow = 0;
     column.width = "300px";
     const grid = window.document.createElement('vaadin-grid');
@@ -320,16 +337,22 @@ function initGroupsDialog() {
     grid.id = "groupGrid";
     grid.heightByRows = true;
     grid.setAttribute('style', 'width: 360px;');
-    //vaadin.items = [{'username': 'Bofsdkjlhfsdjlk;fhsdjkl;sdfjlh;sdfb'}, {'username': 'Alice'}];
     grid.items = g_contactItems;
-    grid.selectedItems = g_groupList.get(g_currentGroup);
+    const groupIds = g_groupList.get(g_currentGroup);;
+    const items = ids_to_items(groupIds, grid.items)
+    //grid.selectedItems = items; // does not work here
     // Confirm Button
     const okButton = window.document.createElement('vaadin-button');
     okButton.setAttribute('theme', 'primary');
     okButton.textContent = 'OK';
     okButton.setAttribute('style', 'margin-right: 1em');
+    // OnClick OK save agentIds of selected items for the group
     okButton.addEventListener('click', function() {
-      g_groupList.set(g_currentGroup, grid.selectedItems);
+      let ids = [];
+      for (let item of grid.selectedItems) {
+        ids.push(item.agentId);
+      }
+      g_groupList.set(g_currentGroup, ids);
       grid.selectedItems = [];
       setCurrentGroup(g_currentGroup);
       dialog.opened = false;
@@ -341,7 +364,7 @@ function initGroupsDialog() {
     delButton.setAttribute('style', 'margin-right: 1em');
     delButton.addEventListener('click', function() {
       g_groupList.delete(g_currentGroup);
-      regenerateGroupList('All');
+      regenerateGroupComboBox(SYSTEM_GROUP_LIST[0]);
       setCurrentGroup(SYSTEM_GROUP_LIST[0]);
       grid.selectedItems = [];
       dialog.opened = false;
@@ -361,6 +384,8 @@ function initGroupsDialog() {
     root.appendChild(okButton);
     root.appendChild(delButton);
     root.appendChild(cancelButton);
+    // Set selected at the end otherwise it wont register
+    grid.selectedItems = items;
   };
 
   // -- Edit Group Button
@@ -1165,8 +1190,8 @@ function setCurrentGroup(groupName) {
     newDialog.opened = true;
     return;
   }
-  const group = g_groupList.get(groupName);
-  console.log('group:' + JSON.stringify(group));
+  //const groupIds = g_groupList.get(groupName);
+  //console.log('groupIds:' + JSON.stringify(groupIds));
   const contactGrid = document.querySelector('#contactGrid');
   g_currentGroup = groupName;
   const contactSearch = document.querySelector('#contactSearch');
@@ -1176,6 +1201,7 @@ function setCurrentGroup(groupName) {
   setState_ReplyButton(true);
   console.log({contactGrid});
   contactGrid.render();
+  window.localStorage.groupMap = JSON.stringify(Array.from(g_groupList.entries()));
 }
 
 
@@ -1199,9 +1225,11 @@ function initContactsArea() {
 
   // Groups Combo box -- vaadin-combo-box
   const groupCombo = document.querySelector('#groupCombo');
-  groupCombo.items = SYSTEM_GROUP_LIST;
-  groupCombo.value = SYSTEM_GROUP_LIST[0];
+  //groupCombo.items = SYSTEM_GROUP_LIST;
+  //groupCombo.value = SYSTEM_GROUP_LIST[0];
+  regenerateGroupComboBox(SYSTEM_GROUP_LIST[0]);
   g_currentGroup = groupCombo.value;
+
   // On value change
   groupCombo.addEventListener('change', function(event) {
     setCurrentGroup(event.target.value);
@@ -1250,10 +1278,11 @@ function initContactsArea() {
  *
  */
 function filterContacts(selectedItems, searchValue) {
-  // Get contacts from group only
-  let items = g_groupList.get(g_currentGroup);
-  if (g_currentGroup === SYSTEM_GROUP_LIST[0]) {
-    items = g_contactItems;
+  // Get contacts from current group only
+  let items = g_contactItems;
+  if (g_currentGroup !== SYSTEM_GROUP_LIST[0]) {
+    const ids = g_groupList.get(g_currentGroup);
+    items = ids_to_items(ids, items);
   }
   // Set filter
   const searchTerm = ((searchValue /* as string*/) || '').trim();
