@@ -236,7 +236,7 @@ function ids_to_items(ids, items) {
   let filtered = [];
   for (let id of ids) {
     for (let item of items) {
-      if (item.agentId === id) {
+      if (htos(item.agentId) === htos(id)) {
         filtered.push(item);
         break;
       }
@@ -679,7 +679,7 @@ function initTitleBar() {
  * @returns {Promise<void>}
  */
 async function updateRecepients(canReset) {
-  console.log('resetRecepients:')
+  console.log('updateRecepients:')
   const contactGrid = document.querySelector('#contactGrid');
   // - Get currently selected items' hash
   let prevSelected = [];
@@ -711,14 +711,14 @@ async function updateRecepients(canReset) {
     items.push(item);
   }
 
-  // Test Content
-  items = [
-    { "username": "Bob", "agentId": 11, "recepientType": '', "status": blueDot },
-    { "username": "Alice", "agentId": 222, "recepientType": '', "status": blueDot },
-    { "username": "Camille", "agentId": 333, "recepientType": '', "status": blueDot },
-    { "username": "Daniel", "agentId": 444, "recepientType": '', "status": blueDot },
-    { "username": "Eve", "agentId": 555, "recepientType": '', "status": blueDot },
-  ];
+  // // Test Content
+  // items = [
+  //   { "username": "Bob", "agentId": 11, "recepientType": '', "status": blueDot },
+  //   { "username": "Alice", "agentId": 222, "recepientType": '', "status": blueDot },
+  //   { "username": "Camille", "agentId": 333, "recepientType": '', "status": blueDot },
+  //   { "username": "Daniel", "agentId": 444, "recepientType": '', "status": blueDot },
+  //   { "username": "Eve", "agentId": 555, "recepientType": '', "status": blueDot },
+  // ];
 
   // - Reset search filter
   const contactSearch = document.querySelector('#contactSearch');
