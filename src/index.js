@@ -236,7 +236,8 @@ function ids_to_items(ids, items) {
   let filtered = [];
   for (let id of ids) {
     for (let item of items) {
-      if (htos(item.agentId) === htos(id)) {
+      const itemStr = htos(item.agentId);
+      if (itemStr === id) {
         filtered.push(item);
         break;
       }
@@ -350,7 +351,7 @@ function initGroupsDialog() {
     okButton.addEventListener('click', function() {
       let ids = [];
       for (let item of grid.selectedItems) {
-        ids.push(item.agentId);
+        ids.push(htos(item.agentId));
       }
       g_groupList.set(g_currentGroup, ids);
       grid.selectedItems = [];
@@ -1278,11 +1279,15 @@ function initContactsArea() {
  *
  */
 function filterContacts(selectedItems, searchValue) {
+  console.log("filterContacts:");
   // Get contacts from current group only
   let items = g_contactItems;
+  //console.log({items});
   if (g_currentGroup !== SYSTEM_GROUP_LIST[0]) {
     const ids = g_groupList.get(g_currentGroup);
+    //console.log({ids});
     items = ids_to_items(ids, items);
+    //console.log({items});
   }
   // Set filter
   const searchTerm = ((searchValue /* as string*/) || '').trim();
