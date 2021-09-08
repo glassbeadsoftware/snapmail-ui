@@ -75,6 +75,7 @@ var g_responseMap = new Map();
 // Map of (mailId -> mailItem)
 var g_mailMap = new Map();
 
+var g_dnaId = undefined;
 var g_myAgentHash = null;
 var g_myAgentId = null;
 var g_myHandle = '<unknown>';
@@ -90,14 +91,19 @@ var g_mailItems = [];
 // Map of (name -> [agentId])
 const SYSTEM_GROUP_LIST = ['All', 'new...'];
 var g_groupList = undefined;
-try {
-  g_groupList = new Map(JSON.parse(window.localStorage.groupMap));
-} catch (err) {
-  console.error("localStorage parse failed for groupMap: " + err);
-  g_groupList = new Map();
-  g_groupList.set('All', []);
+loadGroupList();
+
+function loadGroupList(dnaId) {
+  try {
+    g_groupList = new Map(JSON.parse(window.localStorage[dnaId]));
+  } catch(err) {
+    console.error("localStorage parse failed for dnaId: " + dnaId);
+    console.error({err});
+    g_groupList = new Map();
+    g_groupList.set('All', []);
+  }
+  console.log({ g_groupList });
 }
-console.log({g_groupList});
 
 //---------------------------------------------------------------------------------------------------------------------
 // App
@@ -198,6 +204,9 @@ function handleSignal(signalwrapper) {
 // -- INIT -- //
 
 function regenerateGroupComboBox(current) {
+  if (g_groupList === undefined || g_groupList === null) {
+    return;
+  }
   const groupCombo = document.querySelector('#groupCombo');
   let keys = Array.from(g_groupList.keys());
   keys.push('new...');
@@ -572,8 +581,12 @@ function initDna() {
   console.log('initDna()');
   DNA.rsmConnectApp(handleSignal).then( async (cellId) => {
     const dnaId = htos(cellId[0]);
+    g_dnaId = dnaId;
     g_myAgentHash = cellId[1];
     g_myAgentId = htos(g_myAgentHash);
+    // Load Groups from localStorage
+    loadGroupList(dnaId);
+    regenerateGroupComboBox(SYSTEM_GROUP_LIST[0]);
     // let label = document.getElementById('agentIdDisplay');
     // label.textContent = g_myAgentId
     DNA.getMyHandle(showHandle);
@@ -696,7 +709,7 @@ async function updateRecepients(canReset) {
   pingNextAgent();
   // - Add each handle to the contactGrid
   for (const [agentId, username] of g_usernameMap.entries()) {
-    console.log('' + agentId + '=> ' + username)
+    // console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
     const status = g_pingMap.get(agentId)? (g_responseMap.get(agentId)? greenDot : redDot) : blueDot;
     //const status = blueDot
@@ -1202,7 +1215,7 @@ function setCurrentGroup(groupName) {
   setState_ReplyButton(true);
   console.log({contactGrid});
   contactGrid.render();
-  window.localStorage.groupMap = JSON.stringify(Array.from(g_groupList.entries()));
+  window.localStorage[g_dnaId] = JSON.stringify(Array.from(g_groupList.entries()));
 }
 
 
