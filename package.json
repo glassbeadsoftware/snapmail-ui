@@ -1,6 +1,6 @@
 {
   "name": "snapmail",
-  "version": "0.1.3",
+  "version": "1.4",
   "description": "A minimalist web interface for Snapmail Holochain app",
   "scripts": {
     "all": "npm run sandbox-create && concurrently \"npm:sandbox-run\" \"npm:billy-ui\" \"npm:alex-ui\" \"npm:camille-ui\"",
