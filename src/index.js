@@ -786,6 +786,8 @@ function initMenuBar() {
       const mailGrid = document.querySelector('#mailGrid');
       mailGrid.selectedItems = [];
       mailGrid.activeItem = null;
+      const inMailArea = document.getElementById('inMailArea');
+      inMailArea.value = ""
       setState_DeleteButton(true)
       setState_ReplyButton(true)
     }

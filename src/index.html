@@ -178,19 +178,19 @@
             <!-- Split between Write and Contacts -->
             <vaadin-split-layout style="min-height:50px; height:100%; width:100%; margin:0px;">
                 <!-- WRITE AREA -->
-                <vaadin-vertical-layout style="min-width: 40px; width: 70%;">
+                <vaadin-vertical-layout style="min-width: 40px; width: 65%;">
                     <vaadin-text-field style="width: 100%;" id="outMailSubjectArea" placeholder="Write subject here..."></vaadin-text-field>
                     <vaadin-text-area style="width: 100%; height: 100%;padding-bottom:0;" id="outMailContentArea" placeholder="Write here..."></vaadin-text-area>
                 </vaadin-vertical-layout>
                 <!-- CONTACTS AREA -->
-                <vaadin-vertical-layout theme="spacing-xs" style="min-width: 20px; width: 30%;">
+                <vaadin-vertical-layout theme="spacing-xs" style="min-width: 20px; width: 35%;">
                     <!-- CONTACTS MENU -->
                     <!-- <vaadin-horizontal-layout theme="spacing-xs" id="fileboxBar">-->
                     <vaadin-horizontal-layout theme="spacing-xs" style="background-color: #f7f7f1; width: 100%;">
-                        <h4 style="text-align: center; font-size: large; padding: 10px 10px 10px 10px; margin: 0px 0px 0px 5px;">📇 Groups</h4>
-                        <vaadin-combo-box id="groupCombo"></vaadin-combo-box>
+                        <h4 style="min-width:85px;text-align: center; font-size: large; padding: 10px 10px 10px 10px; margin: 0px 0px 0px 5px;">📇 Groups</h4>
+                        <vaadin-combo-box id="groupCombo" style="min-width:100px;max-width:200px;"></vaadin-combo-box>
                         <vaadin-button id="groupsBtn" style="margin: 5px; min-width: 40px; padding-left: 5px;"><iron-icon icon="lumo:edit" slot="suffix"></iron-icon></vaadin-button>
-                        <vaadin-text-field id="contactSearch" clear-button-visible placeholder="Search" style="width: 35%; margin-left: auto;margin-right: 3px;">
+                        <vaadin-text-field id="contactSearch" clear-button-visible placeholder="Search" style="width: 35%; min-width:100px; margin-left: auto;margin-right: 3px;">
                             <iron-icon slot="prefix" icon="lumo:search"></iron-icon>
                         </vaadin-text-field>
                     </vaadin-horizontal-layout>
