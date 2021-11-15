@@ -30,7 +30,7 @@ import {sha256, arrayBufferToBase64, base64ToArrayBuffer, splitFile, sleep, base
 import {systemFolders, isMailDeleted, determineMailClass, into_gridItem, into_mailText, is_OutMail, customDateString} from './mail'
 
 import {version} from '../package.json';
-import { IS_ELECTRON, NETWORK_ID } from "./rsm_bridge";
+import { checkAckInbox, IS_ELECTRON, NETWORK_ID } from "./rsm_bridge";
 
 //---------------------------------------------------------------------------------------------------------------------
 // DEBUG MODE
@@ -568,8 +568,8 @@ function initNotification() {
 
 function getAllFromDht() {
   DNA.getAllHandles(handle_getAllHandles);
-  DNA.checkIncomingAck(logCallResult);
-  DNA.checkIncomingMail(logCallResult);
+  DNA.checkAckInbox(logCallResult);
+  DNA.checkMailInbox(logCallResult);
   callGetAllMails();
 }
 

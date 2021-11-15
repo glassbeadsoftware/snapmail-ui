@@ -203,10 +203,6 @@ export function deleteMail(mailAddress, callback) {
   callDna('delete_mail', mailAddress).then(result => callback(result));
 }
 
-export function getAllArrivedMail(callback) {
-  callDna('get_all_arrived_mail', undefined).then(result => callback(result));
-}
-
 export function getAllMails(callback, afterCallback) {
   callDna('get_all_mails', undefined)
     .then(result => {callback(result); afterCallback();})
@@ -217,24 +213,16 @@ export function getAllMails(callback, afterCallback) {
     });
 }
 
-export function checkIncomingMail(callback) {
-  callDna('check_incoming_mail', undefined).then(result => callback(result));
+export function checkMailInbox(callback) {
+  callDna('check_mail_inbox', undefined).then(result => callback(result));
 }
 
-export function checkIncomingAck(callback) {
-  callDna('check_incoming_ack', undefined).then(result => callback(result));
+export function checkAckInbox(callback) {
+  callDna('check_ack_inbox', undefined).then(result => callback(result));
 }
 
 export function acknowledgeMail(mailAddress, callback) {
   callDna('acknowledge_mail', mailAddress).then(result => callback(result));
-}
-
-export function hasMailBeenReceived(mailAddress, callback) {
-  callDna('has_mail_been_received', mailAddress).then(result => callback(result));
-}
-
-export function hasAckBeenReceived(mailAddress, callback) {
-  callDna('has_ack_been_received', mailAddress).then(result => callback(result));
 }
 
 // -- File -- //
