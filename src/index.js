@@ -167,7 +167,7 @@ function handleSignal(signalwrapper) {
         // ELECTRON NOTIFICATION
         const NOTIFICATION_TITLE = 'New mail received from ' + author_name;
         const NOTIFICATION_BODY = signalwrapper.data.payload.ReceivedMail.mail.subject;
-        const CLICK_MESSAGE = 'Notification clicked';
+        //const CLICK_MESSAGE = 'Notification clicked';
 
         // - Do Notification directly from web UI
         //new Notification(NOTIFICATION_TITLE, { body: NOTIFICATION_BODY })
@@ -430,6 +430,19 @@ function initUi() {
   sendProgressBar.style.display = "none";
 }
 
+
+function allowActionMenu(canShowMenu) {
+  const sendProgressBar = document.querySelector('#sendProgressBar');
+  const actionMenu = document.querySelector('#ActionBar');
+  if (canShowMenu) {
+    sendProgressBar.style.display = "none";
+    actionMenu.style.display = "block";
+  } else  {
+    sendProgressBar.style.display = "block";
+    actionMenu.style.display = "none";
+  }
+}
+
 /**
  *
  */
@@ -437,12 +450,9 @@ function initUpload() {
   customElements.whenDefined('vaadin-upload').then(function() {
     const upload = document.querySelector('vaadin-upload');
 
-    upload.onclick = function changeContent() {
-      const sendProgressBar = document.querySelector('#sendProgressBar');
-      const actionMenu = document.querySelector('#ActionBar');
-      sendProgressBar.style.display = "block";
-      actionMenu.style.display = "none";
-    }
+    // upload.onclick = function changeContent() {
+    //   allowActionMenu(false)
+    // }
 
     upload.addEventListener('file-reject', function(event) {
       window.alert(event.detail.file.name + ' error: ' + event.detail.error);
@@ -467,10 +477,7 @@ function initUpload() {
     upload.addEventListener('upload-before', function(event) {
       console.log('upload-before event: ', JSON.stringify(event.detail.file));
 
-      const sendProgressBar = document.querySelector('#sendProgressBar');
-      const actionMenu = document.querySelector('#ActionBar');
-      sendProgressBar.style.display = "none";
-      actionMenu.style.display = "block";
+      allowActionMenu(false)
 
       const file = event.detail.file;
       const xhr = event.detail.xhr;
@@ -495,6 +502,8 @@ function initUpload() {
         upload.set(['files', upload.files.indexOf(file), 'progress'], 100)
         upload.set(['files', upload.files.indexOf(file), 'complete'], true)
         upload.set(['files', upload.files.indexOf(file), 'content'], content)
+
+        allowActionMenu(true)
       };
       reader.readAsArrayBuffer(event.detail.file);
     });
