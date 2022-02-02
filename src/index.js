@@ -1558,8 +1558,7 @@ function logCallResult(callResult) {
     console.error(err);
     return;
   }
-  // FIXME put back when debug finished
-  // console.log('callResult = ' + JSON.stringify(callResult));
+  //console.debug('callResult = ' + JSON.stringify(callResult));
 }
 
 /**

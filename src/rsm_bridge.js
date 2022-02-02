@@ -1,5 +1,5 @@
 
-import { AdminWebsocket, AppWebsocket } from '@holochain/conductor-api';
+import { AdminWebsocket, AppWebsocket } from '@holochain/client';
 //import { AdminWebsocket, AppWebsocket } from '../../holochain-conductor-api/lib';
 import { htos } from './utils';
 
