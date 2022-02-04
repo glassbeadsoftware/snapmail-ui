@@ -76,12 +76,9 @@ export function determineMailClass(mailItem) {
   let state = mailItem.state;
 
   if (state.hasOwnProperty('Out')) {
-    if (state.Out.hasOwnProperty('Pending')) return 'pending';
-    if (state.Out.hasOwnProperty('PartiallyArrived_NoAcknowledgement')) return 'partially';
-    if (state.Out.hasOwnProperty('PartiallyArrived_PartiallyAcknowledged')) return 'partially';
-    if (state.Out.hasOwnProperty('Arrived_NoAcknowledgement')) return 'arrived';
-    if (state.Out.hasOwnProperty('Arrived_PartiallyAcknowledged')) return 'arrived';
-    if (state.Out.hasOwnProperty('Received')) return 'received';
+    if (state.Out.hasOwnProperty('Unsent')) return 'pending';
+    if (state.Out.hasOwnProperty('AllSent')) return '';
+    if (state.Out.hasOwnProperty('AllAcknowledged')) return 'received';
     if (state.Out.hasOwnProperty('Deleted')) return 'deleted';
   }
   if (state.hasOwnProperty('In')) {
