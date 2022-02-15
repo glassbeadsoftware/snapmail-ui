@@ -77,14 +77,16 @@ export function determineMailClass(mailItem) {
 
   if (state.hasOwnProperty('Out')) {
     if (state.Out.hasOwnProperty('Unsent')) return 'pending';
-    if (state.Out.hasOwnProperty('AllSent')) return '';
+    if (state.Out.hasOwnProperty('AllSent')) return 'partially';
+    if (state.Out.hasOwnProperty('AllReceived')) return '';
     if (state.Out.hasOwnProperty('AllAcknowledged')) return 'received';
     if (state.Out.hasOwnProperty('Deleted')) return 'deleted';
   }
   if (state.hasOwnProperty('In')) {
-    if (state.In.hasOwnProperty('Acknowledged')) return 'received';
-    if (state.In.hasOwnProperty('AckReceived')) return 'received';
-    if (state.In.hasOwnProperty('Arrived')) return 'newmail';
+    if (state.In.hasOwnProperty('Unacknowledged')) return 'newmail';
+    if (state.In.hasOwnProperty('AckUnsent')) return 'pending';
+    if (state.In.hasOwnProperty('AckPending')) return 'partially';
+    if (state.In.hasOwnProperty('AckDelivered')) return 'received';
     if (state.In.hasOwnProperty('Deleted')) return 'deleted';
   }
   console.error('Invalid mailItem object');
