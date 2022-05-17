@@ -37,9 +37,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ddd-mtl/snapmail/issues"
+    "url": "https://github.com/glassbeadsoftware/snapmail/issues"
   },
-  "homepage": "https://github.com/ddd-mtl/snapmail#readme",
+  "homepage": "https://github.com/glassbeadsoftware/snapmail#readme",
   "devDependencies": {
     "@webcomponents/webcomponentsjs": "^2.4.3",
     "copy-webpack-plugin": "^9.0.1",

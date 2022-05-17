@@ -97,7 +97,7 @@ function loadGroupList(dnaId) {
   try {
     g_groupList = new Map(JSON.parse(window.localStorage[dnaId]));
   } catch(err) {
-    console.error("localStorage parse failed for dnaId: " + dnaId);
+    console.error("localStorage parse failed. No contact groups will be loaded. DnaId = " + dnaId);
     console.error({err});
     g_groupList = new Map();
     g_groupList.set('All', []);
@@ -408,9 +408,7 @@ function initGroupsDialog() {
   });
 }
 
-/**
- *
- */
+/** */
 function initUi() {
   setState_ChangeHandleBar(true);
   initTitleBar();
@@ -431,6 +429,7 @@ function initUi() {
 }
 
 
+/** */
 function allowActionMenu(canShowMenu) {
   const sendProgressBar = document.querySelector('#sendProgressBar');
   const actionMenu = document.querySelector('#ActionBar');
@@ -442,6 +441,7 @@ function allowActionMenu(canShowMenu) {
     actionMenu.style.display = "none";
   }
 }
+
 
 /**
  *
