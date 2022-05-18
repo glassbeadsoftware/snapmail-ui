@@ -61,6 +61,7 @@ export async function rsmConnectAdmin() {
 export async function rsmConnectApp(signalCallback) {
   let env = window.location;
   const installed_app_id = NETWORK_ID !== '' ? APP_ID + '-' + NETWORK_ID : APP_ID;
+  console.log('*** installed_app_id = ' + installed_app_id)
   console.log(env);
   console.log('*** Connecting to Snapmail app at ' + APP_URL + ' ...')
   g_appClient = await AppWebsocket.connect(APP_URL, DEFAULT_TIMEOUT, signalCallback);

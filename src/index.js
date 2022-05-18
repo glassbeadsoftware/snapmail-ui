@@ -690,7 +690,7 @@ function initTitleBar() {
 
   const title = document.querySelector('#snapTitle');
   console.assert(title);
-  title.textContent = "SnapMail v" + version + "  - ";
+  title.textContent = "SnapMail v" + version;
 
   const rootTitle = document.querySelector('#rootTitle');
   console.assert(rootTitle);
