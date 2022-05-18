@@ -161,10 +161,8 @@ function handle_getHandle(callResult) {
   console.log({g_username});
 }
 
-/**
- *
- * @returns grid item
- */
+
+/** */
 export function into_gridItem(usernameMap, mailItem) {
   // username
   g_username = undefined;
@@ -172,7 +170,7 @@ export function into_gridItem(usernameMap, mailItem) {
   while (g_username === undefined) {
     g_username = getUsername(usernameMap, mailItem);
     if (g_username === undefined) {
-      DNA.getHandle(handle_getHandle);
+      DNA.getHandle.then(callResult => {(handle_getHandle(callResult))});
     }
   }
   let username = g_username;

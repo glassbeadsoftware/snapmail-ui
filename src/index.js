@@ -82,8 +82,6 @@ var g_myHandle = '<unknown>';
 var g_currentFolder = '';
 var g_currentGroup = '';
 var g_currentMailItem = {};
-var g_manifest = null;
-var g_getChunks = [];
 
 var g_contactItems = [];
 var g_mailItems = [];
@@ -105,9 +103,9 @@ function loadGroupList(dnaId) {
   console.log({ g_groupList });
 }
 
-//---------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 // App
-//---------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------
 
 /**
  * Set on load
@@ -117,17 +115,28 @@ window.addEventListener('load', () => {
 });
 
 
-/**
- * Wrapper for dna call GetAllMails that throttles calls with a manual mutex
- */
-var canGetAllMutex = true;
-function callGetAllMails() {
-  if (!canGetAllMutex) {
-    return;
+/** */
+async function getAllHandles() {
+  let callResult = undefined;
+  try {
+    callResult = await DNA.getAllHandles()
+  } catch(e) {
+    console.warn("DNA.getAllHandles() failed: ", e)
   }
-  canGetAllMutex = false;
-  DNA.getAllHandles(handle_getAllHandles);
-  DNA.getAllMails(handle_getAllMails, handle_post_getAllMails);
+  handle_getAllHandles(callResult)
+}
+
+
+/** */
+async function getAllMails() {
+    await getAllHandles();
+    try {
+      const callResult = await DNA.getAllMails()
+      handle_getAllMails(callResult)
+    } catch (e) {
+      console.warn('DNA.getAllMails() failed: ', e);
+    }
+    handle_post_getAllMails()
 }
 
 // -- Signal Structure -- //
@@ -179,7 +188,7 @@ function handleSignal(signalwrapper) {
        console.log(reply);
       }
 
-      callGetAllMails();
+      getAllMails();
       return;
   }
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedAck')) {
@@ -188,7 +197,7 @@ function handleSignal(signalwrapper) {
       console.log({item});
       const notification = document.querySelector('#notifyAck');
       notification.open();
-      callGetAllMails();
+      getAllMails();
       return;
   }
   if (signalwrapper.data.payload.hasOwnProperty('ReceivedFile')) {
@@ -423,7 +432,7 @@ function initUi() {
   initGroupsDialog();
   // init DNA at the end because the callbacks will populate the UI
   initDna();
-  // -- init progress bar -- //
+  /* init Send progress bar */
   const sendProgressBar = document.querySelector('#sendProgressBar');
   sendProgressBar.style.display = "none";
 }
@@ -575,20 +584,19 @@ function initNotification() {
 }
 
 
-function getAllFromDht() {
-  DNA.getAllHandles(handle_getAllHandles);
-  DNA.checkAckInbox(logCallResult);
-  DNA.checkMailInbox(logCallResult);
-  callGetAllMails();
+async function getAllFromDht() {
+  await getAllHandles()
+  await DNA.checkAckInbox();
+  await DNA.checkMailInbox();
+  await getAllMails();
 }
 
 
-/**
- *
- */
-function initDna() {
+/** */
+async function initDna() {
   console.log('initDna()');
-  DNA.rsmConnectApp(handleSignal).then( async (cellId) => {
+  try {
+    const cellId = await DNA.rsmConnectApp(handleSignal)
     const dnaId = htos(cellId[0]);
     g_dnaId = dnaId;
     g_myAgentHash = cellId[1];
@@ -598,11 +606,9 @@ function initDna() {
     regenerateGroupComboBox(SYSTEM_GROUP_LIST[0]);
     // let label = document.getElementById('agentIdDisplay');
     // label.textContent = g_myAgentId
-    DNA.getMyHandle(showHandle);
-    getAllFromDht();
-    while (!canGetAllMutex) {
-      await sleep(10)
-    }
+    DNA.getMyHandle().then(callResult => showHandle(callResult));
+    await getAllFromDht();
+
     // -- findAgent ? -- //
     //const handleButton = document.getElementById('handleText');
     //DNA.findAgent(handleButton.textContent, handle_findAgent);
@@ -622,7 +628,6 @@ function initDna() {
         rootTitle.textContent = rootTitle.textContent + " (" + dnaId + ")";
       }
     }
-
     // -- Update Abbr -- //
     const handleAbbr = document.getElementById('handleAbbr');
     handleAbbr.title = "agentId: " + g_myAgentId;
@@ -633,10 +638,10 @@ function initDna() {
     loadingBar.style.display = "none";
     const mainPage = document.querySelector('#mainPage');
     mainPage.style.display = "flex";
-  }).catch(error => {
+  } catch(error) {
     console.error(error)
     alert("Failed to connect to holochain. Holochain conductor service might not be up and running.");
-  });
+  }
 }
 
 
@@ -644,7 +649,7 @@ function setHandle() {
   let input = document.getElementById('myNewHandleInput');
   const newHandle = input.value;
   console.log('new handle = ' + newHandle);
-  DNA.setHandle(newHandle, function() {
+  DNA.setHandle(newHandle).then((callResult) => {
     showHandle({ Ok: newHandle});
     input.value = '';
     setState_ChangeHandleBar(true);
@@ -791,7 +796,8 @@ function initMenuBar() {
     }
     // -- Handle 'Trash' -- //
     if (e.detail.value.text === 'Trash') {
-      DNA.deleteMail(g_currentMailItem.id, handle_deleteMail);
+      DNA.deleteMail(g_currentMailItem.id)
+        .then(callResult => getAllMails()) // On delete, refresh filebox
       const mailGrid = document.querySelector('#mailGrid');
       mailGrid.selectedItems = [];
       mailGrid.activeItem = null;
@@ -1011,9 +1017,11 @@ function initFileBox() {
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
-        DNA.getMissingAttachments(mailItem.author, mailItem.address, handle_missingAttachments);
+        DNA.getMissingAttachments(mailItem.author, mailItem.address)
+          .then(callResult => handle_missingAttachments(callResult))
       }
-      DNA.acknowledgeMail(item.id, handle_acknowledgeMail);
+      DNA.acknowledgeMail(item.id)
+        .then(callResult => handle_acknowledgeMail(callResult));
       // Allow delete button
       if (g_currentFolder.codePointAt(0) !== systemFolders.TRASH.codePointAt(0)) {
         setState_DeleteButton(false)
@@ -1064,10 +1072,9 @@ async function fillAttachmentGrid(mail) {
   let missingCount = 0;
   for (let attachmentInfo of mail.attachments) {
     console.log({attachmentInfo});
-    DNA.getManifest(attachmentInfo.manifest_eh, handle_getManifest);
-    while (g_hasAttachment === 0) {
-      await sleep(10);
-    }
+    const callResult = await DNA.getManifest(attachmentInfo.manifest_eh);
+    handle_getManifest(callResult)
+
     const hasAttachment = g_hasAttachment > 0;
     missingCount += 0 + !hasAttachment;
     let item = {
@@ -1139,6 +1146,9 @@ function initAttachmentGrid() {
 
     /// Get File on source chain
      getFile(item.fileId).then(function(manifest) {
+       if (!manifest) {
+         return;
+       }
        //console.log({ manifest })
        item.status = String.fromCodePoint(0x2714);
        //attachmentGrid.deselectItem(item);
@@ -1170,38 +1180,34 @@ function initAttachmentGrid() {
   });
 }
 
+
 /**
  * Return manifest with added content field
  */
 async function getFile(fileId) {
-  g_manifest = null;
-  DNA.findManifest(fileId, handle_findManifest);
-  while (g_manifest ==  null) {
-    await sleep(10)
-  }
-  if (g_manifest.Ok === null) {
+  const callResult = await DNA.findManifest(fileId);
+  let manifest = handle_findManifest(callResult)
+  if (!manifest || manifest.Ok === null) {
     return;
   }
-  g_getChunks = [];
+  let chunks = [];
   let i = 0;
-  for (let chunkAddress of g_manifest.chunks) {
+  for (let chunkAddress of manifest.chunks) {
     i++;
-    DNA.getChunk(chunkAddress, handle_getChunk)
-    while (g_getChunks.length !=  i) {
-      await sleep(10)
+    const callResult = await DNA.getChunk(chunkAddress)
+    let maybeChunk = handle_getChunk(callResult)
+    if (!maybeChunk) {
+       return;
     }
-  }
-  while (g_getChunks.length != g_manifest.chunks.length) {
-    await sleep(10)
+    chunks.push(maybeChunk)
   }
   // concat chunks
   let content = '';
-  for (let chunk of g_getChunks) {
+  for (let chunk of chunks) {
     content += chunk;
   }
-  // done
-  g_manifest.content = content;
-  return g_manifest;
+  manifest.content = content;
+  return manifest;
 }
 
 
@@ -1243,7 +1249,7 @@ function initContactsArea() {
       if(e.detail.value.text === 'Refresh') {
         contactsMenu.items[0].disabled = true;
         contactsMenu.render();
-        DNA.getAllHandles(handle_getAllHandles);
+        getAllHandles();
       }
     });
   }
@@ -1437,19 +1443,21 @@ async function sendAction() {
     /// Submit each chunk
     for (var i = 0; i < splitObj.numChunks; ++i) {
       //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
-      DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i], handle_writeChunk);
-      while (g_chunkList.length !=  i + 1) {
-        await sleep(10)
-      }
+      const callResult = await DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i]);
+      handle_writeChunk(callResult)
+      // while (g_chunkList.length !=  i + 1) {
+      //   await sleep(10)
+      // }
     }
-    while (g_chunkList.length < splitObj.numChunks) {
-      await sleep(10);
-    }
-    DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList, handle_writeManifest)
+    // while (g_chunkList.length < splitObj.numChunks) {
+    //   await sleep(10);
+    // }
+    const callResult = await DNA.writeManifest(splitObj.dataHash, file.name, filetype, file.size, g_chunkList)
+    handle_writeManifest(callResult)
   }
-  while (g_fileList.length < files.length) {
-    await sleep(10);
-  }
+  // while (g_fileList.length < files.length) {
+  //   await sleep(10);
+  // }
 
   // Get contact Lists
   const contactGrid = document.querySelector('#contactGrid');
@@ -1479,7 +1487,7 @@ async function sendAction() {
     };
     console.log('sending mail: ' + JSON.stringify(mail));
     // Send Mail
-    DNA.sendMail(mail, logCallResult);
+    await DNA.sendMail(mail);
     // Update UI
     setState_SendButton(true);
     outMailSubjectArea.value = '';
@@ -1488,7 +1496,7 @@ async function sendAction() {
     contactGrid.activeItem = null;
     updateRecepients(false);
     console.log('sendMail -> getAllMails');
-    callGetAllMails();
+    await getAllMails();
     upload.files = [];
   } else {
     console.log('Send Mail Failed: No receipient selected')
@@ -1584,27 +1592,12 @@ function showHandle(callResult) {
 
 
 /**
- * On delete, refresh filebox
- */
-function handle_deleteMail(callResult) {
-  if (callResult === undefined || callResult.Err !== undefined) {
-    //const err = callResult.Err;
-    console.error('deleteMail zome call failed');
-    //console.error(err);
-    return;
-  }
-  // TODO check if call result succeeded
-  callGetAllMails();
-}
-
-
-/**
  * Refresh mailGrid
  */
 function handle_getAllMails(callResult) {
   if (callResult === undefined || callResult.Err !== undefined) {
     //const err = callResult.Err;
-    console.error('getAllMails zome call failed');
+    //console.error('getAllMails zome call failed');
     //console.error(err);
     return;
   }
@@ -1710,23 +1703,26 @@ function updateTray(newCount) {
  */
 function handle_post_getAllMails() {
    // Update mailGrid
-  const folder = document.querySelector('#fileboxFolder');
-  update_mailGrid(folder.value);
-  // Update active Item
-  const mailGrid = document.querySelector('#mailGrid');
-  const activeItem = mailGrid.activeItem;
-  console.log('handle_getAllMails ; activeItem = ' + JSON.stringify(activeItem))
-  if (activeItem) {
-    let newActiveItem = null;
-    for (let mailItem of mailGrid.items) {
-      if(mailItem.id === activeItem.id) {
-        newActiveItem = mailItem;
-        break;
+  try {
+    const folder = document.querySelector('#fileboxFolder');
+    update_mailGrid(folder.value);
+    // Update active Item
+    const mailGrid = document.querySelector('#mailGrid');
+    const activeItem = mailGrid.activeItem;
+    console.log('handle_getAllMails ; activeItem = ' + JSON.stringify(activeItem))
+    if(activeItem) {
+      let newActiveItem = null;
+      for(let mailItem of mailGrid.items) {
+        if(mailItem.id === activeItem.id) {
+          newActiveItem = mailItem;
+          break;
+        }
       }
+      mailGrid.selectItem(newActiveItem);
     }
-    mailGrid.selectItem(newActiveItem);
+  } catch(e) {
+    console.error("handle_post_getAllMails() failed:", e)
   }
-  canGetAllMutex = true;
 }
 
 
@@ -1747,12 +1743,19 @@ function pingNextAgent() {
   pingedAgent = stoh(nextMap.keys().next().value);
   console.log({pingedAgent});
   if (htos(pingedAgent) !== g_myAgentId) {
-    DNA.pingAgent(pingedAgent, handle_pingNextAgent);
+       DNA.pingAgent(pingedAgent)
+         .then(result => handle_pingNextAgent(result))
+         .catch(error => {
+           console.error('Ping failed for: ' + htos(agentHash));
+           console.error({error})
+           handle_pingNextAgent(undefined);
+         });
   } else {
     handle_pingNextAgent(true);
   }
 }
 
+/** */
 function handle_pingNextAgent(callResult) {
   let agentB64 = htos(pingedAgent);
   if (callResult === undefined || callResult.Err !== undefined || callResult === false) {
@@ -1890,7 +1893,7 @@ function handle_acknowledgeMail(callResult) {
     console.error(err);
     return;
   }
-  callGetAllMails();
+  getAllMails();
 }
 
 /**
@@ -1901,11 +1904,11 @@ function handle_getChunk(callResult) {
     const err = callResult.Err;
     console.error('GetChunk zome call failed');
     console.error(err);
-    return;
+    return null;
   }
   let chunk = callResult;
   console.log({chunk});
-  g_getChunks.push(chunk);
+  return chunk
 }
 
 /**
@@ -1916,9 +1919,9 @@ function handle_findManifest(callResult) {
     const err = callResult.Err;
     console.error('FindManifest zome call failed');
     console.error(err);
-    return;
+    return null;
   }
   let maybeManifest = callResult;
   console.log({maybeManifest});
-  g_manifest = maybeManifest;
+  return maybeManifest;
 }

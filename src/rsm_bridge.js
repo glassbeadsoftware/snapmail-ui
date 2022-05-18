@@ -156,112 +156,97 @@ export async function callDna(functionName, payload, timeout) {
 
 // -- Handle -- //
 
-export function getMyHandle(callback) {
-  callDna('get_my_handle', null).then(result => callback(result));
+export async function getMyHandle() {
+  return await callDna('get_my_handle', null)
 }
 
-export function getHandle(agentId, callback) {
-  callDna('get_handle', {agentId: agentId}).then(result => callback(result));
+export async function getHandle(agentId) {
+  return await callDna('get_handle', {agentId})
 }
 
-export function setHandle(username, callback) {
-  callDna('set_handle', username).then(result => callback(result));
+export async function setHandle(username) {
+  return await callDna('set_handle', username)
 }
 
-export function getAllHandles(callback) {
-  callDna('get_all_handles', null)
-    .then(result => callback(result))
-    .catch(null_error => {
-      callback(undefined);
-    });
+export async function getAllHandles() {
+  return await callDna('get_all_handles', null)
 }
 
-export function findAgent(handle, callback) {
-  callDna('find_agent', handle).then(result => callback(result));
+export async function findAgent(handle) {
+  return await callDna('find_agent', handle)
 }
 
-export function pingAgent(agentHash, callback) {
+export async function pingAgent(agentHash) {
   console.log('*** pingAgent() called for: ' + htos(agentHash));
-  callDna('ping_agent', agentHash, 2000)
-    .then(result => callback(result))
-    .catch(error => {
-      console.error('Ping failed for: ' + htos(agentHash));
-      callback(undefined);
-    });
+  return await callDna('ping_agent', agentHash, 2000)
 }
 
 // -- Mail -- //
 
-export function sendMail(mail, callback) {
-  callDna('send_mail', {subject: mail.subject, payload: mail.payload, to: mail.to, cc: mail.cc, bcc: mail.bcc, manifest_address_list: mail.manifest_address_list}).then(result => callback(result));
+export async function sendMail(mail) {
+  return await callDna('send_mail', {subject: mail.subject, payload: mail.payload, to: mail.to, cc: mail.cc, bcc: mail.bcc, manifest_address_list: mail.manifest_address_list})
 }
 
-export function getMail(otherAgentId, callback) {
-  callDna('get_mail', otherAgentId).then(result => callback(result));
+// export async function getMail(otherAgentId) {
+//   return await callDna('get_mail', otherAgentId)
+// }
+
+export async function deleteMail(mailAddress) {
+  return await callDna('delete_mail', mailAddress)
 }
 
-export function deleteMail(mailAddress, callback) {
-  callDna('delete_mail', mailAddress).then(result => callback(result));
+export async function getAllMails() {
+  return await callDna('get_all_mails', null)
 }
 
-export function getAllMails(callback, afterCallback) {
-  callDna('get_all_mails', undefined)
-    .then(result => {callback(result); afterCallback();})
-    .catch(error => {
-      console.log('getAllMails failed: ' + error);
-      callback(undefined);
-      afterCallback();
-    });
+export async function checkMailInbox() {
+  return await callDna('check_mail_inbox', null)
 }
 
-export function checkMailInbox(callback) {
-  callDna('check_mail_inbox', undefined).then(result => callback(result));
+export async function checkAckInbox() {
+  return await callDna('check_ack_inbox', null)
 }
 
-export function checkAckInbox(callback) {
-  callDna('check_ack_inbox', undefined).then(result => callback(result));
-}
-
-export function acknowledgeMail(mailAddress, callback) {
-  callDna('acknowledge_mail', mailAddress).then(result => callback(result));
+export async function acknowledgeMail(mailAddress) {
+  return await callDna('acknowledge_mail', mailAddress)
 }
 
 // -- File -- //
 
-export function writeManifest(dataHash, filename, filetype, orig_filesize, chunks, callback, signalCallback) {
+export async function writeManifest(dataHash, filename, filetype, orig_filesize, chunks) {
   const params = {
     data_hash: dataHash,
     filename, filetype, orig_filesize,
     chunks
   }
-  callDna('write_manifest', params, signalCallback).then(result => callback(result));
+  return await callDna('write_manifest', params)
 }
 
-export function writeChunk(dataHash, chunkIndex, chunk, callback, signalCallback) {
+export async function writeChunk(dataHash, chunkIndex, chunk) {
   const params = {
     data_hash: dataHash,
     chunk_index: chunkIndex,
     chunk
   }
-  callDna('write_chunk', params, signalCallback).then(result => callback(result));
+  return await callDna('write_chunk', params)
 }
 
-export function getChunk(chunkAddress, callback, signalCallback) {
-  callDna('get_chunk', chunkAddress, signalCallback).then(result => callback(result));
+export async function getChunk(chunkAddress) {
+  return await callDna('get_chunk', chunkAddress)
 }
 
-export function getManifest(manifestAddress, callback, signalCallback) {
-  callDna('get_manifest', manifestAddress, signalCallback).then(result => callback(result));
+export async function getManifest(manifestAddress) {
+  return await callDna('get_manifest', manifestAddress)
 }
 
-export function findManifest(dataHash, callback, signalCallback) {
-  callDna('find_manifest', dataHash, signalCallback).then(result => callback(result));
+export async function findManifest(dataHash) {
+  return await callDna('find_manifest', dataHash)
 }
 
-export function getAllManifests(callback, signalCallback) {
-  callDna('get_all_manifests', undefined, signalCallback).then(result => callback(result));
-}
+// export async function getAllManifests() {
+//   return await callDna('get_all_manifests', null)
+// }
 
-export function getMissingAttachments(from, inMailAddress, callback, signalCallback) {
-  callDna('get_missing_attachments', {from, inmail_address: inMailAddress}, signalCallback).then(result => callback(result));
+export async function getMissingAttachments(from, inmail_address) {
+  return await callDna('get_missing_attachments', {from, inmail_address})
 }
