@@ -178,7 +178,7 @@ export async function findAgent(handle) {
 
 export async function pingAgent(agentHash) {
   console.log('*** pingAgent() called for: ' + htos(agentHash));
-  return await callDna('ping_agent', agentHash, 2000)
+  return await callDna('ping_agent', agentHash, 3000)
 }
 
 // -- Mail -- //

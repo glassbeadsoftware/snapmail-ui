@@ -94,10 +94,7 @@ export function determineMailClass(mailItem) {
 }
 
 
-/**
- *
- * @returns {string}
- */
+/** */
 export function customDateString(unixTimestamp) {
   let date = new Date(unixTimestamp * 1000);
   let hours = date.getHours();
@@ -112,15 +109,30 @@ export function customDateString(unixTimestamp) {
   return dday
 }
 
-function vecToStrUsernames(usernameMap, itemVec) {
+
+/** */
+function vecToUsernames(usernameMap, itemVec) {
   let line = '';
   for (let item of itemVec) {
     if (line.length > 0) {
       line += ',';
     }
-    line += ' ' + usernameMap.get(htos(item));
+    line += ' ' + getUsername(usernameMap, item);
   }
   return line;
+}
+
+
+/**
+ * @returns {string}
+ */
+function getUsername(usernameMap, agentHash) {
+  let authorId = htos(agentHash);
+  let username = usernameMap.get(authorId)
+  if (username === undefined) {
+    username = "<" + authorId.substr(0, 8) + "...>";
+  }
+  return username;
 }
 
 
@@ -130,54 +142,29 @@ function vecToStrUsernames(usernameMap, itemVec) {
  * @param mailItem
  * @returns {string}
  */
-function getUsername(usernameMap, mailItem) {
-  let authorId = htos(mailItem.author);
-  let username = usernameMap.get(authorId)
+function determineFromLine(usernameMap, mailItem) {
+  /* Outmail special case */
   if (mailItem.state.hasOwnProperty('Out')) {
     if (mailItem.mail.hasOwnProperty('to') && mailItem.mail.to.length > 0) {
-      username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.mail.to)
+      return 'To: ' + vecToUsernames(usernameMap, mailItem.mail.to)
     } else if (mailItem.mail.hasOwnProperty('cc') && mailItem.mail.cc.length > 0) {
-      username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.mail.cc)
+      return 'To: ' + vecToUsernames(usernameMap, mailItem.mail.cc)
     } else if (mailItem.mail.hasOwnProperty('bcc') && mailItem.bcc.length > 0) {
-      username = 'To: ' + vecToStrUsernames(usernameMap, mailItem.bcc)
+      return 'To: ' + vecToUsernames(usernameMap, mailItem.bcc)
     }
   }
-  return username;
-}
-
-
-/**
- * Dirty hack for getting username JIT
- */
-var g_username = undefined;
-function handle_getHandle(callResult) {
-  if (callResult.Err !== undefined) {
-    const err = callResult.Err;
-    console.error('GetHandle zome call failed');
-    console.error(err);
-    return;
-  }
-  g_username = callResult;
-  console.log({g_username});
+  return getUsername(usernameMap, mailItem.author);
 }
 
 
 /** */
 export function into_gridItem(usernameMap, mailItem) {
-  // username
-  g_username = undefined;
+  /* username */
   // console.log('into_gridItem: ' + htos(mailItem.author) + ' username: ' + username);
-  while (g_username === undefined) {
-    g_username = getUsername(usernameMap, mailItem);
-    if (g_username === undefined) {
-      DNA.getHandle.then(callResult => {(handle_getHandle(callResult))});
-    }
-  }
-  let username = g_username;
-  g_username = undefined;
-  // Date
+  let username = determineFromLine(usernameMap, mailItem);
+  /* Date */
   let dateStr = customDateString(mailItem.date)
-  // Status
+  /* Status */
   let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
   //let status = '';
   // Done
@@ -202,13 +189,13 @@ export function into_mailText(usernameMap, mailItem) {
     + mailItem.mail.payload + '\n\n'
     + 'Mail from: ' + usernameMap.get(htos(mailItem.author)) + ' at ' + customDateString(mailItem.date);
 
-  let to_line = vecToStrUsernames(usernameMap, mailItem.mail.to);
+  let to_line = vecToUsernames(usernameMap, mailItem.mail.to);
 
   let can_cc = mailItem.mail.cc.length > 0;
-  let cc_line = vecToStrUsernames(usernameMap, mailItem.mail.cc);
+  let cc_line = vecToUsernames(usernameMap, mailItem.mail.cc);
 
   let can_bcc = mailItem.bcc.length > 0;
-  let bcc_line = vecToStrUsernames(usernameMap, mailItem.bcc);
+  let bcc_line = vecToUsernames(usernameMap, mailItem.bcc);
 
   intext += '\nTo: ' + to_line;
   if (can_cc) {

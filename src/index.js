@@ -47,7 +47,11 @@ var myVar = setInterval(onLoop, 10 * 1000);
 function onLoop() {
   console.log("**** onLoop CALLED ****");
   if (process.env.NODE_ENV === 'prod') {
-    getAllFromDht();
+    try {
+      getAllFromDht();
+    } catch(e) {
+      console.error("OnLoop.getAllFromDht() failed: ", e)
+    }
   }
 }
 
@@ -133,7 +137,7 @@ async function getAllMails() {
     try {
       const callResult = await DNA.getAllMails()
       handle_getAllMails(callResult)
-    } catch (e) {
+    } catch(e) {
       console.warn('DNA.getAllMails() failed: ', e);
     }
     handle_post_getAllMails()
@@ -645,23 +649,22 @@ async function initDna() {
 }
 
 
-function setHandle() {
+async function setHandle() {
   let input = document.getElementById('myNewHandleInput');
   const newHandle = input.value;
   console.log('new handle = ' + newHandle);
-  DNA.setHandle(newHandle).then((callResult) => {
-    showHandle({ Ok: newHandle});
-    input.value = '';
-    setState_ChangeHandleBar(true);
-    // - Update my Handle in the contacts grid
-    const contactGrid = document.querySelector('#contactGrid');
-    for (const item of contactGrid.items) {
-      if (htos(item.agentId) === g_myAgentId) {
-        item.username = newHandle;
-      }
+  const callResult = await DNA.setHandle(newHandle)
+  showHandle({ Ok: newHandle});
+  input.value = '';
+  setState_ChangeHandleBar(true);
+  // - Update my Handle in the contacts grid
+  const contactGrid = document.querySelector('#contactGrid');
+  for (const item of contactGrid.items) {
+    if (htos(item.agentId) === g_myAgentId) {
+      item.username = newHandle;
     }
-    contactGrid.render();
-  });
+  }
+  contactGrid.render();
 }
 
 /**
@@ -699,17 +702,16 @@ function initTitleBar() {
 
   const rootTitle = document.querySelector('#rootTitle');
   console.assert(rootTitle);
-  rootTitle.textContent = "SnapMail v" + version + "  - " + DNA.NETWORK_ID;
+  const maybeUid = DNA.NETWORK_ID != ""? "  - " + DNA.NETWORK_ID : "";
+  rootTitle.textContent = "SnapMail v" + version + maybeUid;
 }
 
-/**
- *
- * @returns {Promise<void>}
- */
-async function updateRecepients(canReset) {
-  console.log('updateRecepients:')
+
+/** */
+function updateRecepients(canReset) {
+  console.log('updateRecepients() - START')
   const contactGrid = document.querySelector('#contactGrid');
-  // - Get currently selected items' hash
+  /* Get currently selected items' hash */
   let prevSelected = [];
   let typeMap = new Map();
   for (const item of contactGrid.selectedItems) {
@@ -717,15 +719,18 @@ async function updateRecepients(canReset) {
     prevSelected.push(agentId);
     typeMap.set(agentId, item.recepientType);
   }
-  console.log(typeMap);
+  console.log({typeMap});
   let selected = [];
   let items = [];
   pingNextAgent();
-  // - Add each handle to the contactGrid
+  /* Add each handle to the contactGrid */
   for (const [agentId, username] of g_usernameMap.entries()) {
     // console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
-    const status = g_pingMap.get(agentId)? (g_responseMap.get(agentId)? greenDot : redDot) : blueDot;
+    let status = blueDot
+    if (g_pingMap.get(agentId)) {
+      status = g_responseMap.get(agentId)? greenDot : redDot
+    }
     //const status = blueDot
     let item = {
       "username": username, "agentId": agentHash, "recepientType": '', status,
@@ -748,7 +753,7 @@ async function updateRecepients(canReset) {
   //   { "username": "Eve", "agentId": 555, "recepientType": '', "status": blueDot },
   // ];
 
-  // - Reset search filter
+  /* Reset search filter */
   const contactSearch = document.querySelector('#contactSearch');
   if (canReset) {
     contactSearch.value = '';
@@ -760,8 +765,11 @@ async function updateRecepients(canReset) {
   contactGrid.activeItem = null;
   contactGrid.render();
   console.log({contactGrid});
+  console.log('updateRecepients() - END')
 }
 
+
+/** */
 function initMenuBar() {
   // Menu -- vaadin-menu-bar
   const menu = document.querySelector('#MenuBar');
@@ -1729,42 +1737,41 @@ function handle_post_getAllMails() {
 /**
  * Ping oldest pinged agent
  */
-var pingedAgent = undefined;
 function pingNextAgent() {
-  console.log("pingNextAgent: " + JSON.stringify(g_pingMap));
-  // Skip if already waiting for a pong or empty map
-  if (pingedAgent !== undefined || g_pingMap.size === 0) {
+  console.log({g_pingMap});
+  console.log({g_responseMap});
+  /* Skip if empty map */
+  if (g_pingMap.size === 0) {
     return;
   }
-  // Sort g_pingMap by value
-  const nextMap = new Map([...g_pingMap.entries()].sort((a, b) => a[1] - b[1]));
-  // Ping first agent
-  //console.log({nextMap})
-  pingedAgent = stoh(nextMap.keys().next().value);
-  console.log({pingedAgent});
-  if (htos(pingedAgent) !== g_myAgentId) {
-       DNA.pingAgent(pingedAgent)
-         .then(result => handle_pingNextAgent(result))
-         .catch(error => {
-           console.error('Ping failed for: ' + htos(agentHash));
-           console.error({error})
-           handle_pingNextAgent(undefined);
-         });
+  /* Sort g_pingMap by value */
+  const nextMap = new Map([...g_pingMap.entries()]
+    .sort((a, b) => a[1] - b[1]));
+  console.log({nextMap})
+  /* Ping first agent */
+  const pingedAgentB64 = nextMap.keys().next().value
+  const pingedAgent = stoh(pingedAgentB64);
+    console.log({pingedAgentB64});
+  if (pingedAgentB64 !== g_myAgentId) {
+    DNA.pingAgent(pingedAgent)
+      .then(result => { storePingResult(result, pingedAgentB64) })
+      .catch(error => {
+        console.error('Ping failed for: ' + pingedAgentB64);
+        console.error({ error })
+        storePingResult(undefined, pingedAgentB64);
+      })
   } else {
-    handle_pingNextAgent(true);
+    storePingResult({}, pingedAgentB64);
   }
 }
 
+
 /** */
-function handle_pingNextAgent(callResult) {
-  let agentB64 = htos(pingedAgent);
-  if (callResult === undefined || callResult.Err !== undefined || callResult === false) {
-    g_responseMap.set(agentB64, false);
-  } else {
-    g_responseMap.set(agentB64, true);
-  }
+function storePingResult(callResult, agentB64) {
+  const isAgentPresent = callResult !== undefined && callResult.Err === undefined
+  console.log("storePingResult() " + agentB64 + " | " + isAgentPresent)
+  g_responseMap.set(agentB64, isAgentPresent);
   g_pingMap.set(agentB64, Date.now());
-  pingedAgent = undefined;
 }
 
 /**
@@ -1774,13 +1781,13 @@ function handle_getAllHandles(callResult) {
   if (callResult === undefined || callResult.Err !== undefined) {
     console.error('getAllHandles zome call failed');
   } else {
-    // - Update global state
+    /* Update global state */
     //const contactGrid = document.querySelector('#contactGrid');
     let handleList = callResult;
     //console.log('handleList: ' + JSON.stringify(handleList))
     g_usernameMap.clear();
     for(let handleItem of handleList) {
-      // TODO: exclude self from list when in prod?
+      /* TODO: exclude self from list when in prod? */
       let agentId = htos(Object.values(handleItem.agentId));
       console.log('' + handleItem.name + ': ' + agentId);
       g_usernameMap.set(agentId, handleItem.name);
@@ -1791,24 +1798,18 @@ function handle_getAllHandles(callResult) {
       }
     }
   }
-  // - Reset contactGrid
-  updateRecepients(false).then(() => {
-    const contactsMenu = document.querySelector('#ContactsMenu');
-    if (contactsMenu.items.length > 0) {
-      contactsMenu.items[0].disabled = false;
-      contactsMenu.render();
-    }
-  });
-  // - Allow button anyway
+  /* Reset contactGrid */
+  updateRecepients(false)
   const contactsMenu = document.querySelector('#ContactsMenu');
   if (contactsMenu.items.length > 0) {
     contactsMenu.items[0].disabled = false;
     contactsMenu.render();
   }
-  // - Update mailGrid
+  /* Update mailGrid */
   const folder = document.querySelector('#fileboxFolder');
   update_mailGrid(folder.value);
 }
+
 
 /**
  *
