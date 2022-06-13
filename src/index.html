@@ -235,7 +235,9 @@
 
 
             <!-- SEND MENU -->
-            <vaadin-menu-bar theme="primary" id="ActionBar" style="height:40px; margin-top:5px; margin-bottom:10px;"></vaadin-menu-bar>
+            <div style="width:100%; display:flex;justify-content: flex-end">
+                <vaadin-menu-bar theme="primary" id="ActionBar" style="height:40px; margin-top:5px; margin-bottom:10px;"></vaadin-menu-bar>
+            </div>
             <!-- Progress Bar -->
             <h3 style="margin:10px 0 5px 0;display:none;" id="sendingTitle">Sending</h3>
             <vaadin-progress-bar indeterminate value="0" id="sendProgressBar" style="margin-bottom:20px;"></vaadin-progress-bar>

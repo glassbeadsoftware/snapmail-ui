@@ -822,7 +822,7 @@ function initMenuBar() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = mailItem.mail.subject
+      a.download = mailItem.mail.subject + ".txt";
       a.addEventListener('click', {}, false);
       a.click();
     }
