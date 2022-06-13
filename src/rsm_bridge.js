@@ -128,7 +128,7 @@ export async function callDna(functionName, payload, timeout) {
       return Promise.reject("App Client Websocket not connected!")
     }
     const t = timeout !== undefined? timeout : DEFAULT_TIMEOUT;
-    console.log("*** callDna() => " + functionName + '() ; timeout = ' + t)
+    //console.log("*** callDna() => " + functionName + '() ; timeout = ' + t)
   let result = undefined;
   try
   {
@@ -149,8 +149,8 @@ export async function callDna(functionName, payload, timeout) {
     // alert("Holochain failed.\n Connection to holochain might be lost. Reload App or refresh web page to attempt reconnection");
     return Promise.reject("callZome() failed. Possibility lost connection to holochain.")
   }
-  console.log("*** callDna() => " + functionName + '() result:')
-  console.log({result})
+  //console.log("*** callDna() => " + functionName + '() result:')
+  //console.log({result})
   return result;
 }
 
@@ -184,7 +184,15 @@ export async function pingAgent(agentHash) {
 // -- Mail -- //
 
 export async function sendMail(mail) {
-  return await callDna('send_mail', {subject: mail.subject, payload: mail.payload, to: mail.to, cc: mail.cc, bcc: mail.bcc, manifest_address_list: mail.manifest_address_list})
+  return await callDna('send_mail', {
+    subject: mail.subject,
+    payload: mail.payload,
+    reply_of: mail.reply_of,
+    to: mail.to,
+    cc: mail.cc,
+    bcc: mail.bcc,
+    manifest_address_list: mail.manifest_address_list
+  })
 }
 
 // export async function getMail(otherAgentId) {

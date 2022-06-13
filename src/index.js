@@ -43,17 +43,35 @@ if (process.env.NODE_ENV === 'prod') {
 /**
  * Setup recurrent pull from DHT ever 10 seconds
  */
-var myVar = setInterval(onLoop, 10 * 1000);
-function onLoop() {
-  console.log("**** onLoop CALLED ****");
+var myVar = setInterval(onEvery10sec, 10 * 1000);
+function onEvery10sec() {
+  console.log("**** onEvery10sec CALLED ****");
   if (process.env.NODE_ENV === 'prod') {
     try {
       getAllFromDht();
     } catch(e) {
-      console.error("OnLoop.getAllFromDht() failed: ", e)
+      console.error("onEvery10sec.getAllFromDht() failed: ", e)
     }
   }
 }
+
+/**
+ * Setup recurrent pull from DHT ever 10 seconds
+ */
+var myVar = setInterval(onEverySec, 1 * 1000);
+function onEverySec() {
+  if (process.env.NODE_ENV === 'prod') {
+    console.log("**** onEverySec CALLED ****");
+    try {
+      if (g_canPing) {
+        pingNextAgent();
+      }
+    } catch(e) {
+      console.error("onEverySec.pingNextAgent() failed: ", e)
+    }
+  }
+}
+
 
 window.Buffer = require('buffer/').Buffer;
 
@@ -64,6 +82,8 @@ window.Buffer = require('buffer/').Buffer;
 const redDot   = String.fromCodePoint(0x1F534);
 const greenDot = String.fromCodePoint(0x1F7E2);
 const blueDot  = String.fromCodePoint(0x1F535);
+const whiteDot  = String.fromCodePoint(0x26AA);
+
 
 var g_hasAttachment = 0;
 var g_chunkList = [];
@@ -86,6 +106,9 @@ var g_myHandle = '<unknown>';
 var g_currentFolder = '';
 var g_currentGroup = '';
 var g_currentMailItem = {};
+
+var g_canPing = true;
+var g_replyOf = null;
 
 var g_contactItems = [];
 var g_mailItems = [];
@@ -588,8 +611,8 @@ function initNotification() {
 }
 
 
+/** */
 async function getAllFromDht() {
-  await getAllHandles()
   await DNA.checkAckInbox();
   await DNA.checkMailInbox();
   await getAllMails();
@@ -722,12 +745,12 @@ function updateRecepients(canReset) {
   console.log({typeMap});
   let selected = [];
   let items = [];
-  pingNextAgent();
+  //pingNextAgent();
   /* Add each handle to the contactGrid */
   for (const [agentId, username] of g_usernameMap.entries()) {
     // console.log('' + agentId + '=> ' + username)
     const agentHash = stoh(agentId)
-    let status = blueDot
+    let status = whiteDot
     if (g_pingMap.get(agentId)) {
       status = g_responseMap.get(agentId)? greenDot : redDot
     }
@@ -771,7 +794,7 @@ function updateRecepients(canReset) {
 
 /** */
 function initMenuBar() {
-  // Menu -- vaadin-menu-bar
+  /* Menu -- vaadin-menu-bar */
   const menu = document.querySelector('#MenuBar');
   let items =
     [ { text: 'Move', disabled: true }
@@ -785,10 +808,11 @@ function initMenuBar() {
   }
   menu.items = items;
 
-  // On button click
+  /* On button click */
   menu.addEventListener('item-selected', function(e) {
-    console.log(JSON.stringify(e.detail.value));
-    // -- Handle 'Print' -- //
+    console.log("Menu item-selected: " + JSON.stringify(e.detail.value));
+    g_replyOf = null;
+    /* -- Handle 'Print' -- */
     if (e.detail.value.text === 'Print') {
       console.log({g_currentMailItem})
       let mailItem = g_mailMap.get(htos(g_currentMailItem.id));
@@ -802,7 +826,7 @@ function initMenuBar() {
       a.addEventListener('click', {}, false);
       a.click();
     }
-    // -- Handle 'Trash' -- //
+    /* -- Handle 'Trash' -- */
     if (e.detail.value.text === 'Trash') {
       DNA.deleteMail(g_currentMailItem.id)
         .then(callResult => getAllMails()) // On delete, refresh filebox
@@ -814,12 +838,14 @@ function initMenuBar() {
       setState_DeleteButton(true)
       setState_ReplyButton(true)
     }
-    // -- Handle 'Reply' -- //
+    /* -- Handle 'Reply' -- */
     const outMailSubjectArea = document.querySelector('#outMailSubjectArea');
     const contactGrid = document.querySelector('#contactGrid');
 
     if (e.detail.value.text === 'Reply to sender') {
       outMailSubjectArea.value = 'Re: ' + g_currentMailItem.subject;
+      g_replyOf = g_currentMailItem.id;
+      console.log("g_replyOf set ", g_replyOf)
       resetContactGrid(contactGrid);
       for (let contactItem of contactGrid.items) {
         if (contactItem.username === g_currentMailItem.username) {
@@ -833,6 +859,7 @@ function initMenuBar() {
     }
     if (e.detail.value.text === 'Reply to all') {
       let mailItem = g_mailMap.get(htos(g_currentMailItem.id));
+      g_replyOf = g_currentMailItem.id;
       if (mailItem) {
         outMailSubjectArea.value = 'Re: ' + g_currentMailItem.subject;
         resetContactGrid(contactGrid);
@@ -1010,6 +1037,7 @@ function initFileBox() {
   // On item select: Display in inMailArea
   mailGrid.addEventListener('active-item-changed', function(event) {
     console.log('mailgrid Event: active-item-changed');
+    g_replyOf = null;
     const item = event.detail.value;
     mailGrid.selectedItems = item ? [item] : [];
     if (item === null || item === undefined) {
@@ -1020,16 +1048,17 @@ function initFileBox() {
     //console.log('mail grid item: ' + JSON.stringify(item));
     var inMailArea = document.getElementById('inMailArea');
     let mailItem = g_mailMap.get(htos(item.id));
-    //console.log('mail item: ' + JSON.stringify(mailItem));
+    console.log('mail item:')
+    console.log({mailItem});
     inMailArea.value = into_mailText(g_usernameMap, mailItem);
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
-        DNA.getMissingAttachments(mailItem.author, mailItem.address)
+        DNA.getMissingAttachments(mailItem.author, mailItem.hh)
           .then(callResult => handle_missingAttachments(callResult))
       }
       DNA.acknowledgeMail(item.id)
-        .then(callResult => handle_acknowledgeMail(callResult));
+        //.then(callResult => handle_acknowledgeMail(callResult));
       // Allow delete button
       if (g_currentFolder.codePointAt(0) !== systemFolders.TRASH.codePointAt(0)) {
         setState_DeleteButton(false)
@@ -1046,6 +1075,7 @@ function initFileBox() {
     mailGrid.render();
   });
 }
+
 
 /**
  *
@@ -1079,7 +1109,7 @@ async function fillAttachmentGrid(mail) {
   g_hasAttachment = 0;
   let missingCount = 0;
   for (let attachmentInfo of mail.attachments) {
-    console.log({attachmentInfo});
+    //console.log({attachmentInfo});
     const callResult = await DNA.getManifest(attachmentInfo.manifest_eh);
     handle_getManifest(callResult)
 
@@ -1095,12 +1125,12 @@ async function fillAttachmentGrid(mail) {
     };
     items.push(item)
   }
-  console.log({items})
+  //console.log({items})
   attachmentGrid.items = items;
   attachmentGrid.selectedItems = [];
   attachmentGrid.activeItem = null;
   attachmentGrid.render();
-  console.log({missingCount})
+  //console.log({missingCount})
   return missingCount;
 }
 
@@ -1431,7 +1461,7 @@ function initActionBar() {
  * @returns {Promise<void>}
  */
 async function sendAction() {
-  /// Submit each attachment
+  /** Submit each attachment */
   const upload = document.querySelector('vaadin-upload');
   const files = upload.files;
   console.log({files})
@@ -1448,7 +1478,7 @@ async function sendAction() {
     const filetype = parts.length > 1? parts[0] : file.type;
     const splitObj = splitFile(parts[parts.length - 1]);
     g_chunkList = [];
-    /// Submit each chunk
+    /** Submit each chunk */
     for (var i = 0; i < splitObj.numChunks; ++i) {
       //console.log('chunk' + i + ': ' + fileChunks.chunks[i])
       const callResult = await DNA.writeChunk(splitObj.dataHash, i, splitObj.chunks[i]);
@@ -1467,7 +1497,7 @@ async function sendAction() {
   //   await sleep(10);
   // }
 
-  // Get contact Lists
+  /* Get contact Lists */
   const contactGrid = document.querySelector('#contactGrid');
   const selection = contactGrid.selectedItems;
   console.log('selection: ' + JSON.stringify(selection));
@@ -1475,7 +1505,7 @@ async function sendAction() {
     let toList = [];
     let ccList = [];
     let bccList = [];
-    // // Get recipients from contactGrid
+    /* Get recipients from contactGrid */
     for (let contactItem of selection) {
       console.log('recepientType: ' + contactItem.recepientType);
       switch (contactItem.recepientType) {
@@ -1486,17 +1516,26 @@ async function sendAction() {
         default: console.err('unknown recepientType');
       }
     }
-    // Create Mail
+    /* Create Mail */
     const mail = {
       subject: outMailSubjectArea.value,
       payload: outMailContentArea.value,
+      reply_of: g_replyOf,
       to: toList, cc: ccList, bcc: bccList,
       manifest_address_list: g_fileList
     };
-    console.log('sending mail: ' + JSON.stringify(mail));
-    // Send Mail
-    await DNA.sendMail(mail);
-    // Update UI
+    console.log('sending mail: ')
+    console.log({mail});
+    /* Send Mail */
+    const outmail_hh = await DNA.sendMail(mail);
+    /* Update UI */
+    if (g_replyOf) {
+      const replyOfStr =  htos(g_replyOf)
+      var mailItem = g_mailMap.get(replyOfStr);
+      mailItem.reply = outmail_hh;
+      g_mailMap.set(replyOfStr, mailItem);
+    }
+    g_replyOf = null;
     setState_SendButton(true);
     outMailSubjectArea.value = '';
     outMailContentArea.value = '';
@@ -1630,7 +1669,7 @@ function handle_getAllMails(callResult) {
   const folderBox = document.querySelector('#fileboxFolder');
   let selectedBox = folderBox.value.codePointAt(0);
   for (let mailItem of mailList) {
-    g_mailMap.set(htos(mailItem.address), mailItem);
+    g_mailMap.set(htos(mailItem.hh), mailItem);
     //
     let isDeleted = isMailDeleted(mailItem);
     let isOutMail = is_OutMail(mailItem);
@@ -1717,7 +1756,8 @@ function handle_post_getAllMails() {
     // Update active Item
     const mailGrid = document.querySelector('#mailGrid');
     const activeItem = mailGrid.activeItem;
-    console.log('handle_getAllMails ; activeItem = ' + JSON.stringify(activeItem))
+    console.log('handle_getAllMails ; activeItem = ');
+    console.log({activeItem})
     if(activeItem) {
       let newActiveItem = null;
       for(let mailItem of mailGrid.items) {
@@ -1744,25 +1784,32 @@ function pingNextAgent() {
   if (g_pingMap.size === 0) {
     return;
   }
-  /* Sort g_pingMap by value */
+  g_canPing = false;
+  /* Sort g_pingMap by value to get oldest pinged agent */
   const nextMap = new Map([...g_pingMap.entries()]
     .sort((a, b) => a[1] - b[1]));
   console.log({nextMap})
-  /* Ping first agent */
+  /* Ping first agent in sorted list */
   const pingedAgentB64 = nextMap.keys().next().value
   const pingedAgent = stoh(pingedAgentB64);
-    console.log({pingedAgentB64});
-  if (pingedAgentB64 !== g_myAgentId) {
-    DNA.pingAgent(pingedAgent)
-      .then(result => { storePingResult(result, pingedAgentB64) })
-      .catch(error => {
-        console.error('Ping failed for: ' + pingedAgentB64);
-        console.error({ error })
-        storePingResult(undefined, pingedAgentB64);
-      })
-  } else {
+  console.log("pinging: ", pingedAgentB64);
+  if (pingedAgentB64 === g_myAgentId) {
+    console.log("pinging self");
     storePingResult({}, pingedAgentB64);
+    g_canPing = true;
+    return;
   }
+  DNA.pingAgent(pingedAgent)
+    .then(result => {
+      storePingResult(result, pingedAgentB64);
+      g_canPing = true;
+    })
+    .catch(error => {
+      console.error('Ping failed for: ' + pingedAgentB64);
+      console.error({ error })
+      storePingResult(undefined, pingedAgentB64);
+    })
+
 }
 
 

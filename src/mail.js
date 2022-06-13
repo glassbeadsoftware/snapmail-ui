@@ -6,6 +6,10 @@ import {htos} from './utils'
 //import { default as DNA } from "./rsm_bridge";
 import * as DNA from './rsm_bridge'
 
+const checkMarkEmoji = String.fromCodePoint(0x2714); //FE0F
+const suspensionPoints = String.fromCodePoint(0x2026);
+const returnArrowEmoji = String.fromCodePoint(0x21A9);
+
 /**
  * All Folders for fileBox
  * @type {{ALL: string, TRASH: string, SENT: string, INBOX: string}}
@@ -76,17 +80,17 @@ export function determineMailClass(mailItem) {
   let state = mailItem.state;
 
   if (state.hasOwnProperty('Out')) {
-    if (state.Out.hasOwnProperty('Unsent')) return 'pending';
-    if (state.Out.hasOwnProperty('AllSent')) return 'partially';
+    if (state.Out.hasOwnProperty('Unsent')) return ''; // 'pending';
+    if (state.Out.hasOwnProperty('AllSent')) return ''; // 'partially';
     if (state.Out.hasOwnProperty('AllReceived')) return '';
-    if (state.Out.hasOwnProperty('AllAcknowledged')) return 'received';
+    if (state.Out.hasOwnProperty('AllAcknowledged')) return ''; // 'received';
     if (state.Out.hasOwnProperty('Deleted')) return 'deleted';
   }
   if (state.hasOwnProperty('In')) {
     if (state.In.hasOwnProperty('Unacknowledged')) return 'newmail';
-    if (state.In.hasOwnProperty('AckUnsent')) return 'pending';
-    if (state.In.hasOwnProperty('AckPending')) return 'partially';
-    if (state.In.hasOwnProperty('AckDelivered')) return 'received';
+    if (state.In.hasOwnProperty('AckUnsent')) return ''; //'pending';
+    if (state.In.hasOwnProperty('AckPending')) return ''; // 'partially';
+    if (state.In.hasOwnProperty('AckDelivered')) return ''; // 'received';
     if (state.In.hasOwnProperty('Deleted')) return 'deleted';
   }
   console.error('Invalid mailItem object');
@@ -157,6 +161,28 @@ function determineFromLine(usernameMap, mailItem) {
 }
 
 
+/**
+ * Return mailItem status icon
+ */
+export function determineMailStatus(mailItem) {
+  //console.log('determineMailClass()? ' + JSON.stringify(mailItem.state));
+  let state = mailItem.state;
+  if (state.hasOwnProperty('Out')) {
+    if (state.Out.hasOwnProperty('Unsent')) return suspensionPoints;
+    if (state.Out.hasOwnProperty('AllSent')) return suspensionPoints;
+    if (state.Out.hasOwnProperty('AllReceived')) return checkMarkEmoji;
+    if (state.Out.hasOwnProperty('AllAcknowledged')) return checkMarkEmoji;
+    if (state.Out.hasOwnProperty('Deleted')) return '';
+  }
+  if (state.hasOwnProperty('In')) {
+    if (mailItem.reply) {
+      return returnArrowEmoji;
+    }
+  }
+  return '';
+}
+
+
 /** */
 export function into_gridItem(usernameMap, mailItem) {
   /* username */
@@ -164,15 +190,17 @@ export function into_gridItem(usernameMap, mailItem) {
   let username = determineFromLine(usernameMap, mailItem);
   /* Date */
   let dateStr = customDateString(mailItem.date)
+  /* Attachment Status */
+  let attachmentStatus = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
   /* Status */
-  let status = mailItem.mail.attachments.length > 0? String.fromCodePoint(0x1F4CE) : '';
-  //let status = '';
+  let status = determineMailStatus(mailItem);
   // Done
   let item = {
-    "id": mailItem.address,
+    "id": mailItem.hh,
     "username": username,
     "subject": mailItem.mail.subject,
     "date": dateStr,
+    "attachment": attachmentStatus,
     "status": status,
     "content": mailItem.mail.payload
   };
@@ -209,7 +237,9 @@ export function into_mailText(usernameMap, mailItem) {
   if (process.env.NODE_ENV === 'dev') {
     intext += '\n\nDEBUG INFO';
     intext += '\nState: ' + JSON.stringify(mailItem.state);
-    intext += '\nAddress: ' + htos(mailItem.address);
+    intext += '\nHeaderHash: ' + htos(mailItem.hh);
+    intext += '\nReply: ' + JSON.stringify(mailItem.reply);
+    intext += '\nstatus: ' + JSON.stringify(mailItem.status);
     intext += '\nFiles: ' + mailItem.mail.attachments.length;
   }
 
