@@ -811,7 +811,7 @@ function initMenuBar() {
   /* On button click */
   menu.addEventListener('item-selected', function(e) {
     console.log("Menu item-selected: " + JSON.stringify(e.detail.value));
-    g_replyOf = null;
+
     /* -- Handle 'Print' -- */
     if (e.detail.value.text === 'Print') {
       console.log({g_currentMailItem})
@@ -822,12 +822,13 @@ function initMenuBar() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = mailItem.mail.subject;
+      a.download = mailItem.mail.subject
       a.addEventListener('click', {}, false);
       a.click();
     }
     /* -- Handle 'Trash' -- */
     if (e.detail.value.text === 'Trash') {
+      g_replyOf = null;
       DNA.deleteMail(g_currentMailItem.id)
         .then(callResult => getAllMails()) // On delete, refresh filebox
       const mailGrid = document.querySelector('#mailGrid');
@@ -904,6 +905,7 @@ function initMenuBar() {
 }
 
 
+/** */
 function selectUsername(contactGrid, candidat, count) {
   for(let contactItem of contactGrid.items) {
     if(contactItem.username === candidat) {
@@ -915,11 +917,10 @@ function selectUsername(contactGrid, candidat, count) {
       break;
     }
   }
-
 }
-/**
- *
- */
+
+
+/** */
 function update_mailGrid(folder) {
   const mailGrid = document.querySelector('#mailGrid');
   let folderItems = [];
@@ -1010,6 +1011,7 @@ function initFileBox() {
     const mailGrid = document.querySelector('#mailGrid');
     mailGrid.selectedItems = [];
     mailGrid.activeItem = null;
+    g_replyOf = null;
     update_mailGrid(event.target.value)
     g_currentFolder = event.target.value;
     setState_DeleteButton(true)
