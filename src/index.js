@@ -193,14 +193,17 @@ function handleSignal(signalwrapper) {
       const notification = document.querySelector('#notifyMail');
       notification.open();
 
+      const mail = signalwrapper.data.payload.ReceivedMail;
+      const pingedAgentB64 = htos(mail.author);
+      storePingResult({}, pingedAgentB64);
+
       if (IS_ELECTRON && window.require) {
         //console.log("handleSignal for ELECTRON");
 
-        let mail = signalwrapper.data.payload.ReceivedMail;
         console.log(mail);
         let author_name = g_usernameMap.get(htos(mail.author)) || 'unknown user';
 
-        // ELECTRON NOTIFICATION
+        /** ELECTRON NOTIFICATION */
         const NOTIFICATION_TITLE = 'New mail received from ' + author_name;
         const NOTIFICATION_BODY = signalwrapper.data.payload.ReceivedMail.mail.subject;
         //const CLICK_MESSAGE = 'Notification clicked';
@@ -209,7 +212,7 @@ function handleSignal(signalwrapper) {
         //new Notification(NOTIFICATION_TITLE, { body: NOTIFICATION_BODY })
         //  .onclick = () => console.log(CLICK_MESSAGE)
 
-        // - Notify Electron main
+        /* Notify Electron main */
        const ipc = window.require('electron').ipcRenderer;
        let reply = ipc.sendSync('newMailSync', NOTIFICATION_TITLE, NOTIFICATION_BODY);
        console.log(reply);
@@ -222,6 +225,8 @@ function handleSignal(signalwrapper) {
       let item = signalwrapper.data.payload.ReceivedAck;
       console.log("received_ack:");
       console.log({item});
+      const pingedAgentB64 = htos(item.from);
+      storePingResult({}, pingedAgentB64);
       const notification = document.querySelector('#notifyAck');
       notification.open();
       getAllMails();
@@ -628,6 +633,8 @@ async function initDna() {
     g_dnaId = dnaId;
     g_myAgentHash = cellId[1];
     g_myAgentId = htos(g_myAgentHash);
+    storePingResult({}, g_myAgentId);
+
     // Load Groups from localStorage
     loadGroupList(dnaId);
     regenerateGroupComboBox(SYSTEM_GROUP_LIST[0]);
@@ -1810,15 +1817,18 @@ function pingNextAgent() {
     g_canPing = true;
     return;
   }
+  const contactGrid = document.querySelector('#contactGrid');
   DNA.pingAgent(pingedAgent)
     .then(result => {
       storePingResult(result, pingedAgentB64);
       g_canPing = true;
+      contactGrid.render();
     })
     .catch(error => {
       console.error('Ping failed for: ' + pingedAgentB64);
       console.error({ error })
       storePingResult(undefined, pingedAgentB64);
+      contactGrid.render();
     })
 
 }
