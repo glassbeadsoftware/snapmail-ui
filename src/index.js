@@ -852,7 +852,7 @@ function initMenuBar() {
         if (contactItem.username === g_currentMailItem.username) {
           contactGrid.selectedItems = [contactItem];
           contactGrid.activeItem = contactItem;
-          toggleContact(contactItem);
+          toggleContact(contactGrid, contactItem);
           contactGrid.render();
           break;
         }
@@ -910,7 +910,7 @@ function selectUsername(contactGrid, candidat, count) {
   for(let contactItem of contactGrid.items) {
     if(contactItem.username === candidat) {
       for (let i = 0; i < count; i++) {
-        toggleContact(contactItem);
+        toggleContact(contactGrid, contactItem);
       }
       contactGrid.selectedItems.push(contactItem);
       contactGrid.activeItem = contactItem;
@@ -1333,7 +1333,8 @@ function initContactsArea() {
   contactGrid.addEventListener('click', function(e) {
     const item = contactGrid.getEventContext(e).item;
     //contactGrid.selectedItems = item ? [item] : [];
-    toggleContact(item);
+    toggleContact(contactGrid, item);
+    setState_SendButton(contactGrid.selectedItems.length == 0);
     contactGrid.render();
   });
   // -- Contacts search bar -- //
@@ -1381,7 +1382,7 @@ function filterContacts(selectedItems, searchValue) {
 /**
  *
  */
-function toggleContact(contactItem) {
+function toggleContact(contactGrid, contactItem) {
   if (!contactItem) {
     return;
   }
@@ -1390,7 +1391,15 @@ function toggleContact(contactItem) {
     case '': nextType = 'to'; break;
     case 'to': nextType = 'cc'; break;
     case 'cc': nextType = 'bcc'; break;
-    case 'bcc': nextType = ''; break;
+    case 'bcc': {
+      nextType = '';
+      console.log({activeItem:contactGrid.activeItem})
+      const index = contactGrid.selectedItems.indexOf(contactItem)
+      if (index > -1) {
+        contactGrid.selectedItems.splice(index, 1);
+      }
+      break;
+    }
     default: console.err('unknown recepientType');
   }
   contactItem.recepientType = nextType;
