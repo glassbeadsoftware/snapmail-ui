@@ -10,6 +10,20 @@ module.exports = {
     // mail: './src/mail.js',
   },
   plugins: [
+      //new webpack.node.NodeEnvironmentPlugin({infrastructureLogging: {level: "info"}}),
+      new webpack.NormalModuleReplacementPlugin(/node:/, (resource) => {
+        const mod = resource.request.replace(/^node:/, "");
+        switch (mod) {
+          case "zlib":
+            resource.request = "browserify-zlib";
+            break;
+          case "fs":
+            resource.request = "fs";
+            break;
+          default:
+            throw new Error(`Not found ${mod}`);
+        }
+      }),
       new webpack.EnvironmentPlugin(['NODE_ENV']),
       new HtmlWebpackPlugin({
         template: './src/index.html'
