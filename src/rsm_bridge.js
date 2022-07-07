@@ -55,9 +55,8 @@ export async function rsmConnectAdmin() {
   // })
 }
 
-/**
- *
- */
+
+/**  */
 export async function rsmConnectApp(signalCallback) {
   let env = window.location;
   const installed_app_id = NETWORK_ID !== '' ? APP_ID + '-' + NETWORK_ID : APP_ID;
@@ -83,6 +82,25 @@ export async function rsmConnectApp(signalCallback) {
     throw 'Failed to find cell with NETWORK_ID';
   }
   console.log({g_cellId})
+
+  /** Get handle */
+  if (IS_ELECTRON && window.require) {
+    console.log("Calling getMyHandle() for ELECTRON");
+    let startingHandle = "<noname>"
+    const callResult = await getMyHandle();
+    if (callResult.Ok !== undefined) {
+      startingHandle = '' + callResult.Ok;
+    }
+    const ipc = window.require('electron').ipcRenderer;
+    let reply = ipc.sendSync('startingHandle', startingHandle);
+    console.log({reply});
+    if (reply != "<noname>") {
+      const callResult = await setHandle(reply);
+      console.log({callResult});
+    }
+  }
+
+  /** Done */
   await dumpState(g_cellId)
   return g_cellId;
 }
