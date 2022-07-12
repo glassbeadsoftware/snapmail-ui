@@ -42,18 +42,16 @@ var receiveSignal = (signal/*: AppSignal*/) => {
 
 // -- micro API -- //
 
-/**
- *
- */
-export async function rsmConnectAdmin() {
-  g_adminWs = await AdminWebsocket.connect(ADMIN_URL, DEFAULT_TIMEOUT)
-  console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
-  // g_adminWs.generateAgentPubKey().then((newKey) => {
-  //     g_newKey = newKey
-  //     console.log({newKey})
-  //     printAdmin()
-  // })
-}
+//
+// export async function rsmConnectAdmin() {
+//   g_adminWs = await AdminWebsocket.connect(ADMIN_URL, DEFAULT_TIMEOUT)
+//   console.log('*** Connected to RSM Admin: ' + JSON.stringify(g_adminWs))
+//   // g_adminWs.generateAgentPubKey().then((newKey) => {
+//   //     g_newKey = newKey
+//   //     console.log({newKey})
+//   //     printAdmin()
+//   // })
+// }
 
 
 /**  */
@@ -88,11 +86,12 @@ export async function rsmConnectApp(signalCallback) {
     console.log("Calling getMyHandle() for ELECTRON");
     let startingHandle = "<noname>"
     const callResult = await getMyHandle();
+    console.log("getMyHandle() returned: " + callResult);
     if (callResult.Ok !== undefined) {
       startingHandle = '' + callResult.Ok;
     }
     const ipc = window.require('electron').ipcRenderer;
-    let reply = ipc.sendSync('startingHandle', startingHandle);
+    let reply = ipc.sendSync('startingInfo', startingHandle, g_cellId[0]);
     console.log({reply});
     if (reply != "<noname>") {
       const callResult = await setHandle(reply);
