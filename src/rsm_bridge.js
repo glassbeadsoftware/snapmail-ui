@@ -84,12 +84,8 @@ export async function rsmConnectApp(signalCallback) {
   /** Get handle */
   if (IS_ELECTRON && window.require) {
     console.log("Calling getMyHandle() for ELECTRON");
-    let startingHandle = "<noname>"
-    const callResult = await getMyHandle();
-    console.log("getMyHandle() returned: " + callResult);
-    if (callResult.Ok !== undefined) {
-      startingHandle = '' + callResult.Ok;
-    }
+    let startingHandle = await getMyHandle();
+    console.log("getMyHandle() returned: " + startingHandle);
     const ipc = window.require('electron').ipcRenderer;
     let reply = ipc.sendSync('startingInfo', startingHandle, g_cellId[0]);
     console.log({reply});
@@ -104,9 +100,8 @@ export async function rsmConnectApp(signalCallback) {
   return g_cellId;
 }
 
-/**
- *
- */
+
+/** */
 const printAdmin = () => {
   console.log("printAdmin:")
   g_adminWs.listDnas().then((dnaList) => {
@@ -120,9 +115,8 @@ const printAdmin = () => {
   })
 }
 
-/**
- *
- */
+
+/** */
 const dumpState = async (cellId) => {
   if (g_adminWs === undefined) {
     console.log('dumpState() Error: g_adminWs undefined')
