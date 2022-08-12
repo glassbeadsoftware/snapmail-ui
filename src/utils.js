@@ -3,21 +3,26 @@ const CHUNK_MAX_SIZE = 200 * 1024;
 
 import * as base64 from "byte-base64";
 
+
 export var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
-/**
- * Convert hash (Uint8Array) to/from base64 string
- */
+
+/** Convert hash (Uint8Array) to/from base64 string */
 export function htos(u8array) {
+  if (!u8array) {
+    console.error("htos() argument is undefined")
+  }
   return base64.bytesToBase64(u8array)
 }
 export function stoh(str) {
+  if (!str) {
+    console.error("stoh() argument is undefined")
+  }
   return base64.base64ToBytes(str)
 }
 
-/**
- *
- */
+
+/** */
 export function cellIdToStr(cell) {
   let res = '('
   res += htos(cell.cellId[0])
@@ -27,15 +32,14 @@ export function cellIdToStr(cell) {
   return res
 }
 
-/**
- * Sleep via timeout promise
- */
+
+/** Sleep via timeout promise */
 export function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
 /**
- *
  * @returns {string}
  */
 export function arrayBufferToBase64(buffer) {
@@ -50,7 +54,6 @@ export function arrayBufferToBase64(buffer) {
 
 
 /**
- *
  * @returns {ArrayBufferLike}
  */
 export function base64ToArrayBuffer(base64) {
@@ -65,7 +68,6 @@ export function base64ToArrayBuffer(base64) {
 
 
 /**
- *
  * @returns {*}
  */
 export function sha256(message) {
@@ -77,8 +79,8 @@ export function sha256(message) {
   return hashHex;
 }
 
+
 /**
- *
  * @returns {any[]}
  */
 function chunkSubstr(str, size) {
@@ -92,7 +94,6 @@ function chunkSubstr(str, size) {
 
 
 /**
- *
  * @returns {{numChunks: number, dataHash: *, chunks: any[]}}
  */
 export function splitFile(full_data_string) {

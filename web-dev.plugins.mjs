@@ -9,11 +9,12 @@ const commonjs = fromRollup(rollupCommonjs);
 
 export default [
   replace({
-    global: 'window',
-    'process.env.NODE_ENV': '"prod"',
-    'process.env.CONDUCTOR_URL': process.env.CONDUCTOR_URL
-      ? `"${process.env.CONDUCTOR_URL}"`
-      : undefined,
+    global:
+      'window',
+      'process.env.NODE_ENV': '"prod"',
+      'process.env.CONDUCTOR_URL': process.env.CONDUCTOR_URL
+        ? `"${process.env.CONDUCTOR_URL}"`
+        : undefined,
   }),
   builtins(),
   commonjs({

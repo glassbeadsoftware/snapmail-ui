@@ -119,7 +119,7 @@ const printAdmin = () => {
 /** */
 const dumpState = async (cellId) => {
   if (g_adminWs === undefined) {
-    console.log('dumpState() Error: g_adminWs undefined')
+    console.log('dumpState() aborted: g_adminWs undefined')
     //resolve()
     return
   }

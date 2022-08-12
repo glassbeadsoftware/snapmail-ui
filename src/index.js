@@ -1063,7 +1063,7 @@ function initFileBox() {
 
     fillAttachmentGrid(mailItem.mail).then( function(missingCount) {
       if (missingCount > 0) {
-        DNA.getMissingAttachments(mailItem.author, mailItem.hh)
+        DNA.getMissingAttachments(mailItem.author, mailItem.ah)
           .then(callResult => handle_missingAttachments(callResult))
       }
       DNA.acknowledgeMail(item.id)
@@ -1687,7 +1687,8 @@ function handle_getAllMails(callResult) {
   const folderBox = document.querySelector('#fileboxFolder');
   let selectedBox = folderBox.value.codePointAt(0);
   for (let mailItem of mailList) {
-    g_mailMap.set(htos(mailItem.hh), mailItem);
+    console.log({mailItem})
+    g_mailMap.set(htos(mailItem.ah), mailItem);
     //
     let isDeleted = isMailDeleted(mailItem);
     let isOutMail = is_OutMail(mailItem);

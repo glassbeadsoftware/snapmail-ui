@@ -16,7 +16,7 @@
     "start:alex": "concurrently --names tsc,dev-server \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "start:billy": "concurrently --names tsc,dev-server \"web-dev-server --config ./web-dev-server-billy.config.mjs\"",
     "start:camille": "concurrently --names tsc,dev-server \"web-dev-server --config ./web-dev-server-camille.config.mjs\"",
-    "start:happ": "RUST_LOG=warn hc s generate ../../dna/snapmail.happ --run=$HC_PORT -a snapmail-app network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
+    "start:happ": "RUST_LOG=warn hc s generate ../../bin/snapmail.happ --run=$HC_PORT -a snapmail-app network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
     "devserver": "webpack-dev-server --env.mode development",
     "dev": "webpack --config webpack.dev.js",
     "release": "webpack --config webpack.release.js",

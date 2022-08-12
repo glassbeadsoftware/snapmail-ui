@@ -196,7 +196,7 @@ export function into_gridItem(usernameMap, mailItem) {
   let status = determineMailStatus(mailItem);
   // Done
   let item = {
-    "id": mailItem.hh,
+    "id": mailItem.ah,
     "username": username,
     "subject": mailItem.mail.subject,
     "date": dateStr,
@@ -237,7 +237,7 @@ export function into_mailText(usernameMap, mailItem) {
   if (process.env.NODE_ENV === 'dev') {
     intext += '\n\nDEBUG INFO';
     intext += '\nState: ' + JSON.stringify(mailItem.state);
-    intext += '\nHeaderHash: ' + htos(mailItem.hh);
+    intext += '\nActionHash: ' + htos(mailItem.ah);
     intext += '\nReply: ' + JSON.stringify(mailItem.reply);
     intext += '\nstatus: ' + JSON.stringify(mailItem.status);
     intext += '\nFiles: ' + mailItem.mail.attachments.length;
