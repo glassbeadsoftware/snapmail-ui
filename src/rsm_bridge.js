@@ -81,7 +81,7 @@ export async function rsmConnectApp(signalCallback) {
   }
   console.log({g_cellId})
 
-  /** Get handle */
+  /** Get handle from electron */
   if (IS_ELECTRON && window.require) {
     console.log("Calling getMyHandle() for ELECTRON");
     let startingHandle = await getMyHandle();
