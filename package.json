@@ -3,7 +3,6 @@
   "version": "0.1.9",
   "description": "A minimalist web interface for Snapmail Holochain app",
   "scripts": {
-    "all": "npm run sandbox-create && concurrently \"npm:sandbox-run\" \"npm:billy-ui\" \"npm:alex-ui\" \"npm:camille-ui\"",
     "all-ui": "concurrently --kill-others \"npm:billy-ui\" \"npm:alex-ui\" \"npm:camille-ui\"",
     "alex-ui": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server.config.mjs\"",
     "billy-ui": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server-billy.config.mjs\"",
@@ -16,7 +15,7 @@
     "start:alex": "concurrently --names tsc,dev-server \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "start:billy": "concurrently --names tsc,dev-server \"web-dev-server --config ./web-dev-server-billy.config.mjs\"",
     "start:camille": "concurrently --names tsc,dev-server \"web-dev-server --config ./web-dev-server-camille.config.mjs\"",
-    "start:happ": "RUST_LOG=warn hc s generate ../../bin/snapmail.happ --run=$HC_PORT -a snapmail-app network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
+    "start:happ": "RUST_LOG=warn WASM_LOG=debug echo \"pass\" | hc s --piped generate ../../bin/snapmail.happ --run=$HC_PORT -a snapmail-app network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
     "devserver": "webpack-dev-server --env.mode development",
     "dev": "webpack --config webpack.dev.js",
     "release": "webpack --config webpack.release.js",
@@ -40,7 +39,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "@holochain/client": "0.6.0",
+    "@holochain/client": "0.7.0",
     "@polymer/polymer": "^3.3.1",
     "@rollup/plugin-commonjs": "^15.1.0",
     "@rollup/plugin-node-resolve": "^9.0.0",
