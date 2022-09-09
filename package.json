@@ -7,6 +7,7 @@
     "alex-ui": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server.config.mjs\"",
     "billy-ui": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server-billy.config.mjs\"",
     "camille-ui": "concurrently -k --names tsc,dev-server \"web-dev-server --config web-dev-server-camille.config.mjs\"",
+    "clean": "rm -rf node_modules && rm package-lock.json && npm run clean:hc && rm -rf temp",
     "clean:hc": "rm -rf .hc_live*",
     "network": "npm run clean:hc && concurrently \"npm:alex\" \"npm:billy\" \"npm:camille\"",
     "alex": "cross-env HC_PORT=8880 concurrently \"npm run start:happ\" \"sleep 5 && npm run start:alex\"",
